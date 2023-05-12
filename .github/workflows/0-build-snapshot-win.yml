@@ -1,0 +1,71 @@
+name: 0-build-snapshot-win
+# 2023-04-16 23:00 UTC
+
+on:
+  workflow_dispatch:
+  workflow_call:
+#  push:
+#    paths:
+#    - 'components/**'
+#    - 'plugins/**'
+#    - 'sdk/**'
+#    - 'src/**'
+#    branches:
+#      - master
+
+env:
+  TAG_NAME: "doublecmd"
+
+#concurrency:
+#  group: ${{ github.ref }}
+#  cancel-in-progress: true
+
+jobs:
+  build-win:
+    runs-on: windows-latest
+    steps:
+    - name: Install Lazarus
+      uses: deep-soft/setup-fpc@win
+      with:
+        lazarus-version: "2.2.6"
+
+    - name: Checkout source
+      uses: deep-soft/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Build packages
+      run: ./.github/scripts/create_snapshot_pv.bat
+
+    - name: Publish Release
+      continue-on-error: true
+      uses: deep-soft/action-gh-release@v1
+      with:
+        draft: true
+        tag_name: ${{ env.TAG_NAME }}-${{ env.DC_VER }}-${{ env.DC_REVISION }}-win
+        files: |
+          ./doublecmd-release/*.7z
+          ./doublecmd-release/*.txt
+
+    - name: Prepare to deploy to snapshot server
+      continue-on-error: true
+      shell: bash
+      run: bash ./.github/scripts/upload_snapshot_pv_pre.sh
+
+    - name: Deploy to snapshot server
+      continue-on-error: true
+      shell: bash
+      run: bash ./.github/scripts/upload_snapshot_pv.sh
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+        SSH_PRIVATE_KEY_P: ${{ secrets.SERVER_SSH_KEY_P }}
+        REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+        REMOTE_PORT: ${{ secrets.REMOTE_PORT }}
+        REMOTE_USER: ${{ secrets.REMOTE_USER }}
+
+    - name: Print REVISION
+      continue-on-error: true
+      shell: bash
+      run: |
+        echo "Version: ${{ env.DC_VER }}"
+        echo "Revision: ${{ env.DC_REVISION }}"

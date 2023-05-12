@@ -1,0 +1,29 @@
+name: 0-build-snapshot
+# 2023-04-16 23:00 UTC
+
+on:
+  workflow_dispatch:
+#  push:
+#    paths:
+#    - 'components/**'
+#    - 'plugins/**'
+#    - 'sdk/**'
+#    - 'src/**'
+#    branches:
+#      - master
+
+env:
+  TAG_NAME: "doublecmd-release"
+
+#concurrency:
+#  group: ${{ github.ref }}
+#  cancel-in-progress: true
+
+jobs:
+  build-mac:
+    uses: ./.github/workflows/0-build-snapshot-mac.yml
+    secrets: inherit
+
+  build-win:
+    uses: ./.github/workflows/0-build-snapshot-win.yml
+    secrets: inherit
