@@ -1,14 +1,15 @@
 name: build-snapshot
 
 on:
-  push:
-    paths:
-    - 'components/**'
-    - 'plugins/**'
-    - 'sdk/**'
-    - 'src/**'
-    branches:
-      - master
+  workflow_dispatch:
+#  push:
+#    paths:
+#    - 'components/**'
+#    - 'plugins/**'
+#    - 'sdk/**'
+#    - 'src/**'
+#    branches:
+#      - master
 
 concurrency:
   group: ${{ github.ref }}
