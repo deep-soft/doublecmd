@@ -1,7 +1,8 @@
 name: Publish to WinGet
 on:
-  release:
-    types: [released]
+  workflow_dispatch:
+#  release:
+#    types: [released]
 jobs:
   publish:
     runs-on: windows-latest # action can only be run on windows
