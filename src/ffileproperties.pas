@@ -141,6 +141,7 @@ type
     procedure ShowExecutable;
     procedure ShowPermissions(Mode: TFileAttrs);
     function GetModeFromForm(out ExcludeAttrs: TFileAttrs): TFileAttrs;
+    function FormatSize(ASize: Int64): String;
     procedure ShowMany;
     procedure ShowFile(iIndex:Integer);
     procedure StartCalcFolderSize;
@@ -165,7 +166,7 @@ uses
   uDefaultFilePropertyFormatter, uMyUnix, DCFileAttributes, uGlobs, uWdxModule,
   uFileSourceOperationTypes, uFileSystemFileSource, uOperationsManager, WdxPlugin,
   uFileSourceOperationOptions, uKeyboard, DCStrUtils, uPixMapManager,
-  uFileSourceProperty, DCDateTimeUtils;
+  uFileSourceProperty, DCDateTimeUtils, uTypes;
 
 procedure ShowFileProperties(aFileSource: IFileSource; const aFiles: TFiles);
 begin
@@ -317,6 +318,15 @@ begin
   end;
 end;
 
+function TfrmFileProperties.FormatSize(ASize: Int64): String;
+begin
+  if gFileSizeFormat in [fsfByte, fsfPersonalizedByte] then
+    Result:= cnvFormatFileSize(ASize)
+  else begin
+    Result:= Format('%s (%s)', [cnvFormatFileSize(ASize), IntToStrTS(ASize)]);
+  end;
+end;
+
 procedure TfrmFileProperties.ShowMany;
 var
   ASize: Int64;
@@ -353,7 +363,7 @@ begin
 
   if (Directories = 0) then
   begin
-    lblSize.Caption := Format('%s (%s)', [cnvFormatFileSize(ASize), IntToStrTS(ASize)]);
+    lblSize.Caption := FormatSize(ASize);
   end
   else if (fsoCalcStatistics in FFileSource.GetOperationsTypes) then
   begin
@@ -567,7 +577,7 @@ begin
       if IsDirectory and (fsoCalcStatistics in FFileSource.GetOperationsTypes) then
         StartCalcFolderSize // Start calculate folder size operation
       else
-        lblSize.Caption := Properties[fpSize].Format(FPropertyFormatter);
+        lblSize.Caption := FormatSize(Size);
     end;
     lblSize.Visible := hasSize;
     lblSizeStr.Visible := hasSize;
@@ -581,7 +591,7 @@ begin
     if hasSize then
     begin
       ASize:= FFileAttr.FindData.st_blocks * 512;
-      lblSizeOnDisk.Caption:= Format('%s (%s)', [cnvFormatFileSize(ASize), IntToStrTS(ASize)]);
+      lblSizeOnDisk.Caption:= FormatSize(ASize);
     end;
     lblSizeOnDisk.Visible:= hasSize;
     lblSizeOnDiskStr.Visible:= hasSize;
@@ -778,7 +788,7 @@ begin
   if Assigned(FFileSourceCalcStatisticsOperation) then
     with FFileSourceCalcStatisticsOperation.RetrieveStatistics do
     begin
-      lblSize.Caption := Format('%s (%s)', [cnvFormatFileSize(Size), IntToStrTS(Size)]);
+      lblSize.Caption := FormatSize(Size);
       lblContains.Caption := Format(rsPropsContains, [Files, Directories]);
     end;
 end;
