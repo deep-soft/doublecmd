@@ -28,7 +28,7 @@ interface
 
 uses
   Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ColorBox, Buttons, LMessages, Types;
+  ColorBox, Buttons, LMessages, Types, KASButton;
 
 const
   DEF_COLOR_STYLE = [cbStandardColors, cbExtendedColors,
@@ -80,11 +80,13 @@ type
     function GetSelected: TColor;
     function GetStyle: TColorBoxStyle;
     function GetOnChange: TNotifyEvent;
+    function GetColorDialog: TColorDialog;
     procedure SetSelected(AValue: TColor);
     procedure SetStyle(AValue: TColorBoxStyle);
     procedure SetOnChange(AValue: TNotifyEvent);
+    procedure SetColorDialog(AValue: TColorDialog);
   protected
-    FButton: TSpeedButton;
+    FButton: TKASButton;
     FColorBox: TKASColorBox;
     procedure DoAutoSize; override;
     procedure ButtonClick(Sender: TObject);
@@ -99,9 +101,13 @@ type
     property Selected: TColor read GetSelected write SetSelected default clBlack;
   published
     property Align;
+    property Anchors;
     property TabOrder;
+    property Constraints;
+    property BorderSpacing;
     property AutoSize default True;
     property OnChange: TNotifyEvent read GetOnChange write SetOnChange;
+    property ColorDialog: TColorDialog read GetColorDialog write SetColorDialog;
     property Style: TColorBoxStyle read GetStyle write SetStyle default DEF_COLOR_STYLE;
   end;
 
@@ -289,6 +295,11 @@ begin
   Result:= FColorBox.OnChange;
 end;
 
+function TKASColorBoxButton.GetColorDialog: TColorDialog;
+begin
+  Result:= FColorBox.ColorDialog;
+end;
+
 procedure TKASColorBoxButton.SetSelected(AValue: TColor);
 begin
   FColorBox.SetCustomColor(AValue);
@@ -302,6 +313,11 @@ end;
 procedure TKASColorBoxButton.SetOnChange(AValue: TNotifyEvent);
 begin
   FColorBox.OnChange:= AValue;
+end;
+
+procedure TKASColorBoxButton.SetColorDialog(AValue: TColorDialog);
+begin
+  FColorBox.ColorDialog:= AValue;
 end;
 
 procedure TKASColorBoxButton.DoAutoSize;
@@ -376,7 +392,7 @@ end;
 
 constructor TKASColorBoxButton.Create(AOwner: TComponent);
 begin
-  FButton:= TSpeedButton.Create(Self);
+  FButton:= TKASButton.Create(Self);
   FColorBox:= TKASColorBox.Create(Self);
 
   inherited Create(AOwner);
@@ -387,18 +403,19 @@ begin
   TabStop:= True;
   inherited TabStop:= False;
 
-  with FButton do
-  begin
-    Align:= alRight;
-    Caption:= '..';
-    OnClick:= @ButtonClick;
-    Parent:= Self;
-  end;
   with FColorBox do
   begin
     Align:= alClient;
     ParentColor:= False;
     ParentFont:= True;
+    Parent:= Self;
+  end;
+  with FButton do
+  begin
+    Align:= alRight;
+    Caption:= '..';
+    BorderSpacing.Left:= 2;
+    OnClick:= @ButtonClick;
     Parent:= Self;
   end;
 
