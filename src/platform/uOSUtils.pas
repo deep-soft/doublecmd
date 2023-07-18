@@ -165,11 +165,6 @@ function mbFileNameToSysEnc(const LongPath: String): String;
    Converts file name to native representation
 }
 function mbFileNameToNative(const FileName: String): NativeString; inline;
-{en
-   Extract the root directory part of a file name.
-   @returns(Drive letter under Windows and mount point under Unix)
-}
-function ExtractRootDir(const FileName: String): String;
 
 procedure FixFormIcon(Handle: LCLType.HWND);
 procedure HideConsoleWindow;
@@ -416,7 +411,6 @@ var
   sCmdLine: String;
 begin
   Result:= False;
-  sCmdLine:= EmptyStr;
 
   if FileIsUnixExecutable(URL) then
   begin
@@ -426,6 +420,7 @@ begin
       sCmdLine:= IncludeTrailingPathDelimiter(mbGetCurrentDir);
       sCmdLine:= GetAbsoluteFileName(sCmdLine, URL)
     end;
+    Result:= ExecuteCommand(sCmdLine, [], mbGetCurrentDir);
   end
   else begin
   {$IF NOT DEFINED(HAIKU)}
@@ -443,11 +438,10 @@ begin
         sCmdLine:= GetAbsoluteFileName(sCmdLine, URL)
       end;
       sCmdLine:= GetDefaultAppCmd(sCmdLine);
+      if Length(sCmdLine) > 0 then begin
+        Result:= ExecCmdFork(sCmdLine);
+      end;
     end;
-  end;
-
-  if Length(sCmdLine) > 0 then begin
-    Result:= ExecCmdFork(sCmdLine);
   end;
 end;
 {$ENDIF}
@@ -729,17 +723,6 @@ end;
 {$ELSE}
 begin
   Result:= CeUtf8ToSys(LongPath);
-end;
-{$ENDIF}
-
-function ExtractRootDir(const FileName: String): String;
-{$IFDEF UNIX}
-begin
-  Result:= ExcludeTrailingPathDelimiter(FindMountPointPath(ExcludeTrailingPathDelimiter(FileName)));
-end;
-{$ELSE}
-begin
-  Result:= ExtractFileDrive(FileName);
 end;
 {$ENDIF}
 

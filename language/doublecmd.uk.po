@@ -1386,15 +1386,17 @@ msgid "&Group"
 msgstr "Гру&па"
 
 #: tfrmfileproperties.lbllastaccessstr.caption
-msgid "Last access:"
+msgctxt "tfrmfileproperties.lbllastaccessstr.caption"
+msgid "Accessed:"
 msgstr "Останній доступ:"
 
 #: tfrmfileproperties.lbllastmodifstr.caption
-msgid "Last modification:"
+msgctxt "tfrmfileproperties.lbllastmodifstr.caption"
+msgid "Modified:"
 msgstr "Остання зміна:"
 
 #: tfrmfileproperties.lbllaststchangestr.caption
-msgid "Last status change:"
+msgid "Status changed:"
 msgstr "Остання зміна статусу:"
 
 #: tfrmfileproperties.lbllinksstr.caption
@@ -6585,11 +6587,6 @@ msgctxt "TFRMOPTIONSFILETYPESCOLORS.BTNAPPLYCATEGORY.CAPTION"
 msgid "A&pply"
 msgstr "&Застосувати"
 
-#: tfrmoptionsfiletypescolors.btncategorycolor.caption
-msgctxt "TFRMOPTIONSFILETYPESCOLORS.BTNCATEGORYCOLOR.CAPTION"
-msgid ">>"
-msgstr ">>"
-
 #: tfrmoptionsfiletypescolors.btndeletecategory.caption
 msgctxt "TFRMOPTIONSFILETYPESCOLORS.BTNDELETECATEGORY.CAPTION"
 msgid "D&elete"
@@ -8995,6 +8992,7 @@ msgid "Hidden"
 msgstr "Прихований"
 
 #: tfrmsetfileproperties.chklastaccesstime.caption
+msgctxt "tfrmsetfileproperties.chklastaccesstime.caption"
 msgid "Accessed:"
 msgstr "Доступний:"
 
@@ -11431,6 +11429,11 @@ msgstr "Закладка (%s) заблокована. Закрити?"
 #: ulng.rsmsgcofirmuserparam
 msgid "Confirmation of parameter"
 msgstr "Підтвердження параметра"
+
+#: ulng.rsmsgcommandnotfound
+#, object-pascal-format
+msgid "Command not found! (%s)"
+msgstr ""
 
 #: ulng.rsmsgconfirmquit
 msgid "Are you sure you want to quit?"

@@ -1345,15 +1345,17 @@ msgid "&Group"
 msgstr ""
 
 #: tfrmfileproperties.lbllastaccessstr.caption
-msgid "Last access:"
+msgctxt "tfrmfileproperties.lbllastaccessstr.caption"
+msgid "Accessed:"
 msgstr ""
 
 #: tfrmfileproperties.lbllastmodifstr.caption
-msgid "Last modification:"
+msgctxt "tfrmfileproperties.lbllastmodifstr.caption"
+msgid "Modified:"
 msgstr ""
 
 #: tfrmfileproperties.lbllaststchangestr.caption
-msgid "Last status change:"
+msgid "Status changed:"
 msgstr ""
 
 #: tfrmfileproperties.lbllinksstr.caption
@@ -6396,11 +6398,6 @@ msgctxt "TFRMOPTIONSFILETYPESCOLORS.BTNAPPLYCATEGORY.CAPTION"
 msgid "A&pply"
 msgstr ""
 
-#: tfrmoptionsfiletypescolors.btncategorycolor.caption
-msgctxt "TFRMOPTIONSFILETYPESCOLORS.BTNCATEGORYCOLOR.CAPTION"
-msgid ">>"
-msgstr ""
-
 #: tfrmoptionsfiletypescolors.btndeletecategory.caption
 msgctxt "TFRMOPTIONSFILETYPESCOLORS.BTNDELETECATEGORY.CAPTION"
 msgid "D&elete"
@@ -8686,6 +8683,7 @@ msgid "Hidden"
 msgstr ""
 
 #: tfrmsetfileproperties.chklastaccesstime.caption
+msgctxt "tfrmsetfileproperties.chklastaccesstime.caption"
 msgid "Accessed:"
 msgstr ""
 
@@ -11039,6 +11037,11 @@ msgstr ""
 
 #: ulng.rsmsgcofirmuserparam
 msgid "Confirmation of parameter"
+msgstr ""
+
+#: ulng.rsmsgcommandnotfound
+#, object-pascal-format
+msgid "Command not found! (%s)"
 msgstr ""
 
 #: ulng.rsmsgconfirmquit
