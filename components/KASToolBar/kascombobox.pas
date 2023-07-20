@@ -89,10 +89,9 @@ type
     FButton: TKASButton;
     FColorBox: TKASColorBox;
     procedure DoAutoSize; override;
+    procedure EnabledChanged; override;
     procedure ButtonClick(Sender: TObject);
     class function GetControlClassDefaultSize: TSize; override;
-    procedure CalculatePreferredSize(var PreferredWidth, PreferredHeight: integer;
-                WithThemeSpace: Boolean); override;
     procedure CMParentColorChanged(var Message: TLMessage); message CM_PARENTCOLORCHANGED;
   public
     constructor Create(AOwner: TComponent); override;
@@ -256,6 +255,12 @@ begin
   if csDesigning in ComponentState then Exit;
   if (Parent = nil) or (not Parent.HandleAllocated) then Exit;
 
+  if (csSubComponent in ComponentStyle) then
+  begin
+    if (Parent.Anchors * [akLeft, akRight] = [akLeft, akRight]) then
+      Exit;
+  end;
+
   CalculateSize(Self, PreferredWidth, PreferredHeight);
   PreferredWidth+= ColorRectWidth + ColorRectOffset;
 end;
@@ -326,6 +331,16 @@ begin
   FButton.Constraints.MinWidth:= FButton.Height;
 end;
 
+procedure TKASColorBoxButton.EnabledChanged;
+begin
+  if Enabled then
+    FColorBox.Font.Color:= clDefault
+  else begin
+    FColorBox.Font.Color:= clGrayText;
+  end;
+  inherited EnabledChanged;
+end;
+
 procedure TKASColorBoxButton.ButtonClick(Sender: TObject);
 Var
   FreeDialog: Boolean;
@@ -364,23 +379,6 @@ begin
   Result.cx += Result.cy;
 end;
 
-procedure TKASColorBoxButton.CalculatePreferredSize(var PreferredWidth,
-  PreferredHeight: integer; WithThemeSpace: Boolean);
-begin
-  if csDesigning in ComponentState then
-  begin
-    with GetControlClassDefaultSize do
-    begin
-      PreferredWidth:= cx;
-      PreferredHeight:= cy;
-    end;
-  end
-  else begin
-    FColorBox.CalculatePreferredSize(PreferredWidth, PreferredHeight, WithThemeSpace);
-    PreferredWidth += FButton.Width;
-  end;
-end;
-
 procedure TKASColorBoxButton.CMParentColorChanged(var Message: TLMessage);
 begin
   if inherited ParentColor then
@@ -398,13 +396,13 @@ begin
   inherited Create(AOwner);
 
   ControlStyle:= ControlStyle + [csNoFocus];
-  FColorBox.ParentColor:= False;
   BorderStyle:= bsNone;
   TabStop:= True;
   inherited TabStop:= False;
 
   with FColorBox do
   begin
+    SetSubComponent(True);
     Align:= alClient;
     ParentColor:= False;
     ParentFont:= True;
