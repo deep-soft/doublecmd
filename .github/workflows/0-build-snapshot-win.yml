@@ -1,5 +1,5 @@
 name: 0-build-snapshot-win
-# 2023-04-16 23:00 UTC
+# 2023-08-06 09:00
 
 on:
   workflow_dispatch:
@@ -33,18 +33,18 @@ jobs:
     - name: Set DC_VER
       shell: bash
       run: |
-        # set -x
-        _version_major_=$(grep "MajorVersionNr Value="       src/doublecmd.lpi | awk -F = '{print $2}' | awk -F / '{print $1}' | tr /d \" )
-        _version_minor_=$(grep "MinorVersionNr Value="       src/doublecmd.lpi | awk -F = '{print $2}' | awk -F / '{print $1}' | tr /d \" )
-        echo "_version_major_=" $_version_major_
-        echo "_version_minor_=" $_version_minor_
-        _prog_version_="$_version_major_.$_version_minor_.0"
-        echo "DC_VER=$_prog_version_" >> $GITHUB_ENV
+        # set -x;
+        _version_major_=$(grep "MajorVersionNr Value="       src/doublecmd.lpi | awk -F = '{print $2}' | awk -F / '{print $1}' | tr /d \" );
+        _version_minor_=$(grep "MinorVersionNr Value="       src/doublecmd.lpi | awk -F = '{print $2}' | awk -F / '{print $1}' | tr /d \" );
+        echo "_version_major_=" $_version_major_;
+        echo "_version_minor_=" $_version_minor_;
+        _prog_version_="$_version_major_.$_version_minor_.0";
+        echo "DC_VER=$_prog_version_" >> $GITHUB_ENV;
 
     - name: Print DC_VER
       shell: bash
       run: |
-        echo "DC_VER=${{ env.DC_VER }}"
+        echo "DC_VER=${{ env.DC_VER }}";
 
     - name: Archive src Release
       uses: deep-soft/zip-release@v1
@@ -60,7 +60,9 @@ jobs:
         lazarus-version: "2.2.6"
 
     - name: Build packages
-      run: ./.github/scripts/create_snapshot_pv.bat
+      run: |
+        cd
+        ./.github/scripts/create_snapshot_pv.bat
 
     - name: Publish Release
       continue-on-error: true
@@ -77,8 +79,8 @@ jobs:
       continue-on-error: true
       shell: bash
       run: |
-        mv '${{ env.TAG_NAME }}-${{ env.DC_VER }}.tar.xz' doublecmd-release/
-        bash ./.github/scripts/upload_snapshot_pv_pre.sh
+        mv '${{ env.TAG_NAME }}-${{ env.DC_VER }}.tar.xz' doublecmd-release/;
+        bash ./.github/scripts/upload_snapshot_pv_pre.sh;
 
     - name: Deploy to snapshot server
       continue-on-error: true
@@ -95,5 +97,5 @@ jobs:
       continue-on-error: true
       shell: bash
       run: |
-        echo "Version: ${{ env.DC_VER }}"
-        echo "Revision: ${{ env.DC_REVISION }}"
+        echo "Version: ${{ env.DC_VER }}";
+        echo "Revision: ${{ env.DC_REVISION }}";
