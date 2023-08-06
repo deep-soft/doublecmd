@@ -24,15 +24,11 @@ jobs:
   build-mac:
     runs-on: macos-11
     steps:
-    - name: Install Free Pascal
-      uses: deep-soft/setup-fpc@master
-      with:
-        lazarus-version: "stable"
 
     - name: Get Lazarus source
       uses: deep-soft/checkout@v3
       with:
-            repository: 'fpc/Lazarus'
+        repository: 'fpc/Lazarus'
 
     - name: Set DC_VER
       shell: bash
@@ -49,6 +45,11 @@ jobs:
       shell: bash
       run: |
         echo "DC_VER=${{ env.DC_VER }}"
+
+    - name: Install Free Pascal
+      uses: deep-soft/setup-fpc@master
+      with:
+        lazarus-version: "stable"
 
     - name: Build and install Lazarus
       run: make all install
