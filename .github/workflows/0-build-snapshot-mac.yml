@@ -70,6 +70,11 @@ jobs:
         files: |
           ${{ env.ZIP_RELEASE_ARCHIVE }}
 
+    - name: move Archive src
+      run: |
+        mv ${{ env.ZIP_RELEASE_ARCHIVE }} ../
+        ls -l ../${{ env.ZIP_RELEASE_ARCHIVE }}
+
     - name: Get Lazarus source
       uses: deep-soft/checkout@v3
       with:
@@ -100,6 +105,11 @@ jobs:
       shell: bash
       run: |
         bash ./.github/scripts/create_snapshot_pv.sh;
+
+    - name: move back Archive src
+      run: |
+        mv ../${{ env.ZIP_RELEASE_ARCHIVE }} ./
+        ls -l ${{ env.ZIP_RELEASE_ARCHIVE }}
 
     - name: Publish Release
       continue-on-error: true
