@@ -48,6 +48,7 @@ else
     echo "lcd doublecmd-release" >> upload_snapshot.txt
   #  echo "rm *.dmg" >> upload_snapshot.txt
     echo "put *.dmg" >> upload_snapshot.txt
+    echo "put *.7z" >> upload_snapshot.txt
     echo "put *.php" >> upload_snapshot.txt
     echo "quit" >> upload_snapshot.txt
     cat upload_snapshot.txt
@@ -59,6 +60,7 @@ else
     echo "lcd doublecmd-release" >> upload_snapshot.txt
   #  echo "rm *.dmg" >> upload_snapshot.txt
     echo "mput *.dmg" >> upload_snapshot.txt
+    echo "mput *.7z" >> upload_snapshot.txt
     echo "mput *.php" >> upload_snapshot.txt
     echo "quit" >> upload_snapshot.txt
     cat upload_snapshot.txt
