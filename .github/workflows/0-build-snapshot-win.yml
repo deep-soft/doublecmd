@@ -53,14 +53,6 @@ jobs:
         filename: '${{ env.TAG_NAME }}-${{ env.DC_VER }}.zip'
         exclusions: '*.git* /*node_modules/* .editorconfig doublecmd.app doublecmd-release/*'
 
-    - name: Build packages
-      shell: bash
-      run: |
-        pwd;
-        ls -l ./.github/scripts/;
-        cat ./.github/scripts/create_snapshot_pv.sh;
-        # bash ./.github/scripts/create_snapshot_pv.sh;
-
     - name: Install Lazarus
       uses: deep-soft/setup-fpc@win
       with:
@@ -69,8 +61,6 @@ jobs:
     - name: Build packages
       shell: cmd
       run: |
-        cd
-        dir
         cd ./.github/scripts/
         call create_snapshot_pv.bat
 
