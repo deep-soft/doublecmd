@@ -34,8 +34,8 @@ jobs:
       shell: bash
       run: |
         # set -x;
-        _version_major_=$(grep "MajorVersionNr Value="       src/doublecmd.lpi | awk -F = '{print $2}' | awk -F / '{print $1}' | tr /d '"' );
-        _version_minor_=$(grep "MinorVersionNr Value="       src/doublecmd.lpi | awk -F = '{print $2}' | awk -F / '{print $1}' | tr /d '"' );
+        _version_major_=$(grep "MajorVersionNr Value="       src/doublecmd.lpi | awk -F = '{print $2}' | awk -F / '{print $1}' | tr -d '"' );
+        _version_minor_=$(grep "MinorVersionNr Value="       src/doublecmd.lpi | awk -F = '{print $2}' | awk -F / '{print $1}' | tr -d '"' );
         echo "_version_major_=" $_version_major_;
         echo "_version_minor_=" $_version_minor_;
         _prog_version_="$_version_major_.$_version_minor_.0";
@@ -49,8 +49,8 @@ jobs:
     - name: Archive src Release
       uses: deep-soft/zip-release@v1
       with:
-        type: '7z'
-        filename: '${{ env.TAG_NAME }}-${{ env.DC_VER }}.7z'
+        type: 'zip'
+        filename: '${{ env.TAG_NAME }}-${{ env.DC_VER }}.zip'
         directory: '.'
         exclusions: '*.git* /*node_modules/* .editorconfig doublecmd-release/*'
 
@@ -106,7 +106,6 @@ jobs:
       continue-on-error: true
       shell: bash
       run: |
-        # mv '${{ env.TAG_NAME }}-${{ env.DC_VER }}.7z' doublecmd-release/;
         mv ${{ env.ZIP_RELEASE_ARCHIVE }} doublecmd-release/;
         bash ./.github/scripts/upload_snapshot_pv_pre.sh;
 
