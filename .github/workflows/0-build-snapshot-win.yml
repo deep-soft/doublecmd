@@ -34,8 +34,8 @@ jobs:
       shell: bash
       run: |
         # set -x
-        _version_major_=$(grep "MajorVersionNr Value="       src/doublecmd.lpi | awk -F = '{print $2}' | awk -F / '{print $1}')
-        _version_minor_=$(grep "MinorVersionNr Value="       src/doublecmd.lpi | awk -F = '{print $2}' | awk -F / '{print $1}')
+        _version_major_=$(grep "MajorVersionNr Value="       src/doublecmd.lpi | awk -F = '{print $2}' | awk -F / '{print $1}' | tr /d \" )
+        _version_minor_=$(grep "MinorVersionNr Value="       src/doublecmd.lpi | awk -F = '{print $2}' | awk -F / '{print $1}' | tr /d \" )
         echo "_version_major_=" $_version_major_
         echo "_version_minor_=" $_version_minor_
         _prog_version_="$_version_major_.$_version_minor_.0"
