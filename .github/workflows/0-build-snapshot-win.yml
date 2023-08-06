@@ -61,8 +61,7 @@ jobs:
     - name: Build packages
       shell: cmd
       run: |
-        cd ./.github/scripts/
-        call create_snapshot_pv.bat
+        call .github/scripts/create_snapshot_pv.bat
 
     - name: Publish Release
       continue-on-error: true
