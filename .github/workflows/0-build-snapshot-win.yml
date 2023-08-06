@@ -39,7 +39,9 @@ jobs:
         echo "_version_major_=" $_version_major_;
         echo "_version_minor_=" $_version_minor_;
         _prog_version_="$_version_major_.$_version_minor_.0";
+        _revision_=$(git -C $1 rev-list --count HEAD)
         echo "DC_VER=$_prog_version_" >> $GITHUB_ENV;
+        echo "DC_REVISION=$_revision_" >> $GITHUB_ENV;
 
     - name: Print DC_VER
       shell: bash
