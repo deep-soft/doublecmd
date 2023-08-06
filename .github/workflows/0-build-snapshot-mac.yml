@@ -53,14 +53,6 @@ jobs:
         filename: '${{ env.TAG_NAME }}-${{ env.DC_VER }}.zip'
         exclusions: '*.git* /*node_modules/* .editorconfig doublecmd-release/*'
 
-    - name: Build packages
-      shell: bash
-      run: |
-        pwd;
-        ls -l ./.github/scripts/;
-        cat ./.github/scripts/create_snapshot_pv.sh;
-        # bash ./.github/scripts/create_snapshot_pv.sh;
-
     - name: Get Lazarus source
       uses: deep-soft/checkout@v3
       with:
@@ -82,12 +74,14 @@ jobs:
         sudo cp tools/install/macosx/environmentoptions.xml /etc/lazarus/environmentoptions.xml;
         sudo sed -i -e "s|_PPCARCH_|fpc|g; s|/Developer/lazarus|/usr/local/share/lazarus|g" /etc/lazarus/environmentoptions.xml;
 
+    - name: Checkout source
+      uses: deep-soft/checkout@v3
+      with:
+        fetch-depth: 0
+
     - name: Build packages
       shell: bash
       run: |
-        pwd;
-        ls -l ./.github/scripts/;
-        cat ./.github/scripts/create_snapshot_pv.sh;
         bash ./.github/scripts/create_snapshot_pv.sh;
 
     - name: Publish Release
