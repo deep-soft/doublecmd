@@ -18,6 +18,7 @@ if [[ "$OSTYPE" == "msys" ]]; then
     echo "lcd doublecmd-release" >> upload_snapshot.txt
   #  echo "rm *.7z" >> upload_snapshot.txt
     echo "put *.7z" >> upload_snapshot.txt
+    echo "put *.zip" >> upload_snapshot.txt
     echo "put *.txt" >> upload_snapshot.txt
     echo "quit" >> upload_snapshot.txt
     cat upload_snapshot.txt
@@ -30,6 +31,7 @@ if [[ "$OSTYPE" == "msys" ]]; then
     echo "lcd doublecmd-release" >> upload_snapshot.txt
   #  echo "rm *.7z" >> upload_snapshot.txt
     echo "mput *.7z" >> upload_snapshot.txt
+    echo "mput *.zip" >> upload_snapshot.txt
     echo "mput *.txt" >> upload_snapshot.txt
     echo "quit" >> upload_snapshot.txt
     cat upload_snapshot.txt
@@ -48,7 +50,7 @@ else
     echo "lcd doublecmd-release" >> upload_snapshot.txt
   #  echo "rm *.dmg" >> upload_snapshot.txt
     echo "put *.dmg" >> upload_snapshot.txt
-    echo "put *.7z" >> upload_snapshot.txt
+    echo "put *.zip" >> upload_snapshot.txt
     echo "put *.php" >> upload_snapshot.txt
     echo "quit" >> upload_snapshot.txt
     cat upload_snapshot.txt
@@ -60,7 +62,7 @@ else
     echo "lcd doublecmd-release" >> upload_snapshot.txt
   #  echo "rm *.dmg" >> upload_snapshot.txt
     echo "mput *.dmg" >> upload_snapshot.txt
-    echo "mput *.7z" >> upload_snapshot.txt
+    echo "mput *.zip" >> upload_snapshot.txt
     echo "mput *.php" >> upload_snapshot.txt
     echo "quit" >> upload_snapshot.txt
     cat upload_snapshot.txt
