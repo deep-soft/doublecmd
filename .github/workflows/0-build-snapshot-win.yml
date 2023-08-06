@@ -51,7 +51,7 @@ jobs:
       with:
         type: 'zip'
         filename: '${{ env.TAG_NAME }}-${{ env.DC_VER }}.zip'
-        exclusions: '*.git* /*node_modules/* .editorconfig ./doublecmd.app/* doublecmd-release/*'
+        exclusions: '*.git* /*node_modules/* .editorconfig doublecmd.app doublecmd-release/*'
 
     - name: Build packages
       shell: bash
