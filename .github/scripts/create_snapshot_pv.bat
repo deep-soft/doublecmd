@@ -1,7 +1,14 @@
-:: 2023-04-16 23:00 UTC
-rem Set Double Commander version
-set DC_VER=1.1.0
+:: 2023-08-06 09:00
 
+rem test if DC_VER already set
+if .%DC_VER%==. goto Set_DC_VER
+goto DoContinue
+
+:Set_DC_VER
+rem Set Double Commander version
+set DC_VER=1.2.0
+
+:DoContinue
 rem The new package will be created from here
 set BUILD_PACK_DIR=%TEMP%\doublecmd-release
 
