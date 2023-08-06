@@ -47,7 +47,7 @@ jobs:
         echo "DC_VER=${{ env.DC_VER }}";
 
     - name: Archive src Release
-      uses: deep-soft/zip-release@v1
+      uses: deep-soft/zip-release@v2
       with:
         type: 'zip'
         filename: '${{ env.TAG_NAME }}-${{ env.DC_VER }}.zip'
