@@ -1,8 +1,11 @@
 #!/bin/bash
-# 2023-04-16 23:00 UTC
+# 2023-08-06 09:00
 
-# Set Double Commander version
-DC_VER=1.1.0
+# test if DC_VER already set
+if [ .$DC_VER==. ] then
+  # Set Double Commander version
+  DC_VER=1.2.0
+fi
 
 # The new package will be saved here
 PACK_DIR=$PWD/doublecmd-release
