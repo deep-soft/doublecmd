@@ -2,7 +2,8 @@
 # 2023-08-06 09:00
 
 # test if DC_VER already set
-if [ .$DC_VER==. ] then
+if [ .$DC_VER==. ]
+then
   # Set Double Commander version
   DC_VER=1.2.0
 fi
