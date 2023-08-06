@@ -52,8 +52,10 @@ jobs:
         type: 'zip'
         filename: '${{ env.TAG_NAME }}-${{ env.DC_VER }}.zip'
         directory: '.'
-        debug: 'yes'
+        path: '.'
+        inclusions: '.'
         exclusions: '*.git* /*node_modules/* .editorconfig doublecmd-release/*'
+        debug: 'yes'
 
     - name: Build packages
       shell: bash
