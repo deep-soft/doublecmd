@@ -34,6 +34,22 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Set DC_VER
+      shell: bash
+      run: |
+        # set -x
+        _version_major_=$(grep "MajorVersionNr Value="       src/doublecmd.lpi | awk -F = '{print $2}' | awk -F / '{print $1}'
+        _version_minor_=$(grep "MinorVersionNr Value="       src/doublecmd.lpi | awk -F = '{print $2}' | awk -F / '{print $1}'
+        echo "_version_major_=" $_version_major_
+        echo "_version_minor_=" $_version_minor_
+        _prog_version_="$_version_major_.$_version_minor_.0"
+        echo "DC_VER=$_prog_version_" >> $GITHUB_ENV
+
+    - name: Print DC_VER
+      shell: bash
+      run: |
+        echo "DC_VER=${{ env.DC_VER }}"
+
     - name: Build packages
       run: ./.github/scripts/create_snapshot_pv.bat
 
