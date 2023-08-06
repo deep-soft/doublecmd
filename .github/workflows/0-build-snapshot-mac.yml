@@ -53,6 +53,20 @@ jobs:
         filename: '${{ env.TAG_NAME }}-${{ env.DC_VER }}-src-mac.zip'
         exclusions: '*.git* /*node_modules/* .editorconfig doublecmd-release/*'
 
+    - name: list Archive src
+      run: |
+        echo 'arc name: ' ${{ env.ZIP_RELEASE_ARCHIVE }}
+        ls -l ${{ env.ZIP_RELEASE_ARCHIVE }}
+
+    - name: Publish Release
+      continue-on-error: true
+      uses: deep-soft/action-gh-release@v1
+      with:
+        draft: true
+        tag_name: ${{ env.TAG_NAME }}-${{ env.DC_VER }}-${{ env.DC_REVISION }}-mac
+        files: |
+          ${{ env.ZIP_RELEASE_ARCHIVE }}
+
     - name: Get Lazarus source
       uses: deep-soft/checkout@v3
       with:
