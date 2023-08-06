@@ -47,13 +47,14 @@ jobs:
       shell: bash
       run: |
         echo "DC_VER=${{ env.DC_VER }}";
+        echo "DC_REVISION=${{ env.DC_REVISION }}";
 
     - name: Archive src Release
       uses: deep-soft/zip-release@main
       with:
         type: 'zip'
-        filename: '${{ env.TAG_NAME }}-${{ env.DC_VER }}-src-win.zip'
-        exclusions: '*.git* /*node_modules/* .editorconfig doublecmd.app doublecmd-release/*'
+        filename: '${{ env.TAG_NAME }}-${{ env.DC_VER }}-${{ env.DC_REVISION }}-src-win.zip'
+        exclusions: '*.git* /*node_modules/* .editorconfig doublecmd-release/*'
 
     - name: list Archive src
       run: |
