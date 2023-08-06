@@ -50,7 +50,7 @@ jobs:
       uses: deep-soft/zip-release@main
       with:
         type: 'zip'
-        filename: '${{ env.TAG_NAME }}-${{ env.DC_VER }}-src.zip'
+        filename: '${{ env.TAG_NAME }}-${{ env.DC_VER }}-src-win.zip'
         exclusions: '*.git* /*node_modules/* .editorconfig doublecmd-release/*'
 
     - name: Get Lazarus source
