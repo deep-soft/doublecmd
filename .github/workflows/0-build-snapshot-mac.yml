@@ -60,6 +60,25 @@ jobs:
         echo "DC_VER=${{ env.DC_VER }}";
         echo "DC_REVISION=${{ env.DC_REVISION }}";
 
+    - name: create SHA_SUMS
+      uses: deep-soft/sha-checksums@main
+      with:
+        type: sha256
+        filename: '${{ env.TAG_NAME }}-${{ env.DC_VER }}-mac.sha256'
+        directory: '.'
+        path: '.'
+        exclusions: '*node_modules* .editorconfig'
+        debug: true
+        ignore_git: true
+        # checksums filename is ${{ env.SHA_SUMS }}
+
+    - name: Upload artifact
+      continue-on-error: true
+      uses: deep-soft/upload-artifact@main
+      with:
+        name: ${{ env.TAG_NAME }}-${{ env.DC_VER }}-mac
+        path: ${{ env.SHA_SUMS }}
+
     - name: Archive src Release
       uses: deep-soft/zip-release@main
       with:
