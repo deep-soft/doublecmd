@@ -15,6 +15,7 @@ on:
 
 env:
   TAG_NAME: "doublecmd"
+  TAG_REF:  "0000000"
 
 #concurrency:
 #  group: ${{ github.ref }}
@@ -39,7 +40,17 @@ jobs:
         echo "_version_major_=" $_version_major_;
         echo "_version_minor_=" $_version_minor_;
         _prog_version_="$_version_major_.$_version_minor_.0";
-        _revision_=$(git -C $1 rev-list --count HEAD)
+
+
+        #_revision_=$(git -C $1 rev-list --count HEAD)
+        _ref_all_=$(git log -1 --format='%H')
+        # _ref_=$(echo ${_ref_all_::7})
+        _date_=$(date +%Y%m%d)
+        _ref_org_=${{ env.TAG_REF }}
+        _ref_len_="${#_ref_org_}"
+        _ref_=$(echo ${_ref_all_::$_ref_len_})
+        _revision_=$_ref_
+
         echo "DC_VER=$_prog_version_" >> $GITHUB_ENV;
         echo "DC_REVISION=$_revision_" >> $GITHUB_ENV;
 
