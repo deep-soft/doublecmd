@@ -49,8 +49,8 @@ jobs:
     - name: Archive src Release
       uses: deep-soft/zip-release@v1
       with:
-        type: '7z'
-        filename: '${{ env.TAG_NAME }}-${{ env.DC_VER }}.7z'
+        type: 'zip'
+        filename: '${{ env.TAG_NAME }}-${{ env.DC_VER }}.zip'
         directory: '.'
         exclusions: '*.git* /*node_modules/* .editorconfig doublecmd-release/*'
 
@@ -71,7 +71,9 @@ jobs:
       shell: cmd
       run: |
         cd
-        ./.github/scripts/create_snapshot_pv.bat
+        dir
+        cd ./.github/scripts/
+        call create_snapshot_pv.bat
 
     - name: Publish Release
       continue-on-error: true
