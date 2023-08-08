@@ -22,6 +22,14 @@ rem Get revision number
 call src\platform\git2revisioninc.exe.cmd %CD%
 echo %REVISION%> %PACK_DIR%\revision.txt
 
+rem Read version number
+for /f tokens^=2delims^=^" %%a in ('findstr "MajorVersionNr" src\doublecmd.lpi') do (set DC_MAJOR=%%a)
+for /f tokens^=2delims^=^" %%a in ('findstr "MinorVersionNr" src\doublecmd.lpi') do (set DC_MINOR=%%a)
+for /f tokens^=2delims^=^" %%a in ('findstr "RevisionNr" src\doublecmd.lpi') do (set DC_MICRO=%%a)
+if [%DC_MINOR%] == [] set DC_MINOR=0
+if [%DC_MICRO%] == [] set DC_MICRO=0
+set DC_VER=%DC_MAJOR%.%DC_MINOR%.%DC_MICRO%
+
 rem Change log
 git log -n 10 --format="%%h %%al %%ai%%n%%s%%n" > %PACK_DIR%\changelog.txt
 
