@@ -35,15 +35,12 @@ jobs:
       shell: bash
       run: |
         # set -x;
-        _version_major_=0;
-        _version_minor_=0;
-        _version_micro_=0;
-        _version_major_=$(grep "MajorVersionNr Value="       src/doublecmd.lpi | awk -F = '{print $2}' | awk -F / '{print $1}' | tr -d '"' );
-        _version_minor_=$(grep "MinorVersionNr Value="       src/doublecmd.lpi | awk -F = '{print $2}' | awk -F / '{print $1}' | tr -d '"' );
-        _version_micro_=$(grep "RevisionNr Value="           src/doublecmd.lpi | awk -F = '{print $2}' | awk -F / '{print $1}' | tr -d '"' );
-        if [ $_version_micro_ == '' ]; then
-          _version_micro_=0;
-        fi
+        _version_major_=$(grep "MajorVersionNr Value="       src/doublecmd.lpi | awk -F = '{print $2}' | awk -F / '{print $1}' | tr -d '"' )  || true;
+        _version_minor_=$(grep "MinorVersionNr Value="       src/doublecmd.lpi | awk -F = '{print $2}' | awk -F / '{print $1}' | tr -d '"' )  || true;
+        _version_micro_=$(grep "RevisionNr Value="           src/doublecmd.lpi | awk -F = '{print $2}' | awk -F / '{print $1}' | tr -d '"' )  || true;
+        if [ $_version_major_ == '' ]; then _version_major_=1; fi
+        if [ $_version_minor_ == '' ]; then _version_minor_=2; fi
+        if [ $_version_micro_ == '' ]; then _version_micro_=0; fi
         echo "_version_major_=" $_version_major_;
         echo "_version_minor_=" $_version_minor_;
         echo "_version_micro_=" $_version_micro_;
