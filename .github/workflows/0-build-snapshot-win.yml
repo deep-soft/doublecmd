@@ -103,6 +103,7 @@ jobs:
         tag_name: ${{ env.TAG_NAME }}-${{ env.DC_VER }}-${{ env.DC_REVISION }}-win
         files: |
           ${{ env.ZIP_RELEASE_ARCHIVE }}
+          ${{ env.SHA_SUMS }}
 
     - name: Install Lazarus
       uses: deep-soft/setup-fpc@win
