@@ -103,6 +103,7 @@ jobs:
         tag_name: ${{ env.TAG_NAME }}-${{ env.DC_VER }}-${{ env.DC_REVISION }}-mac
         files: |
           ${{ env.ZIP_RELEASE_ARCHIVE }}
+          ${{ env.SHA_SUMS }}
 
     - name: move Archive src
       run: |
