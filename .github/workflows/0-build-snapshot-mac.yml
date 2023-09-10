@@ -156,6 +156,7 @@ jobs:
           ./doublecmd-release/*.dmg
           ./doublecmd-release/*.php
           ${{ env.ZIP_RELEASE_ARCHIVE }}
+          ${{ env.SHA_SUMS }}
 
     - name: Prepare to deploy to snapshot server
       continue-on-error: true
