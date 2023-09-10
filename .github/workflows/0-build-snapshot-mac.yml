@@ -95,6 +95,18 @@ jobs:
         echo 'arc name: ' ${{ env.ZIP_RELEASE_ARCHIVE }}
         ls -l ${{ env.ZIP_RELEASE_ARCHIVE }}
 
+    - name: create release SHA_SUMS
+      uses: deep-soft/sha-checksums@main
+      with:
+        type: sha256
+        filename: '${{ env.TAG_NAME }}-${{ env.DC_VER }}-mac.sha256'
+        directory: '.'
+        path: "${{ env.ZIP_RELEASE_ARCHIVE }}"
+        exclusions: '*node_modules* .editorconfig'
+        debug: true
+        ignore_git: true
+        # checksums filename is ${{ env.SHA_SUMS }}
+
     - name: Publish Release
       continue-on-error: true
       uses: deep-soft/action-gh-release@v1
