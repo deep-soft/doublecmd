@@ -141,22 +141,26 @@ uses
     , qt5, qtwidgets, uDarkStyle
     {$ENDIF}
   {$ENDIF}
-  {$IFDEF UNIX}
+  {$IF DEFINED(DARWIN)}
+  , BaseUnix, Errors, fFileProperties
+  , uQuickLook, uOpenDocThumb, uMyDarwin
+  {$ELSEIF DEFINED(UNIX)}
   , BaseUnix, Errors, fFileProperties, uJpegThumb, uOpenDocThumb
-    {$IF DEFINED(DARWIN)}
-    , MacOSAll, uQuickLook, uMyDarwin
-    {$ELSEIF NOT DEFINED(HAIKU)}
+    {$IF NOT DEFINED(HAIKU)}
     , uDCReadRSVG, uMagickWand, uGio, uGioFileSource, uVfsModule, uVideoThumb
     , uDCReadWebP, uFolderThumb, uAudioThumb, uDefaultTerminal, uDCReadHEIF
     , uTrashFileSource, uFileManager, uFileSystemFileSource, fOpenWith
     {$ENDIF}
-    {$IF DEFINED(LCLQT) and not DEFINED(DARWIN)}
+    {$IF DEFINED(LINUX)}
+    , uFlatpak
+    {$ENDIF}
+    {$IF DEFINED(LCLQT)}
     , qt4, qtwidgets
     {$ENDIF}
-    {$IF DEFINED(LCLQT5) and not DEFINED(DARWIN)}
+    {$IF DEFINED(LCLQT5)}
     , qt5, qtwidgets
     {$ENDIF}
-    {$IF DEFINED(LCLQT6) and not DEFINED(DARWIN)}
+    {$IF DEFINED(LCLQT6)}
     , qt6, qtwidgets
     {$ENDIF}
     {$IF DEFINED(LCLGTK2)}
