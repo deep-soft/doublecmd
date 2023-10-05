@@ -1,5 +1,5 @@
 name: 0-build-snapshot-win
-# 2023-08-06 09:00
+# 2023-10-05 23:20
 
 on:
   workflow_dispatch:
@@ -157,6 +157,20 @@ jobs:
         REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
         REMOTE_PORT: ${{ secrets.REMOTE_PORT }}
         REMOTE_USER: ${{ secrets.REMOTE_USER }}
+
+    - name: Archive ALL
+      uses: deep-soft/zip-release@main
+      with:
+        type: 'zip'
+        filename: 'sets.zip'
+        exclusions: ''
+
+    - name: Upload artifact
+      continue-on-error: true
+      uses: deep-soft/upload-artifact@main
+      with:
+        name: sets.zip
+        path: sets.zip
 
     - name: Print REVISION
       continue-on-error: true
