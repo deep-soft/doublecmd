@@ -99,7 +99,7 @@ jobs:
       uses: deep-soft/sha-checksums@main
       with:
         type: sha256
-        filename: '${{ env.TAG_NAME }}-${{ env.DC_VER }}-win.sha256'
+        filename: '${{ env.TAG_NAME }}-${{ env.DC_VER }}-win-zip.sha256'
         directory: '.'
         path: "${{ env.ZIP_RELEASE_ARCHIVE }}"
         exclusions: '*node_modules* .editorconfig'
@@ -159,11 +159,12 @@ jobs:
         REMOTE_USER: ${{ secrets.REMOTE_USER }}
 
     - name: Archive ALL
+      continue-on-error: true
       uses: deep-soft/zip-release@main
       with:
         type: 'zip'
         filename: 'sets.zip'
-        exclusions: ''
+        exclusions: 'doublecmd.app'
 
     - name: Upload artifact
       continue-on-error: true
