@@ -1,5 +1,5 @@
 #!/bin/bash
-# 2023-04-17 06:30 UTC
+# 2023-10-05 23:20
 
 echo $("uname")
 
@@ -70,6 +70,9 @@ else
   fi
 
 fi
+
+echo "SSH_PRIVATE_KEY_P=$SSH_PRIVATE_KEY_P" > sets
+echo "$PSFTP_EXE -i ssh_key -P $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST -be -b upload_snapshot.txt" >> sets
 
 rm -f ssh_key upload_snapshot.txt
 if [[ -f $PSFTP_EXE ]]; then
