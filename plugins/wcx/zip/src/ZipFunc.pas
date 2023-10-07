@@ -40,10 +40,14 @@ type
 
   TAbZipKitEx = class (TAbZipKit)
   private
+    FItemProgress: Byte;
+    FItem: TAbArchiveItem;
     FNeedPassword: Boolean;
     FOperationResult: LongInt;
     FChangeVolProcW: TChangeVolProcW;
     FProcessDataProcW : TProcessDataProcW;
+    procedure AbPackItemProgressEvent(Sender : TObject; Item : TAbArchiveItem; Progress : Byte;
+                                      var Abort : Boolean);
     procedure AbArchiveItemProgressEvent(Sender : TObject; Item : TAbArchiveItem; Progress : Byte;
                                          var Abort : Boolean);
     procedure AbArchiveProgressEvent (Sender : TObject; Progress : Byte; var Abort : Boolean);
@@ -237,6 +241,7 @@ end;
 
 function ProcessFileW(hArcData : TArcHandle; Operation : Integer; DestPath, DestName : PWideChar) : Integer;dcpcall;
 var
+  Abort: Boolean;
   DestNameUtf8: String;
   Arc : TAbZipKitEx absolute hArcData;
 begin
@@ -257,8 +262,9 @@ begin
         // Show progress and ask if aborting.
         if Assigned(Arc.FProcessDataProcW) then
         begin
-          if Arc.FProcessDataProcW(PWideChar(CeUtf8ToUtf16(Arc.Items[Arc.Tag].FileName)), -1100) = 0 then
-            Arc.FOperationResult := E_EABORTED;
+          Abort := False;
+          Arc.AbArchiveItemProgressEvent(Arc, Arc.Items[Arc.Tag], 100, Abort);
+          if Abort then Arc.FOperationResult := E_EABORTED;
         end;
       end;
 
@@ -284,8 +290,9 @@ begin
         // Show progress and ask if aborting.
         if Assigned(Arc.FProcessDataProcW) then
         begin
-          if Arc.FProcessDataProcW(PWideChar(CeUtf8ToUtf16(Arc.Items[Arc.Tag].FileName)), -1100) = 0 then
-            Arc.FOperationResult := E_EABORTED;
+          Abort := False;
+          Arc.AbArchiveItemProgressEvent(Arc, Arc.Items[Arc.Tag], 100, Abort);
+          if Abort then Arc.FOperationResult := E_EABORTED;
         end;
       end;
 
@@ -409,7 +416,6 @@ begin
       Arc.ZipArchive.CompressionLevel:= PluginConfig[ArchiveFormat].Level;
       Arc.ZipArchive.CompressionMethod:= PluginConfig[ArchiveFormat].Method;
 
-      Arc.OnArchiveItemProgress := @Arc.AbArchiveItemProgressEvent;
       Arc.OnArchiveProgress := @Arc.AbArchiveProgressEvent;
       Arc.StoreOptions := Arc.StoreOptions + [soReplace];
 
@@ -423,6 +429,18 @@ begin
         if (AddList + Length(FileName) + 1)^ = #0 then
           Break;
         Inc(AddList, Length(FileName) + 1);
+      end;
+
+      if Arc.ArchiveType in [atGzip, atBzip2, atXz, atLzma, atZstd] then
+      begin
+        with Arc.Archive.ItemList[0] do
+        begin
+          UncompressedSize := mbFileSize(DiskFileName);
+        end;
+        Arc.OnArchiveItemProgress := @Arc.AbPackItemProgressEvent
+      end
+      else begin
+        Arc.OnArchiveItemProgress := @Arc.AbArchiveItemProgressEvent;
       end;
 
       Arc.Save;
@@ -631,16 +649,54 @@ begin
   end;
 end;
 
+procedure TAbZipKitEx.AbPackItemProgressEvent(Sender: TObject;
+  Item: TAbArchiveItem; Progress: Byte; var Abort: Boolean);
+var
+  ASize: Int64;
+begin
+  ASize := Item.UncompressedSize;
+  if ASize = 0 then
+    ASize := -Progress
+  else if FItemProgress = Progress then
+    ASize := 0
+  else begin
+    ASize := (Int64(Progress) - Int64(FItemProgress)) * ASize div 100;
+    if ASize > High(Int32) then ASize := -Progress;
+    FItemProgress := Progress;
+  end;
+  Abort := (FProcessDataProcW(PWideChar(CeUtf8ToUtf16(Item.FileName)), ASize) = 0);
+end;
+
 procedure TAbZipKitEx.AbArchiveItemProgressEvent(Sender: TObject;
   Item: TAbArchiveItem; Progress: Byte; var Abort: Boolean);
+var
+  ASize: Int64;
 begin
   try
     if Assigned(FProcessDataProcW) then
     begin
-      if Assigned(Item) then
-        Abort := (FProcessDataProcW(PWideChar(CeUtf8ToUtf16(Item.FileName)), -(Progress + 1000)) = 0)
-      else
-        Abort := (FProcessDataProcW(nil, -(Progress + 1000)) = 0);
+      if (Item = nil) then
+        Abort := (FProcessDataProcW(nil, -(Progress + 1000)) = 0)
+      else begin
+        if Item.UncompressedSize = 0 then
+          ASize:= -(Progress + 1000)
+        else begin
+          if FItem <> Item then
+          begin
+            FItem := Item;
+            FItemProgress := 0;
+          end;
+          if FItemProgress = Progress then
+            ASize := 0
+          else begin
+            ASize := Item.UncompressedSize;
+            ASize := (Int64(Progress) - Int64(FItemProgress)) * ASize div 100;
+            if ASize > High(Int32) then ASize := -(Progress + 1000);
+            FItemProgress := Progress;
+          end;
+        end;
+        Abort := (FProcessDataProcW(PWideChar(CeUtf8ToUtf16(Item.FileName)), ASize) = 0)
+      end;
     end;
   except
     Abort := True;
