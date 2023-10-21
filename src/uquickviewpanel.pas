@@ -41,6 +41,7 @@ type
     FFileSource: IFileSource;
     FViewer: TfrmViewer;
     FFileName: String;
+    FTempFileSource: IFileSource;
     FLastFocusedControl: TWinControl;
   private
     procedure LoadFile(const aFileName: String);
@@ -51,6 +52,7 @@ type
     function handleLinksToLocal( const Sender:TFileView; const aFile:TFile; var fullPath:String; var showMsg:String ): Boolean;
     function handleNotDirect( const Sender:TFileView; const aFile:TFile; var fullPath:String; var showMsg:String ): Boolean;
     function handleDirect( const Sender:TFileView; const aFile:TFile; var fullPath:String; var showMsg:String ): Boolean;
+    procedure PrepareView(const aFile: TFile; var FileName: String);
   protected
      procedure DoOnShowHint(HintInfo: PHintInfo) override;
   public
@@ -67,8 +69,9 @@ var
 implementation
 
 uses
-  LCLProc, Forms, fMain, uTempFileSystemFileSource, uLng,
-  uFileSourceProperty, uFileSourceOperation, uFileSourceOperationTypes;
+  LCLProc, Forms, DCOSUtils, DCStrUtils, fMain, uTempFileSystemFileSource, uLng,
+  uFileSourceProperty, uFileSourceOperation, uFileSourceOperationTypes,
+  uGlobs, uShellExecute;
 
 procedure QuickViewShow(aFileViewPage: TFileViewPage; aFileView: TFileView);
 var
@@ -188,7 +191,9 @@ begin
     end;
   end;
 
-  if not fullPath.IsEmpty() then begin
+  if not fullPath.IsEmpty() then
+  begin
+    PrepareView(aFile, fullPath);
     LoadFile( fullPath );
   end else begin
     FViewer.Hide;
@@ -289,6 +294,49 @@ begin
       showMsg:= rsPropsFolder + ': ' + parentDir
     else
       fullPath:= ExcludeTrailingBackslash(parentDir);
+  end;
+end;
+
+procedure TQuickViewPanel.PrepareView(const aFile: TFile; var FileName: String);
+var
+  ATemp: TFile;
+  sCmd: string = '';
+  sParams: string = '';
+  sStartPath: string = '';
+  bTerm, bKeepTerminalOpen: Boolean;
+  bAbortOperationFlag: Boolean = False;
+  bShowCommandLinePriorToExecute: Boolean = False;
+begin
+  // Try to find 'view' command in the internal associations
+  if gExts.GetExtActionCmd(aFile, 'view', sCmd, sParams, sStartPath) then
+  begin
+    // Internal viewer command
+    if sCmd = '{!DC-VIEWER}' then
+    begin
+      ATemp:= AFile.Clone;
+      try
+        ATemp.FullPath:= FileName;
+        sCmd:= PrepareParameter(sCmd, ATemp, [ppoReplaceTilde]);
+        sParams:= PrepareParameter(sParams, ATemp, [], @bShowCommandLinePriorToExecute, @bTerm, @bKeepTerminalOpen, @bAbortOperationFlag);
+      finally
+        ATemp.Free;
+      end;
+      if not bAbortOperationFlag then
+      begin
+        if StrBegins(sParams, '<?') and (StrEnds(sParams, '?>')) then
+        begin
+          if (FTempFileSource = nil) then
+          begin
+            if FFileSource is TTempFileSystemFileSource then
+              FTempFileSource:= FFileSource
+            else
+              FTempFileSource:= TTempFileSystemFileSource.GetFileSource;
+          end;
+          PrepareOutput(sParams, FTempFileSource.GetRootDir);
+          if mbFileExists(sParams) then FileName:= sParams;
+        end;
+      end;
+    end;
   end;
 end;
 
