@@ -2825,7 +2825,7 @@ end;
 
 procedure TMainCommands.cm_About(const Params: array of string);
 begin
-  ShowAboutBox;
+  ShowAboutBox(frmMain);
 end;
 
 procedure TMainCommands.cm_ShowSysFiles(const Params: array of string);
@@ -3454,7 +3454,7 @@ begin
 
         sLinkToCreate := sLinkToCreate + SelectedFiles[0].Name;
 
-        if ShowSymLinkForm(sExistingFile, sLinkToCreate, ActiveFrame.CurrentPath) then
+        if ShowSymLinkForm(frmMain, sExistingFile, sLinkToCreate, ActiveFrame.CurrentPath) then
         begin
           ActiveFrame.Reload;
           if NotActiveFrame.FileSource.IsClass(TFileSystemFileSource) then
@@ -3504,7 +3504,7 @@ begin
 
         sLinkToCreate := sLinkToCreate + SelectedFiles[0].Name;
 
-        if ShowHardLinkForm(sExistingFile, sLinkToCreate, ActiveFrame.CurrentPath) then
+        if ShowHardLinkForm(frmMain, sExistingFile, sLinkToCreate, ActiveFrame.CurrentPath) then
         begin
           ActiveFrame.Reload;
           if NotActiveFrame.FileSource.IsClass(TFileSystemFileSource) then
@@ -4084,7 +4084,7 @@ begin
 
       if aSelectedFiles.Count > 1 then
       begin
-        ShowLinkerFilesForm(FileSource, aSelectedFiles, NotActiveFrame.CurrentPath);
+        ShowLinkerFilesForm(frmMain, FileSource, aSelectedFiles, NotActiveFrame.CurrentPath);
       end
       else
       begin

@@ -2023,9 +2023,9 @@ begin
                 TargetFileName := TargetPath + ExtractFileName(SourceFileName);
 
                 if ((Operation = ddoSymLink) and
-                   ShowSymLinkForm(SourceFileName, TargetFileName, TargetPath))
+                   ShowSymLinkForm(Self, SourceFileName, TargetFileName, TargetPath))
                 or ((Operation = ddoHardLink) and
-                   ShowHardLinkForm(SourceFileName, TargetFileName, TargetPath))
+                   ShowHardLinkForm(Self, SourceFileName, TargetFileName, TargetPath))
                 then
                   TargetFileSource.Reload(TargetPath);
               end
@@ -3084,6 +3084,7 @@ begin
       AddCommand('cm_PackFiles');
       AddCommand('cm_ExtractFiles');
       AddSeparator;
+      AddCommand('cm_NetworkConnect');
       AddCommand('cm_Search');
       AddCommand('cm_MultiRename');
       AddCommand('cm_SyncDirs');
