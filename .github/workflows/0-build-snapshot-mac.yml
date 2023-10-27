@@ -107,16 +107,16 @@ jobs:
         ignore_git: true
         # checksums filename is ${{ env.SHA_SUMS }}
 
-    - name: Publish source Release
-      if: publish-source-archive
-      continue-on-error: true
-      uses: deep-soft/action-gh-release@v1
-      with:
-        draft: true
-        tag_name: ${{ env.TAG_NAME }}-${{ env.DC_VER }}-${{ env.DC_REVISION }}-mac
-        files: |
-          ${{ env.ZIP_RELEASE_ARCHIVE }}
-          ${{ env.SHA_SUMS }}
+#    - name: Publish source Release
+#      if: publish-source-archive
+#      continue-on-error: true
+#      uses: deep-soft/action-gh-release@v1
+#      with:
+#        draft: true
+#        tag_name: ${{ env.TAG_NAME }}-${{ env.DC_VER }}-${{ env.DC_REVISION }}-mac
+#        files: |
+#          ${{ env.ZIP_RELEASE_ARCHIVE }}
+#          ${{ env.SHA_SUMS }}
 
     - name: move Archive src
       run: |
