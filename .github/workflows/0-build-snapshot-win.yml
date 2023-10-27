@@ -107,7 +107,8 @@ jobs:
         ignore_git: true
         # checksums filename is ${{ env.SHA_SUMS }}
 
-    - name: Publish Release
+    - name: Publish source Release
+      if: publish-source-archive
       continue-on-error: true
       uses: deep-soft/action-gh-release@v1
       with:
