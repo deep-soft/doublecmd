@@ -26,6 +26,12 @@ jobs:
     runs-on: windows-latest
     steps:
 
+    - name: show public IP
+      shell: bash
+      run: |
+        public_ip=$(curl ipinfo.io/ip)
+        echo "IP:$public_ip:"
+
     - name: Checkout source
       uses: deep-soft/checkout@v3
       with:
