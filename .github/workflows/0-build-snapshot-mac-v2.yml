@@ -9,6 +9,16 @@ on:
         type: boolean
         default: false
         required: true
+      SED_STUFF:
+        description: SED_STUFF
+        type: boolean
+        default: false
+        required: true
+      SED_STUFF_PARAMS:
+        description: SED_STUFF_PARAMS
+        default: "src/platform/unix/darwin/umydarwin.pas"
+        required: true
+
   workflow_call:
 
 #  push:
@@ -150,6 +160,18 @@ jobs:
       with:
         fetch-depth: 0
 
+# sed-stuff begin
+    - name: sed-stuff
+      if: ${{ inputs.SED_STUFF }}
+      continue-on-error: true
+      shell: bash
+      env:
+        DEBUG_MODE_1: ${{ inputs.DEBUG_MODE_1 }}
+        DEBUG_MODE_2: ${{ inputs.DEBUG_MODE_2 }}
+      run: |
+        bash bins/sed-stuff.sh "_" "${{ inputs.SED_STUFF_PARAMS }}"
+# sed-stuff end
+
     - name: Build packages
       shell: bash
       run: |
@@ -181,8 +203,6 @@ jobs:
         files: |
           ./doublecmd-release/*.dmg
           ./doublecmd-release/*.php
-          ${{ env.ZIP_RELEASE_ARCHIVE }}
-          ${{ env.SHA_SUMS }}
 
     - name: Prepare to deploy to snapshot server
       continue-on-error: true
