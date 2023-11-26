@@ -2,6 +2,8 @@
 #sed-stuff.sh
 #BOF
 
+set -x;
+
 FILE_TO_CAT="$2";
 debug_mode="$DEBUG_MODE_1";
 debug_mode_2="$DEBUG_MODE_2";
@@ -49,7 +51,7 @@ if [[ -f "$file_in" ]]; then
     if [[ "$_fil_" != "" ]]; then
       if [[ -f "$_fil_" ]]; then
         ((countf++));
-        echo_debug "sed -i \"s|$_str_|$_rpl_|\" $_fil_";
+        echo_debug "sed -i \"s!$_str_!$_rpl_!\" \"$_fil_\"";
         _str_s_=$(grep "$_str_" "$_fil_");
         echo_debug_2 "CNTF:$countf: $_str_n_";
         sed -i "s!$_str_!$_rpl_!" "$_fil_";
