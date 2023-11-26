@@ -4,7 +4,7 @@
 
 #1
 S:CocoaConst, CocoaMenus,
-R:CocoaMenus,
+R:CocoaWSMenus,
 F:src/platform/unix/darwin/umydarwin.pas
 
 #EOF#
