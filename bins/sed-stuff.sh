@@ -2,7 +2,13 @@
 #sed-stuff.sh
 #BOF
 
-set -x;
+if [[ "$RUNNER_OS" == "macOS" ]]; then
+  echo "Install gnu-sed"
+  brew install gnu-sed
+  export PATH="/usr/local/opt/gnu-sed/libexec/gnubin:$PATH"
+  echo "SED_EXE=$(which sed)" >> $GITHUB_ENV
+  ls -l /usr/local/opt/gnu-sed/libexec/gnubin
+fi
 
 FILE_TO_CAT="$2";
 debug_mode="$DEBUG_MODE_1";
