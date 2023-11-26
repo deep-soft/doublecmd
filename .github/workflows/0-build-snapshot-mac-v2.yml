@@ -4,11 +4,6 @@ name: 0-build-snapshot-mac-v2
 on:
   workflow_dispatch:
     inputs:
-      build_install_lazarus:
-        description: build_install_lazarus
-        type: boolean
-        default: false
-        required: true
       create_SHA_SUMS_all:
         description: create_SHA_SUMS_all
         type: boolean
