@@ -1,0 +1,223 @@
+name: 0-build-snapshot-mac-v2
+# 2023-11-26 20:00
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      build_install_lazarus:
+        description: build_install_lazarus
+        type: boolean
+        default: false
+        required: true
+#  push:
+#    paths:
+#    - 'components/**'
+#    - 'plugins/**'
+#    - 'sdk/**'
+#    - 'src/**'
+#    branches:
+#      - master
+
+env:
+  TAG_NAME: "doublecmd"
+  TAG_REF:  "0000000"
+
+#concurrency:
+#  group: ${{ github.ref }}
+#  cancel-in-progress: true
+
+jobs:
+  build-mac:
+    runs-on: macos-11
+    steps:
+
+    - name: show public IP
+      shell: bash
+      run: |
+        public_ip=$(curl ipinfo.io/ip)
+        echo "IP:$public_ip:"
+
+    - name: Checkout source
+      uses: deep-soft/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Set DC_VER
+      shell: bash
+      run: |
+        # set -x;
+        _version_major_=$(grep "MajorVersionNr Value="       src/doublecmd.lpi | awk -F = '{print $2}' | awk -F / '{print $1}' | tr -d '"' )  || true;
+        _version_minor_=$(grep "MinorVersionNr Value="       src/doublecmd.lpi | awk -F = '{print $2}' | awk -F / '{print $1}' | tr -d '"' )  || true;
+        _version_micro_=$(grep "RevisionNr Value="           src/doublecmd.lpi | awk -F = '{print $2}' | awk -F / '{print $1}' | tr -d '"' )  || true;
+        echo "_version_major_ = $_version_major_";
+        echo "_version_minor_ = $_version_minor_";
+        echo "_version_micro_ = $_version_micro_";
+        if [[ "$_version_major_" == "" ]]; then _version_major_=1; fi
+        if [[ "$_version_minor_" == "" ]]; then _version_minor_=2; fi
+        if [[ "$_version_micro_" == "" ]]; then _version_micro_=0; fi
+        _prog_version_="$_version_major_.$_version_minor_.$_version_micro_";
+
+        #_revision_=$(git -C $1 rev-list --count HEAD)
+        _ref_all_=$(git log -1 --format='%H')
+        # _ref_=$(echo ${_ref_all_::7})
+        _date_=$(date +%Y%m%d)
+        _ref_org_=${{ env.TAG_REF }}
+        _ref_len_="${#_ref_org_}"
+        _ref_=$(echo ${_ref_all_::$_ref_len_})
+        _revision_=$_ref_
+
+        echo "DC_VER=$_prog_version_" >> $GITHUB_ENV;
+        echo "DC_REVISION=$_revision_" >> $GITHUB_ENV;
+
+    - name: Print DC_VER
+      shell: bash
+      run: |
+        echo "DC_VER=${{ env.DC_VER }}";
+        echo "DC_REVISION=${{ env.DC_REVISION }}";
+
+    - name: create SHA_SUMS
+      uses: deep-soft/sha-checksums@main
+      with:
+        type: sha256
+        filename: '${{ env.TAG_NAME }}-${{ env.DC_VER }}-mac.sha256'
+        directory: '.'
+        path: '.'
+        exclusions: '*node_modules* .editorconfig'
+        debug: true
+        ignore_git: true
+        # checksums filename is ${{ env.SHA_SUMS }}
+
+    - name: Upload artifact
+      continue-on-error: true
+      uses: deep-soft/upload-artifact@main
+      with:
+        name: ${{ env.TAG_NAME }}-${{ env.DC_VER }}-mac
+        path: ${{ env.SHA_SUMS }}
+
+    - name: Archive src Release
+      uses: deep-soft/zip-release@v2
+      with:
+        type: 'zip'
+        directory: '.'
+        path: '.'
+        filename: '${{ env.TAG_NAME }}-${{ env.DC_VER }}-${{ env.DC_REVISION }}-src-mac.zip'
+        exclusions: '*.git* /*node_modules/* .editorconfig doublecmd-release/*'
+
+    - name: list Archive src
+      run: |
+        echo 'arc name: ' ${{ env.ZIP_RELEASE_ARCHIVE }}
+        ls -l ${{ env.ZIP_RELEASE_ARCHIVE }}
+
+    - name: create release SHA_SUMS
+      uses: deep-soft/sha-checksums@main
+      with:
+        type: sha256
+        filename: '${{ env.TAG_NAME }}-${{ env.DC_VER }}-mac.sha256'
+        directory: '.'
+        path: "${{ env.ZIP_RELEASE_ARCHIVE }}"
+        exclusions: '*node_modules* .editorconfig'
+        debug: true
+        ignore_git: true
+        # checksums filename is ${{ env.SHA_SUMS }}
+
+#    - name: Publish source Release
+#      if: publish-source-archive
+#      continue-on-error: true
+#      uses: deep-soft/action-gh-release@v1
+#      with:
+#        draft: true
+#        tag_name: ${{ env.TAG_NAME }}-${{ env.DC_VER }}-${{ env.DC_REVISION }}-mac
+#        files: |
+#          ${{ env.ZIP_RELEASE_ARCHIVE }}
+#          ${{ env.SHA_SUMS }}
+
+    - name: move Archive src
+      run: |
+        mv ${{ env.ZIP_RELEASE_ARCHIVE }} ../
+        ls -l ../${{ env.ZIP_RELEASE_ARCHIVE }}
+
+    - name: Get Lazarus source
+      uses: deep-soft/checkout@v3
+      with:
+        repository: 'fpc/Lazarus'
+
+    - name: Install Free Pascal
+      uses: deep-soft/setup-lazarus@v3.2.15
+      with:
+        lazarus-version: "stable"
+
+    - name: Build and install Lazarus
+      if: ${{ inputs.build_install_lazarus}}
+      run: |
+        make all install
+
+    - name: Create Lazarus config
+      shell: bash
+      run: |
+        sudo mkdir -p /etc/lazarus;
+        sudo cp tools/install/macosx/environmentoptions.xml /etc/lazarus/environmentoptions.xml;
+        sudo sed -i -e "s|_PPCARCH_|fpc|g; s|/Developer/lazarus|/usr/local/share/lazarus|g" /etc/lazarus/environmentoptions.xml;
+
+    - name: Checkout source
+      uses: deep-soft/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Build packages
+      shell: bash
+      run: |
+        bash ./.github/scripts/create_snapshot_pv.sh;
+
+    - name: move back Archive src
+      run: |
+        mv ../${{ env.ZIP_RELEASE_ARCHIVE }} ./
+        ls -l ${{ env.ZIP_RELEASE_ARCHIVE }}
+
+    - name: Publish Release
+      continue-on-error: true
+      uses: deep-soft/action-gh-release@v1
+      with:
+        draft: true
+        tag_name: ${{ env.TAG_NAME }}-${{ env.DC_VER }}-${{ env.DC_REVISION }}-mac
+        files: |
+          ./doublecmd-release/*.dmg
+          ./doublecmd-release/*.php
+          ${{ env.ZIP_RELEASE_ARCHIVE }}
+          ${{ env.SHA_SUMS }}
+
+    - name: Publish Release latest
+      continue-on-error: true
+      uses: deep-soft/action-gh-release@v1
+      with:
+        draft: false
+        tag_name: ${{ env.TAG_NAME }}
+        files: |
+          ./doublecmd-release/*.7z
+          ./doublecmd-release/*.txt
+
+    - name: Prepare to deploy to snapshot server
+      continue-on-error: true
+      shell: bash
+      run: |
+        mv ${{ env.ZIP_RELEASE_ARCHIVE }} doublecmd-release/;
+        bash ./.github/scripts/upload_snapshot_pv_pre.sh;
+
+    - name: Deploy to snapshot server
+      continue-on-error: true
+      shell: bash
+      run: |
+        bash ./.github/scripts/upload_snapshot_pv.sh;
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+        SSH_PRIVATE_KEY_P: ${{ secrets.SERVER_SSH_KEY_P }}
+        REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+        REMOTE_PORT: ${{ secrets.REMOTE_PORT }}
+        REMOTE_USER: ${{ secrets.REMOTE_USER }}
+
+    - name: Print REVISION
+      continue-on-error: true
+      shell: bash
+      run: |
+        echo "Version: ${{ env.DC_VER }}";
+        echo "Revision: ${{ env.DC_REVISION }}";
