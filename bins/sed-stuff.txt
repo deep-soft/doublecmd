@@ -1,0 +1,10 @@
+#BOF#
+# sed-stuff.txt
+# 2023.11.26 21:30
+
+#1
+S:CocoaConst, CocoaMenus,
+R:CocoaMenus,
+F:src/platform/unix/darwin/umydarwin.pas
+
+#EOF#
