@@ -9,7 +9,13 @@ on:
         type: boolean
         default: false
         required: true
+      create_SHA_SUMS_all:
+        description: create_SHA_SUMS_all
+        type: boolean
+        default: false
+        required: true
   workflow_call:
+
 #  push:
 #    paths:
 #    - 'components/**'
@@ -77,6 +83,7 @@ jobs:
         echo "DC_REVISION=${{ env.DC_REVISION }}";
 
     - name: create SHA_SUMS
+      if: ${{ inputs.create_SHA_SUMS_all}}
       uses: deep-soft/sha-checksums@main
       with:
         type: sha256
@@ -89,6 +96,7 @@ jobs:
         # checksums filename is ${{ env.SHA_SUMS }}
 
     - name: Upload artifact
+      if: ${{ inputs.create_SHA_SUMS_all}}
       continue-on-error: true
       uses: deep-soft/upload-artifact@main
       with:
