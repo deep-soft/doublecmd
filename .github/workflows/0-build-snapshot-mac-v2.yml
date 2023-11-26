@@ -20,11 +20,13 @@ on:
         required: true
       DEBUG_MODE_1:
         description: DEBUG_MODE_1
-        default: "N"
+        type: boolean
+        default: false
         required: true
       DEBUG_MODE_2:
         description: DEBUG_MODE_2
-        default: "N"
+        type: boolean
+        default: false
         required: true
 
   workflow_call:
