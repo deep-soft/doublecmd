@@ -138,11 +138,12 @@ jobs:
         ls -l ../${{ env.ZIP_RELEASE_ARCHIVE }}
 
     - name: Get Lazarus source
+      if: ${{ inputs.build_install_lazarus}}
       uses: deep-soft/checkout@v3
       with:
         repository: 'fpc/Lazarus'
 
-    - name: Install Free Pascal
+    - name: Install Lazarus
       uses: deep-soft/setup-lazarus@v3.2.15
       with:
         lazarus-version: "stable"
@@ -153,6 +154,7 @@ jobs:
         make all install
 
     - name: Create Lazarus config
+      if: ${{ inputs.build_install_lazarus}}
       shell: bash
       run: |
         sudo mkdir -p /etc/lazarus;
