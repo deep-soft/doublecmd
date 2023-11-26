@@ -18,6 +18,14 @@ on:
         description: SED_STUFF_PARAMS
         default: "src/platform/unix/darwin/umydarwin.pas"
         required: true
+      DEBUG_MODE_1:
+        description: DEBUG_MODE_1
+        default: "N"
+        required: true
+      DEBUG_MODE_2:
+        description: DEBUG_MODE_2
+        default: "N"
+        required: true
 
   workflow_call:
 
