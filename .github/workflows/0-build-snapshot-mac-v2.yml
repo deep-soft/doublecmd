@@ -55,26 +55,12 @@ jobs:
       shell: bash
       run: |
         public_ip=$(curl ipinfo.io/ip)
-        echo "IP:$public_ip:"
+        echo "IP[$public_ip]"
 
     - name: Checkout source
       uses: deep-soft/checkout@v3
       with:
         fetch-depth: 0
-
-# sed-stuff 0 begin
-    - name: sed-stuff 0
-      if: ${{ inputs.SED_STUFF }}
-      continue-on-error: true
-      shell: bash
-      run: |
-        echo "Install gnu-sed"
-        brew install gnu-sed
-        export PATH="/usr/local/opt/gnu-sed/libexec/gnubin:$PATH"
-        echo "SED_EXE=$(which sed)" >> $GITHUB_ENV
-        ls -l /usr/local/opt/gnu-sed/libexec/gnubin
-        $(which sed) -i 's!CocoaConst, CocoaMenus,!CocoaMenus,!' "src/platform/unix/darwin/umydarwin.pas";
-# sed-stuff 0 end
 
     - name: Set DC_VER
       shell: bash
