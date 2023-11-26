@@ -90,9 +90,11 @@ jobs:
         path: ${{ env.SHA_SUMS }}
 
     - name: Archive src Release
-      uses: deep-soft/zip-release@main
+      uses: deep-soft/zip-release@v2
       with:
         type: 'zip'
+        path: '.'
+        directory: '.'
         filename: '${{ env.TAG_NAME }}-${{ env.DC_VER }}-${{ env.DC_REVISION }}-src-win.zip'
         exclusions: '*.git* /*node_modules/* .editorconfig doublecmd-release/* doublecmd.app'
 
@@ -177,10 +179,12 @@ jobs:
 
     - name: Archive ALL
       continue-on-error: true
-      uses: deep-soft/zip-release@main
+      uses: deep-soft/zip-release@v2
       with:
         type: 'zip'
         filename: 'sets.zip'
+        directory: '.'
+        path: '.'
         exclusions: 'doublecmd.app'
 
     - name: Upload artifact
