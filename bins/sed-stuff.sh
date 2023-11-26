@@ -52,7 +52,7 @@ if [[ -f "$file_in" ]]; then
         echo_debug "sed -i \"s|$_str_|$_rpl_|\" $_fil_";
         _str_s_=$(grep "$_str_" "$_fil_");
         echo_debug_2 "CNTF:$countf: $_str_n_";
-        sed -i "s|$_str_|$_rpl_|" $_fil_;
+        sed -i "s!$_str_!$_rpl_!" "$_fil_";
         _str_r_=$(grep "$_rpl_" "$_fil_");
         if [[ "$_str_s_" != "" ]] && [[ "$_str_r_" != "" ]]; then
           echo "OK_OK: [CNT:$count, CNTF:$countf]";
