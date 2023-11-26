@@ -9,7 +9,7 @@ F:src/platform/unix/darwin/umydarwin.pas
 
 #2
 S:NSSTR_DARK_NAME
-R:NSAppearanceNameDarkAqua
+R:NSAppearanceNameAqua
 F:src/platform/unix/darwin/umydarwin.pas
 
 #EOF#
