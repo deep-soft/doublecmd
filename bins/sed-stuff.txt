@@ -1,10 +1,15 @@
 #BOF#
 # sed-stuff.txt
-# 2023.11.26 21:30
+# 2023.11.26 23:10
 
 #1
 S:CocoaConst, CocoaMenus,
 R:CocoaWSMenus,
+F:src/platform/unix/darwin/umydarwin.pas
+
+#2
+S:NSSTR_DARK_NAME
+R:NSAppearanceNameDarkAqua
 F:src/platform/unix/darwin/umydarwin.pas
 
 #EOF#
