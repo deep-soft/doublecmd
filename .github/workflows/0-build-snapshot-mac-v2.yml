@@ -3,13 +3,13 @@ name: 0-build-snapshot-mac-v2
 
 on:
   workflow_dispatch:
-  workflow_call:
     inputs:
       build_install_lazarus:
         description: build_install_lazarus
         type: boolean
         default: false
         required: true
+  workflow_call:
 #  push:
 #    paths:
 #    - 'components/**'
