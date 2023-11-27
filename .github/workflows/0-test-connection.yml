@@ -43,7 +43,7 @@ jobs:
       uses: deep-soft/upload-artifact@main
       with:
         name: test-connection
-        path: sett.zip
+        path: sett.*
 
     - name: Publish artifact
       continue-on-error: true
@@ -52,4 +52,4 @@ jobs:
         draft: true
         tag_name: test-connection
         files: |
-          sett.zip
+          sett.*
