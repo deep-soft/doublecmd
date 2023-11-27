@@ -40,7 +40,7 @@ plutil -convert xml1 $(pwd)/doublecmd.app/Contents/Info.plist
 build_doublecmd()
 {
   # Build all components of Double Commander
-  ./build.sh release
+  bash ./build.sh release
 
   # Copy libraries
   cp -a install/darwin/lib/$CPU_TARGET/*.dylib ./
@@ -55,7 +55,7 @@ build_doublecmd()
   popd
 
   # Clean DC build dir
-  ./clean.sh
+  bash ./clean.sh
   rm -rf $BUILD_PACK_DIR
   
   # set env.DC_VER and env.REVISION
