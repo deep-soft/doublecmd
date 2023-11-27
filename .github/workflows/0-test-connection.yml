@@ -1,0 +1,55 @@
+name: 0-test-connection
+# 2023-11-27 21:20
+
+on:
+  workflow_dispatch:
+
+env:
+  TAG_NAME: "doublecmd"
+  TAG_REF:  "0000000"
+
+#concurrency:
+#  group: ${{ github.ref }}
+#  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+    - name: show public IP
+      shell: bash
+      run: |
+        public_ip=$(curl ipinfo.io/ip)
+        echo "IP[$public_ip]"
+
+    - name: Checkout source
+      uses: deep-soft/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: test connection
+      shell: bash
+      run: |
+        call .github/scripts/test-connection.sh
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+        SSH_PRIVATE_KEY_P: ${{ secrets.SERVER_SSH_KEY_P }}
+        REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+        REMOTE_PORT: ${{ secrets.REMOTE_PORT }}
+        REMOTE_USER: ${{ secrets.REMOTE_USER }}
+
+    - name: Upload artifact
+      continue-on-error: true
+      uses: deep-soft/upload-artifact@main
+      with:
+        name: test-connection
+        path: sett.zip
+
+    - name: Publish artifact
+      continue-on-error: true
+      uses: deep-soft/action-gh-release@v1
+      with:
+        draft: true
+        tag_name: test-connection
+        files: |
+          sett.zip
