@@ -91,6 +91,7 @@ jobs:
         # checksums filename is ${{ env.SHA_SUMS }}
 
     - name: Upload artifact
+      if: ${{ inputs.create_SHA_all }}
       continue-on-error: true
       uses: deep-soft/upload-artifact@main
       with:
