@@ -3,6 +3,13 @@ name: 0-build-snapshot-mac
 
 on:
   workflow_dispatch:
+    inputs:
+      create_SHA_all:
+        description: create_SHA_all
+        type: boolean
+        default: false
+        required: true
+
   workflow_call:
 #  push:
 #    paths:
@@ -71,6 +78,7 @@ jobs:
         echo "DC_REVISION=${{ env.DC_REVISION }}";
 
     - name: create SHA_SUMS
+      if: ${{ inputs.create_SHA_all }}
       uses: deep-soft/sha-checksums@main
       with:
         type: sha256
