@@ -140,10 +140,10 @@ jobs:
         mv ${{ env.ZIP_RELEASE_ARCHIVE }} ../
         ls -l ../${{ env.ZIP_RELEASE_ARCHIVE }}
 
-    - name: Get Lazarus source
-      uses: deep-soft/checkout@v3
-      with:
-        repository: 'fpc/Lazarus'
+#    - name: Get Lazarus source
+#      uses: deep-soft/checkout@v3
+#      with:
+#        repository: 'fpc/Lazarus'
 
     - name: Install Free Pascal
       uses: deep-soft/setup-fpc@master
