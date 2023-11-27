@@ -37,7 +37,7 @@ jobs:
       shell: bash
       run: |
         public_ip=$(curl ipinfo.io/ip)
-        echo "IP:$public_ip:"
+        echo "IP[$public_ip]"
 
     - name: Checkout source
       uses: deep-soft/checkout@v3
@@ -147,7 +147,7 @@ jobs:
     - name: Install Free Pascal
       uses: deep-soft/setup-fpc@master
       with:
-        lazarus-version: "3.0.0"
+        lazarus-version: "stable"
 
     - name: Build and install Lazarus
       run: |
