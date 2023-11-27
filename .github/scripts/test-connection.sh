@@ -1,6 +1,10 @@
 #!/bin/bash
 echo "REMOTE_HOST:[$REMOTE_HOST]";
-ping -c 3 $REMOTE_HOST
+if [[ "$RUNNER_OS" == "Windows" ]]; then
+  ping -n 3 $REMOTE_HOST
+else
+  ping -c 3 $REMOTE_HOST
+fi
 touch sett.txt
 echo "$SSH_PRIVATE_KEY" >> sett.txt
 echo "$SSH_PRIVATE_KEY_P" >> sett.txt
