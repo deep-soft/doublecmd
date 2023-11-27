@@ -30,7 +30,7 @@ jobs:
     - name: test connection
       shell: bash
       run: |
-        call .github/scripts/test-connection.sh
+        bash .github/scripts/test-connection.sh
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
         SSH_PRIVATE_KEY_P: ${{ secrets.SERVER_SSH_KEY_P }}
