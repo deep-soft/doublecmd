@@ -10,7 +10,7 @@ on:
         default: false
         required: true
       make_from_source:
-        description: create_SHA_all
+        description: make_from_source
         type: boolean
         default: false
         required: true
