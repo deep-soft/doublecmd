@@ -153,7 +153,7 @@ jobs:
     - name: Install Free Pascal
       uses: deep-soft/setup-fpc@master
       with:
-        lazarus-version: "3.0.0"
+        lazarus-version: "3.0RC2"
 
     - name: Build and install Lazarus
       if: ${{ inputs.make_from_source }}
