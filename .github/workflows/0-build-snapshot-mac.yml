@@ -139,7 +139,7 @@ jobs:
     - name: Install Free Pascal
       uses: deep-soft/setup-fpc@master
       with:
-        lazarus-version: "stable"
+        lazarus-version: "3.0.0"
 
     - name: Build and install Lazarus
       run: |
