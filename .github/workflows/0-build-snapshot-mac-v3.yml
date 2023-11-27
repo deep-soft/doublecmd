@@ -171,6 +171,7 @@ jobs:
         sudo sed -i -e "s|_PPCARCH_|fpc|g; s|/Developer/lazarus|/usr/local/share/lazarus|g" /etc/lazarus/environmentoptions.xml;
 
     - name: Checkout source
+      if: ${{ inputs.make_from_source }}
       uses: deep-soft/checkout@v3
       with:
         fetch-depth: 0
