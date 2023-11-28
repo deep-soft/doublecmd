@@ -151,9 +151,17 @@ jobs:
 #        repository: 'fpc/Lazarus'
 
     - name: Install Free Pascal
+      continue-on-error: true
       uses: deep-soft/setup-fpc@master
       with:
         lazarus-version: "3.0RC2"
+
+    - name: Build and install Lazarus
+      continue-on-error: true
+      shell: bash
+      run: |
+        lazbuild_path=$(find / -name "lazbuild")
+        echo "lazbuild=$lazbuild_path"
 
     - name: Build and install Lazarus
       if: ${{ inputs.make_from_source }}
