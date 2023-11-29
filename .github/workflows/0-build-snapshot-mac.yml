@@ -9,6 +9,10 @@ on:
         type: boolean
         default: false
         required: true
+      LAZARUS_VERSION:
+        description: LAZARUS_VERSION (default stable, try 3.0RC2)
+        default: 'stable'
+        required: true
 
   workflow_call:
 #  push:
@@ -148,7 +152,8 @@ jobs:
     - name: Install Free Pascal
       uses: deep-soft/setup-fpc@master
       with:
-        lazarus-version: "stable"
+        lazarus-version: "${{ inputs.LAZARUS_VERSION }}"
+#        lazarus-version: "stable"
 
     - name: Build and install Lazarus
       run: |
