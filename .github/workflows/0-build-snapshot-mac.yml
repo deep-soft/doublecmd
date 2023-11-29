@@ -149,10 +149,20 @@ jobs:
       with:
         repository: 'fpc/Lazarus'
 
+    - name: Set version to Install Free Pascal
+      shell: bash
+      run: |
+        if [[ "${{ inputs.LAZARUS_VERSION }}" == "" ]]; then
+          LAZARUS_VERSION="stable";
+        else
+          LAZARUS_VERSION="${{ inputs.LAZARUS_VERSION }}";
+        fi
+        export "LAZARUS_VERSION=$LAZARUS_VERSION" >> $GITHUB_ENV
+
     - name: Install Free Pascal
       uses: deep-soft/setup-fpc@master
       with:
-        lazarus-version: "${{ inputs.LAZARUS_VERSION }}"
+        lazarus-version: "${{ env.LAZARUS_VERSION }}"
 #        lazarus-version: "stable"
 
     - name: Build and install Lazarus
