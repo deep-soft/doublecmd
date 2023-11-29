@@ -152,10 +152,10 @@ jobs:
     - name: Set version to Install Free Pascal
       shell: bash
       run: |
-        if [[ "${{ inputs.LAZARUS_VERSION }}" == "" ]]; then
-          LAZARUS_VERSION="stable";
-        else
+        if [[ "${{ inputs.LAZARUS_VERSION }}" != "" ]]; then
           LAZARUS_VERSION="${{ inputs.LAZARUS_VERSION }}";
+        else
+          LAZARUS_VERSION="stable";
         fi
         export "LAZARUS_VERSION=$LAZARUS_VERSION" >> $GITHUB_ENV
 
