@@ -124,7 +124,8 @@ implementation
 
 uses
   IniFiles, StrUtils, FtpAdv, FtpUtils, FtpConfDlg, syncobjs, LazFileUtils,
-  LazUTF8, DCClassesUtf8, DCConvertEncoding, SftpSend, ScpSend, FtpProxy;
+  LazUTF8, DCClassesUtf8, DCConvertEncoding, SftpSend, ScpSend, FtpProxy,
+  FtpPropDlg;
 
 var
   DefaultIniName: String;
@@ -778,6 +779,17 @@ begin
       if (ExtractFileDir(RemoteName) = PathDelim) and not (RemoteName[1] in [#0, '<']) then // connection
       begin
         EditConnection(UTF16ToUTF8(RemoteName + 1));
+      end
+      else if (ExtractFileDir(RemoteName) <> PathDelim) then
+      begin
+        if GetConnectionByPath(RemoteName, FtpSend, asFileName) then
+        begin
+          if FtpSend.FileProperties(asFileName) then
+          begin
+            wsFileName:= FtpSend.ServerToClient(FtpSend.FullResult.Text);
+            ShowPropertiesDlg(PAnsiChar(UTF8Encode(wsFileName)));
+          end
+        end;
       end;
       Result:= FS_EXEC_OK;
     end;
@@ -819,6 +831,24 @@ begin
 
         WriteConnectionList;
         Result:= FS_FILE_OK;
+      end;
+    end
+    else if GetConnectionByPath(OldName, FtpSend, sOldName) then
+    begin
+      if FtpSend is TScpSend then
+      begin
+        sNewName := FtpSend.ClientToServer(NewName);
+        sNewName := ExtractRemoteFileName(sNewName);
+        ProgressProc(PluginNumber, OldName, NewName, 0);
+        if (not OverWrite) and (FtpSend.FileExists(sNewName)) then
+        begin
+          Exit(FS_FILE_EXISTS);
+        end;
+        if FtpSend.CopyFile(sOldName, sNewName) then
+        begin
+          ProgressProc(PluginNumber, OldName, NewName, 100);
+          Result := FS_FILE_OK;
+        end;
       end;
     end;
     Exit;
