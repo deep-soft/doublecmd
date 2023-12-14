@@ -35,13 +35,14 @@ interface
 uses
   Classes, SysUtils, UnixType,
   Cocoa_Extra, MacOSAll, CocoaAll, CocoaUtils, CocoaInt, CocoaConst, CocoaMenus,
-  InterfaceBase, Menus;
+  InterfaceBase, Menus, Controls, Forms, LazLoggerBase;
 
 // Darwin Util Function
 function StringToNSString(const S: String): NSString;
 function StringToCFStringRef(const S: String): CFStringRef;
 function NSArrayToList(const theArray:NSArray): TStringList;
 function ListToNSArray(const list:TStrings): NSArray;
+function ListToNSUrlArray(const list:TStrings): NSArray;
 
 procedure setMacOSAppearance( mode:Integer );
 
@@ -124,6 +125,9 @@ procedure InitNSServiceProvider(
   serveCallback: TNSServiceProviderCallBack;
   isReadyFunc: TNSServiceMenuIsReady;
   getFilenamesFunc: TNSServiceMenuGetFilenames );
+
+// MacOS Sharing
+procedure showMacOSSharingServiceMenu;
 
 // MacOS Theme
 type TNSThemeChangedHandler = Procedure() of object;
@@ -264,6 +268,34 @@ begin
   FreeAndNil( filenameList );
 end;
 
+procedure showMacOSSharingServiceMenu;
+var
+  picker: NSSharingServicePicker;
+  filenameArray: NSArray;
+  filenameList: TStringList;
+  point: TPoint;
+  popupNSRect: NSRect;
+  control: TWinControl;
+begin
+  if not TDCCocoaApplication(NSApp).serviceMenuIsReady then
+    exit;
+
+  filenameList:= TDCCocoaApplication(NSApp).serviceMenuGetFilenames;
+  if filenameList=nil then exit;
+
+  filenameArray:= ListToNSUrlArray( filenameList );
+  FreeAndNil( filenameList );
+
+  control:= Screen.ActiveControl;
+  point:= control.ScreenToClient( Mouse.CursorPos );
+  popupNSRect.origin.x:= point.X;
+  popupNSRect.origin.y:= point.Y;
+  popupNSRect.size:= NSZeroSize;
+
+  picker:= NSSharingServicePicker.alloc.initWithItems( filenameArray );
+  picker.showRelativeToRect_ofView_preferredEdge( popupNSRect, NSView(control.handle) , NSMinYEdge );
+end;
+
 procedure TDCCocoaApplication.observeValueForKeyPath_ofObject_change_context(
   keyPath: NSString; object_: id; change: NSDictionary; context: pointer);
 begin
@@ -302,15 +334,28 @@ end;
 
 function ListToNSArray(const list:TStrings): NSArray;
 var
-  i: Integer;
   theArray: NSMutableArray;
+  item: String;
 begin
-  theArray := NSMutableArray.arrayWithCapacity(list.Count);
-  for i := 0 to list.Count - 1 do
-  begin
-    theArray.addObject( StringToNSString(list[i]) );
+  theArray := NSMutableArray.arrayWithCapacity( list.Count );
+  for item in list do begin
+    theArray.addObject( StringToNSString(item) );
   end;
   Result := theArray;
+end;
+
+function ListToNSUrlArray(const list:TStrings): NSArray;
+var
+  theArray: NSMutableArray;
+  item: String;
+  url: NSUrl;
+begin
+  theArray:= NSMutableArray.arrayWithCapacity( list.Count );
+  for item in list do begin
+    url:= NSUrl.fileURLWithPath( StringToNSString(item) );
+    theArray.addObject( url );
+  end;
+  Result:= theArray;
 end;
 
 function NSGetTempPath: String;

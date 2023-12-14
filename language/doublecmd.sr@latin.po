@@ -1112,14 +1112,6 @@ msgstr "Sačuvaj &kao..."
 msgid "Save As"
 msgstr "Sačuvaj kao"
 
-#: tfrmeditor.actsaveall.caption
-msgid "Sa&ve All"
-msgstr "Sač&uvaj sve"
-
-#: tfrmeditor.actsaveall.hint
-msgid "Save All"
-msgstr "_Sačuvaj sve"
-
 #: tfrmeditor.caption
 msgctxt "TFRMEDITOR.CAPTION"
 msgid "Editor"
@@ -11318,6 +11310,10 @@ msgstr ""
 
 #: ulng.rsmenumacosservices
 msgid "Services"
+msgstr ""
+
+#: ulng.rsmenumacosshare
+msgid "Share..."
 msgstr ""
 
 #: ulng.rsmnuactions

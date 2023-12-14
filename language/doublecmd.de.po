@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Double Commander 1.1.0 alpha\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-11-15 11:15+0300\n"
-"PO-Revision-Date: 2023-12-09 09:37+0100\n"
+"PO-Revision-Date: 2023-12-14 13:37+0100\n"
 "Last-Translator: ㋡ <braass@mail.de>\n"
 "Language-Team: Deutsch <braass@mail.de>\n"
 "MIME-Version: 1.0\n"
@@ -1072,14 +1072,6 @@ msgstr "Speichern &unter ..."
 #: tfrmeditor.actfilesaveas.hint
 msgid "Save As"
 msgstr "Datei unter anderem Namen speichern"
-
-#: tfrmeditor.actsaveall.caption
-msgid "Sa&ve All"
-msgstr "Alle &speichern"
-
-#: tfrmeditor.actsaveall.hint
-msgid "Save All"
-msgstr "Alle geöffneten Dateien speichern"
 
 #: tfrmeditor.caption
 msgctxt "tfrmeditor.caption"
@@ -10981,6 +10973,10 @@ msgstr "Neuen Namen für die benutzerdefinierte Spaltenansicht angeben"
 #: ulng.rsmenumacosservices
 msgid "Services"
 msgstr "Dienste"
+
+#: ulng.rsmenumacosshare
+msgid "Share..."
+msgstr "Teilen..."
 
 #: ulng.rsmnuactions
 msgctxt "ulng.rsmnuactions"
