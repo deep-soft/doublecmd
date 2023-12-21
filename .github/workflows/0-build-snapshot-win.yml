@@ -3,6 +3,16 @@ name: 0-build-snapshot-win
 
 on:
   workflow_dispatch:
+    inputs:
+      archive_all:
+        description: archive_all
+        type: boolean
+        default: false
+      deploy_snapshot:
+        description: deploy_snapshot
+        type: boolean
+        default: false
+
   workflow_call:
 #  push:
 #    paths:
@@ -159,6 +169,7 @@ jobs:
           ./doublecmd-release/*.txt
 
     - name: Prepare to deploy to snapshot server
+      if: ${{ inputs.deploy_snapshot }}
       continue-on-error: true
       shell: bash
       run: |
@@ -167,6 +178,7 @@ jobs:
         bash ./.github/scripts/upload_snapshot_pv_pre.sh;
 
     - name: Deploy to snapshot server
+      if: ${{ inputs.deploy_snapshot }}
       continue-on-error: true
       shell: bash
       run: bash ./.github/scripts/upload_snapshot_pv.sh
@@ -178,6 +190,7 @@ jobs:
         REMOTE_USER: ${{ secrets.REMOTE_USER }}
 
     - name: Archive ALL
+      if: ${{ inputs.archive_all }}
       continue-on-error: true
       uses: deep-soft/zip-release@v2
       with:
@@ -188,6 +201,7 @@ jobs:
         exclusions: 'doublecmd.app'
 
     - name: Upload artifact
+      if: ${{ inputs.archive_all }}
       continue-on-error: true
       uses: deep-soft/upload-artifact@main
       with:
