@@ -4,6 +4,14 @@ name: 0-build-snapshot-mac
 on:
   workflow_dispatch:
     inputs:
+      archive_all:
+        description: archive_all
+        type: boolean
+        default: false
+      deploy_snapshot:
+        description: deploy_snapshot
+        type: boolean
+        default: false
       create_SHA_all:
         description: create_SHA_all
         type: boolean
@@ -216,6 +224,7 @@ jobs:
           ./doublecmd-release/*.php
 
     - name: Prepare to deploy to snapshot server
+      if: ${{ inputs.deploy_snapshot }}
       continue-on-error: true
       shell: bash
       run: |
@@ -223,6 +232,7 @@ jobs:
         bash ./.github/scripts/upload_snapshot_pv_pre.sh;
 
     - name: Deploy to snapshot server
+      if: ${{ inputs.deploy_snapshot }}
       continue-on-error: true
       shell: bash
       run: |
