@@ -17,6 +17,10 @@ on:
         type: boolean
         default: false
         required: true
+      LAZARUS_VERSION:
+        description: LAZARUS_VERSION (default stable, try 3.0RC2)
+        default: 'stable'
+        required: true
 
   workflow_call:
 #  push:
@@ -145,8 +149,11 @@ jobs:
 
     - name: Install Lazarus
       uses: deep-soft/setup-fpc@win
+#        lazarus-version: "2.2.6"
+#        lazarus-version: "stable"
       with:
-        lazarus-version: "2.2.6"
+        lazarus-version: "${{ env.LAZARUS_VERSION }}"
+
 
     - name: Build packages
       shell: cmd
