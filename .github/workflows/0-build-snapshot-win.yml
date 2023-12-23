@@ -147,6 +147,18 @@ jobs:
 #          ${{ env.ZIP_RELEASE_ARCHIVE }}
 #          ${{ env.SHA_SUMS }}
 
+    - name: Set version to Install Free Pascal
+      shell: bash
+      run: |
+        echo "LAZARUS_VERSION=stable" >> $GITHUB_ENV
+        if [[ "${{ inputs.LAZARUS_VERSION }}" != "" ]]; then
+          LAZARUS_VERSION="${{ inputs.LAZARUS_VERSION }}";
+        else
+          LAZARUS_VERSION="stable";
+        fi
+        echo "LAZARUS_VERSION=$LAZARUS_VERSION"
+        echo "LAZARUS_VERSION=$LAZARUS_VERSION" >> $GITHUB_ENV
+
     - name: Install Lazarus
       uses: deep-soft/setup-fpc@win
 #        lazarus-version: "2.2.6"
