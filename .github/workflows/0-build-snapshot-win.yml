@@ -2,13 +2,15 @@ name: 0-build-snapshot-win
 # 2023-12-26 16:30
 
 on:
-  workflow_dispatch:
-    inputs:
 # if: ${{ inputs.setup-fpc.deep-soft }}
 # if: ${{ inputs.setup-fpc.alexx2000 }}
+  workflow_dispatch:
+    inputs:
       setup-fpc:
         description: (setup-fpc.deep-soft or setup-fpc.alexx2000)
+        default: 'alexx2000'
         type: choice
+        options:
           - deep-soft
           - alexx2000
         required: true
@@ -36,7 +38,7 @@ on:
         description: (setup-fpc.deep-soft or setup-fpc.alexx2000)
         type: string
         default: 'alexx2000'
-        required: true
+        required: true 
 #  push:
 #    paths:
 #    - 'components/**'
