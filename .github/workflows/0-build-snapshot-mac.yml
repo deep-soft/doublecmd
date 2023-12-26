@@ -4,6 +4,14 @@ name: 0-build-snapshot-mac
 on:
   workflow_dispatch:
     inputs:
+      setup-fpc:
+        description: (setup-fpc.deep-soft or setup-fpc.alexx2000)
+        type: choice
+          - deep-soft
+          - alexx2000
+        required: true
+# if: ${{ inputs.setup-fpc.deep-soft }}
+# if: ${{ inputs.setup-fpc.alexx2000 }}
       archive_all:
         description: archive_all
         type: boolean
@@ -23,6 +31,17 @@ on:
         required: true
 
   workflow_call:
+    inputs:
+      setup-fpc:
+      description: (setup-fpc.deep-soft or setup-fpc.alexx2000)
+      type: choice
+        - deep-soft
+        - alexx2000
+      required: true
+# if: ${{ inputs.setup-fpc.deep-soft }}
+# if: ${{ inputs.setup-fpc.alexx2000 }}
+
+  
 #  push:
 #    paths:
 #    - 'components/**'
@@ -170,7 +189,15 @@ jobs:
         echo "LAZARUS_VERSION=$LAZARUS_VERSION" >> $GITHUB_ENV
 
     - name: Install Free Pascal
+      if: ${{ github.event.inputs.setup-fpc }} == 'deep-soft'
       uses: deep-soft/setup-fpc@master
+      with:
+        lazarus-version: "${{ env.LAZARUS_VERSION }}"
+#        lazarus-version: "stable"
+
+    - name: Install Free Pascal
+      if: ${{ github.event.inputs.setup-fpc }} == 'alexx2000'
+      uses: alexx2000/setup-fpc@master
       with:
         lazarus-version: "${{ env.LAZARUS_VERSION }}"
 #        lazarus-version: "stable"
