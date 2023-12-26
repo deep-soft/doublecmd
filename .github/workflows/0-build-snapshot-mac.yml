@@ -1,17 +1,17 @@
 name: 0-build-snapshot-mac
-# 2023-11-27 20:50
+# 2023-12-26 16:30
 
 on:
   workflow_dispatch:
     inputs:
+# if: ${{ inputs.setup-fpc.deep-soft }}
+# if: ${{ inputs.setup-fpc.alexx2000 }}
       setup-fpc:
         description: (setup-fpc.deep-soft or setup-fpc.alexx2000)
         type: choice
           - deep-soft
           - alexx2000
         required: true
-# if: ${{ inputs.setup-fpc.deep-soft }}
-# if: ${{ inputs.setup-fpc.alexx2000 }}
       archive_all:
         description: archive_all
         type: boolean
@@ -33,14 +33,10 @@ on:
   workflow_call:
     inputs:
       setup-fpc:
-      description: (setup-fpc.deep-soft or setup-fpc.alexx2000)
-      type: choice
-        - deep-soft
-        - alexx2000
-      required: true
-# if: ${{ inputs.setup-fpc.deep-soft }}
-# if: ${{ inputs.setup-fpc.alexx2000 }}
-
+        description: (setup-fpc.deep-soft or setup-fpc.alexx2000)
+        type: string
+        default: 'alexx2000'
+        required: true
   
 #  push:
 #    paths:
