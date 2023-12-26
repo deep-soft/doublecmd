@@ -1,8 +1,17 @@
 name: 0-build-snapshot
-# 2023-04-16 23:00 UTC
+# 2023-12-26 16:30
 
 on:
   workflow_dispatch:
+    inputs:
+# if: ${{ inputs.setup-fpc.deep-soft }}
+# if: ${{ inputs.setup-fpc.alexx2000 }}
+      setup-fpc:
+        description: (setup-fpc.deep-soft or setup-fpc.alexx2000)
+        type: choice
+          - deep-soft
+          - alexx2000
+        required: true
 #  push:
 #    paths:
 #    - 'components/**'
