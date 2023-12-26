@@ -3,12 +3,14 @@ name: 0-build-snapshot
 
 on:
   workflow_dispatch:
-    inputs:
 # if: ${{ inputs.setup-fpc.deep-soft }}
 # if: ${{ inputs.setup-fpc.alexx2000 }}
+    inputs:
       setup-fpc:
         description: (setup-fpc.deep-soft or setup-fpc.alexx2000)
+        default: 'alexx2000'
         type: choice
+        options:
           - deep-soft
           - alexx2000
         required: true
