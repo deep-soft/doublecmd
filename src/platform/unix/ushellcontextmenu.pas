@@ -22,6 +22,9 @@
 unit uShellContextMenu;
 
 {$mode delphi}{$H+}
+{$IF DEFINED(DARWIN)}
+{$modeswitch objectivec2}
+{$ENDIF}
 
 interface
 
@@ -74,7 +77,7 @@ uses
   uOSUtils, uFileProcs, uShellExecute, uLng, uPixMapManager, uMyUnix, uOSForms,
   fMain, fFileProperties, DCOSUtils, DCStrUtils, uExts, uArchiveFileSourceUtil, uSysFolders
   {$IF DEFINED(DARWIN)}
-  , MacOSAll, uMyDarwin
+  , MacOSAll, CocoaAll, uMyDarwin
   {$ELSEIF NOT DEFINED(HAIKU)}
   , uKeyFile, uMimeActions
     {$IF DEFINED(LINUX)}
@@ -92,6 +95,25 @@ var
   // the "tag" set to the matching "TExtActionCommand" in this "TextActionList"
   // list.
   ContextMenuActionList: TExtActionList = nil;
+
+
+procedure addDelimiterMenuItem( menu:TMenuItem ); overload;
+var
+  item: TMenuItem;
+begin
+  item:= TMenuItem.Create( menu );
+  item.Caption:= '-';
+  menu.Add( item );
+end;
+
+procedure addDelimiterMenuItem( menu:TMenu ); overload;
+var
+  item: TMenuItem;
+begin
+  item:= TMenuItem.Create( menu );
+  item.Caption:= '-';
+  menu.Items.Add( item );
+end;
 
 {$IF NOT (DEFINED(DARWIN) OR DEFINED(HAIKU))}
 
@@ -343,8 +365,28 @@ end;
 procedure TShellContextMenu.OpenWithMenuItemSelect(Sender: TObject);
 var
   ExecCmd: String;
+{$IFDEF DARWIN}
+  appDialog: TOpenDialog;
+{$ENDIF}
 begin
   ExecCmd := (Sender as TMenuItem).Hint;
+
+{$IFDEF DARWIN}
+  if ExecCmd.IsEmpty then begin
+    // Context Menu / Open with / Other...
+    appDialog:= TOpenDialog.Create(self);
+    appDialog.DefaultExt:= 'app';
+    appDialog.InitialDir:= '/Applications';
+    if appDialog.Execute and (NOT appDialog.FileName.IsEmpty) then begin
+      ExecCmd:= QuoteStr(appDialog.FileName) + #32 + QuoteStr(FFiles[0].FullPath);
+    end;
+    FreeAndNil(appDialog);
+  end;
+{$ENDIF}
+
+  if ExecCmd.IsEmpty then
+    Exit;
+
   try
     ExecCmdFork(ExecCmd);
   except
@@ -353,78 +395,91 @@ begin
   end;
 end;
 
+{$IF DEFINED(DARWIN)}
+function OpenWithComparator(param1:id; param2:id; theArray: pointer): NSInteger; cdecl;
+var
+  fileManager: NSFileManager;
+  string1: NSString;
+  string2: NSString;
+begin
+  if param1 = NSArray(theArray).firstObject then
+    Exit( NSOrderedAscending );
+
+  fileManager:= NSFileManager.defaultManager;
+  string1:= fileManager.displayNameAtPath( param1.path );
+  string2:= fileManager.displayNameAtPath( param2.path );
+  Result:= string1.localizedStandardCompare( string2 );
+end;
+{$ENDIF}
+
 function TShellContextMenu.FillOpenWithSubMenu: Boolean;
 {$IF DEFINED(DARWIN)}
+const
+  ROLE_MASK = kLSRolesViewer or kLSRolesEditor or kLSRolesShell;
 var
-  I: CFIndex;
+  I: Integer;
   ImageIndex: PtrInt;
   bmpTemp: TBitmap = nil;
   mi, miOpenWith: TMenuItem;
-  ApplicationArrayRef: CFArrayRef = nil;
-  FileNameCFRef: CFStringRef = nil;
-  FileNameUrlRef: CFURLRef = nil;
-  ApplicationUrlRef: CFURLRef = nil;
-  ApplicationNameCFRef: CFStringRef = nil;
-  ApplicationCString: array[0..MAX_PATH-1] of Char;
+
+  appRawArray: NSArray;
+  appArray: NSArray;
+  contextFileUrl: NSURL;
+  appUrl: NSURL;
 begin
   Result:= False;
-  if (FFiles.Count <> 1) then Exit;
+  if FFiles.Count<>1
+    then Exit;
+
   try
-    FileNameCFRef:= CFStringCreateWithFileSystemRepresentation(nil, PChar(FFiles[0].FullPath));
-    FileNameUrlRef:= CFURLCreateWithFileSystemPath(nil, FileNameCFRef, kCFURLPOSIXPathStyle, False);
-    ApplicationArrayRef:= LSCopyApplicationURLsForURL(FileNameUrlRef,  kLSRolesViewer or kLSRolesEditor or kLSRolesShell);
-    if Assigned(ApplicationArrayRef) and (CFArrayGetCount(ApplicationArrayRef) > 0) then
-    begin
-      Result:= True;
-      miOpenWith := TMenuItem.Create(Self);
-      miOpenWith.Caption := rsMnuOpenWith;
+    contextFileUrl:= NSURL.fileURLWithPath( StringToNSString(FFiles[0].FullPath) );
+    appRawArray:= NSArray( LSCopyApplicationURLsForURL(
+                             CFURLRef(contextFileUrl), ROLE_MASK) );
+
+    miOpenWith:= TMenuItem.Create(Self);
+    miOpenWith.Caption:= rsMnuOpenWith;
+
+    if Assigned(appRawArray) and (appRawArray.count>0) then begin
       FMenuImageList := TImageList.Create(nil);
       miOpenWith.SubMenuImages := FMenuImageList;
-      Self.Items.Add(miOpenWith);
 
-      for I:= 0 to CFArrayGetCount(ApplicationArrayRef) - 1 do
-      begin
-        ApplicationUrlRef:= CFURLRef(CFArrayGetValueAtIndex(ApplicationArrayRef, I));
-        if CFURLGetFileSystemRepresentation(ApplicationUrlRef,
-                                            True,
-                                            ApplicationCString,
-                                            SizeOf(ApplicationCString)) then
-        begin
-          mi := TMenuItem.Create(miOpenWith);
-          mi.Caption := ExtractOnlyFileName(ApplicationCString);
-          mi.Hint := QuoteStr(ApplicationCString) + #32 + QuoteStr(FFiles[0].FullPath);
-          ImageIndex:= PixMapManager.GetApplicationBundleIcon(ApplicationCString, -1);
-          if LSCopyDisplayNameForURL(ApplicationUrlRef, ApplicationNameCFRef) = noErr then
-          begin
-            if CFStringGetCString(ApplicationNameCFRef,
-                                  ApplicationCString,
-                                  SizeOf(ApplicationCString),
-                                  kCFStringEncodingUTF8) then
-              mi.Caption := ApplicationCString;
-            CFRelease(ApplicationNameCFRef);
+      appArray := appRawArray.sortedArrayUsingFunction_context(
+        @OpenWithComparator, appRawArray );
+
+      for I:= 0 to appArray.count-1 do begin
+        appUrl:= NSURL( appArray.objectAtIndex(I) );
+        mi:= TMenuItem.Create( miOpenWith );
+        mi.Caption:= NSFileManager.defaultManager.displayNameAtPath(appUrl.path).UTF8String;
+        mi.Hint := QuoteStr(appUrl.path.UTF8String) + #32 + QuoteStr(FFiles[0].FullPath);
+        ImageIndex:= PixMapManager.GetApplicationBundleIcon(appUrl.path.UTF8String, -1);
+        if ImageIndex >= 0 then begin
+          bmpTemp:= PixMapManager.GetBitmap(ImageIndex);
+          if Assigned(bmpTemp) then begin
+            mi.ImageIndex:=FMenuImageList.Count;
+            FMenuImageList.Add( bmpTemp , nil );
+            FreeAndNil(bmpTemp);
           end;
-          if ImageIndex >= 0 then
-            begin
-              bmpTemp:= PixMapManager.GetBitmap(ImageIndex);
-              if Assigned(bmpTemp) then
-                begin
-                  mi.ImageIndex:=FMenuImageList.Count;
-                  FMenuImageList.Add( bmpTemp , nil );
-                  FreeAndNil(bmpTemp);
-                end;
-            end;
-          mi.OnClick := Self.OpenWithMenuItemSelect;
-          miOpenWith.Add(mi);
         end;
+        mi.OnClick := Self.OpenWithMenuItemSelect;
+        miOpenWith.Add(mi);
+        if (i=0) and (appArray.count>=2) then
+          addDelimiterMenuItem( miOpenWith );
       end;
     end;
+
+    // Other...
+    addDelimiterMenuItem( miOpenWith );
+
+    mi:= TMenuItem.Create(miOpenWith);
+    mi.Caption:= rsMnuOpenWithOther;
+    mi.OnClick := Self.OpenWithMenuItemSelect;
+    miOpenWith.Add(mi);
+
+    Self.Items.Add(miOpenWith);
+    Result:= True;
   finally
-    if Assigned(FileNameCFRef) then
-      CFRelease(FileNameCFRef);
-    if Assigned(FileNameUrlRef) then
-      CFRelease(FileNameUrlRef);
-    if Assigned(ApplicationArrayRef) then
-      CFRelease(ApplicationArrayRef);
+    if Assigned(appRawArray) then
+      appRawArray.release;
   end;
 end;
 {$ELSEIF DEFINED(HAIKU)}
@@ -499,20 +554,14 @@ procedure TShellContextMenu.FillServicesSubMenu;
 var
   mi: TMenuItem;
 begin
-  // Add delimiter menu
-  mi:=TMenuItem.Create(Self);
-  mi.Caption:='-';
-  Self.Items.Add(mi);
+  addDelimiterMenuItem( self );
 
   // attach Services Menu in TMacosServiceMenuHelper
   mi:=TMenuItem.Create(Self);
   mi.Caption:=uLng.rsMenuMacOsServices;
   Self.Items.Add(mi);
 
-  // Add delimiter menu
-  mi:=TMenuItem.Create(Self);
-  mi.Caption:='-';
-  Self.Items.Add(mi);
+  addDelimiterMenuItem( self );
 
   // add Sharing Menu
   // similar to MacOS 13, the Share MenuItem does not expand the submenu,
@@ -789,9 +838,7 @@ begin
 
       if FUserWishForContextMenu = uwcmComplete then
       begin
-        mi:=TMenuItem.Create(Self);
-        mi.Caption:='-';
-        Self.Items.Add(mi);
+        addDelimiterMenuItem( self );
 
         // Add "Open with" submenu if needed
         AddOpenWithMenu := FillOpenWithSubMenu;
@@ -802,9 +849,7 @@ begin
         {$ENDIF}
 
         // Add delimiter menu
-        mi:=TMenuItem.Create(Self);
-        mi.Caption:='-';
-        Self.Items.Add(mi);
+        addDelimiterMenuItem( self );
 
         // Add "Pack here..."
         mi:=TMenuItem.Create(Self);
@@ -822,9 +867,7 @@ begin
         end;
 
         // Add delimiter menu
-        mi:=TMenuItem.Create(Self);
-        mi.Caption:='-';
-        Self.Items.Add(mi);
+        addDelimiterMenuItem( self );
 
         // Add "Move"
         mi:=TMenuItem.Create(Self);
@@ -846,9 +889,7 @@ begin
         mi.Action := frmMain.actRenameOnly;
         Self.Items.Add(mi);
 
-        mi:=TMenuItem.Create(Self);
-        mi.Caption:='-';
-        Self.Items.Add(mi);
+        addDelimiterMenuItem( self );
 
         // Add "Cut"
         mi:=TMenuItem.Create(Self);
@@ -865,9 +906,7 @@ begin
         mi.Action := frmMain.actPasteFromClipboard;
         Self.Items.Add(mi);
 
-        mi:=TMenuItem.Create(Self);
-        mi.Caption:='-';
-        Self.Items.Add(mi);
+        addDelimiterMenuItem( self );
 
         // Add "Show file properties"
         mi:= TMenuItem.Create(Self);
@@ -909,26 +948,19 @@ begin
       mi.Action := frmMain.actSortByAttr;
       miSortBy.Add(mi);
 
-      mi:=TMenuItem.Create(miSortBy);
-      mi.Caption := '-';
-      miSortBy.Add(mi);
+      addDelimiterMenuItem( miSortBy );
 
       mi:=TMenuItem.Create(miSortBy);
       mi.Action := frmMain.actReverseOrder;
       miSortBy.Add(mi);
 
-      mi:=TMenuItem.Create(Self);
-      mi.Caption:='-';
-      Self.Items.Add(mi);
+      addDelimiterMenuItem( self );
 
       mi:=TMenuItem.Create(Self);
       mi.Action := frmMain.actPasteFromClipboard;
       Self.Items.Add(mi);
 
-
-      mi:=TMenuItem.Create(Self);
-      mi.Caption:='-';
-      Self.Items.Add(mi);
+      addDelimiterMenuItem( self );
 
       // Add "New" submenu
       miSortBy := TMenuItem.Create(Self);
@@ -949,9 +981,7 @@ begin
 
       if GetTemplateMenu(sl) then
       begin
-        mi:= TMenuItem.Create(miSortBy);
-        mi.Caption:= '-';
-        miSortBy.Add(mi);
+        addDelimiterMenuItem( miSortBy );
 
         for I:= 0 to sl.Count - 1 do
         begin
@@ -970,9 +1000,7 @@ begin
         FreeAndNil(sl);
       end;
 
-      mi:=TMenuItem.Create(Self);
-      mi.Caption:='-';
-      Self.Items.Add(mi);
+      addDelimiterMenuItem( self );
 
       mi:= TMenuItem.Create(Self);
       mi.Hint:= sCmdVerbProperties;
