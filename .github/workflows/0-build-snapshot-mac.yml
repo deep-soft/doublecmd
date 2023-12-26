@@ -25,12 +25,6 @@ on:
         required: true
 
   workflow_call:
-    inputs:
-      setup-fpc:
-        description: (setup-fpc.deep-soft or setup-fpc.alexx2000)
-        type: string
-        default: 'alexx2000'
-        required: true  
 #  push:
 #    paths:
 #    - 'components/**'
