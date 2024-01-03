@@ -3139,7 +3139,7 @@ msgstr "P&omoc"
 
 #: tfrmmain.mnumark.caption
 msgid "&Mark"
-msgstr "&Zaznacz"
+msgstr "Zaz&nacz"
 
 #: tfrmmain.mnunetwork.caption
 msgctxt "tfrmmain.mnunetwork.caption"
@@ -12343,6 +12343,10 @@ msgstr "Gry"
 msgctxt "ulng.rsopenwithgraphics"
 msgid "Graphics"
 msgstr "Grafika"
+
+#: ulng.rsopenwithmacosfilter
+msgid "Applications (*.app)|*.app|All files (*)|*"
+msgstr ""
 
 #: ulng.rsopenwithmultimedia
 msgid "Multimedia"
