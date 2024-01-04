@@ -1,5 +1,5 @@
 #!/bin/bash
-# 2023-08-06 09:00
+# 2024-01-04 07:40
 
 # test if DC_VER already set
 if [ .$DC_VER==. ]; then
