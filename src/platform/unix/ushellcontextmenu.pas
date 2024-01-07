@@ -362,28 +362,125 @@ begin
 {$ENDIF}
 end;
 
+{$IF DEFINED(DARWIN)}
+function OpenWithComparator(param1:id; param2:id; nouse: pointer): NSInteger; cdecl;
+var
+  fileManager: NSFileManager;
+  string1: NSString;
+  string2: NSString;
+begin
+  fileManager:= NSFileManager.defaultManager;
+  string1:= fileManager.displayNameAtPath( param1.path );
+  string2:= fileManager.displayNameAtPath( param2.path );
+  Result:= string1.localizedStandardCompare( string2 );
+end;
+
+function filesToNSUrlArray( const files:TFiles ): NSArray;
+var
+  theArray: NSMutableArray;
+  theFile: TFile;
+  path: String;
+  url: NSUrl;
+begin
+  theArray:= NSMutableArray.arrayWithCapacity( files.Count );
+  for theFile in files.List do begin
+    path:= theFile.FullPath;
+    url:= NSUrl.fileURLWithPath( StringToNSString(path) );
+    theArray.addObject( url );
+  end;
+  Result:= theArray;
+end;
+
+function getAppArrayFromFiles( const files:TFiles ): NSArray;
+const
+  ROLE_MASK = kLSRolesViewer or kLSRolesEditor or kLSRolesShell;
+var
+  theFile: TFile;
+  path: String;
+  url: NSUrl;
+
+  appSet: NSMutableSet = nil;
+  newSet: NSSet;
+  appArray: NSMutableArray;
+  newArray: NSArray;
+  defaultAppUrl: NSUrl = nil;
+begin
+  Result:= nil;
+  try
+    for theFile in files.List do begin
+      path:= theFile.FullPath;
+      url:= NSUrl.fileURLWithPath( StringToNSString(path) );
+      newArray:= NSArray( LSCopyApplicationURLsForURL(CFURLRef(url), ROLE_MASK) );
+      newSet:= NSSet.setWithArray( newArray );
+      if Assigned(appSet) then begin
+        appSet.intersectSet( newSet );
+      end else begin
+        appSet:= NSMutableSet.alloc.initWithSet( newSet );
+        if newArray.count > 0 then
+          defaultAppUrl:= newArray.objectAtIndex(0);
+      end;
+      newArray.release;
+    end;
+
+    newArray:= NSArray.arrayWithArray( appSet.allObjects );
+    newArray:= newArray.sortedArrayUsingFunction_context(
+                     @OpenWithComparator, nil );
+
+    appArray:= NSMutableArray.arrayWithArray( newArray );
+    if appArray.containsObject(defaultAppUrl) then begin
+      appArray.removeObject( defaultAppUrl );
+      appArray.insertObject_atIndex( defaultAppUrl, 0 );
+    end;
+    Result:= appArray;
+  finally
+    appSet.release;
+  end;
+end;
+
+// Context Menu / Open with / Other...
+function getOtherAppFromDialog(): String;
+var
+  appDialog: TOpenDialog;
+begin
+  Result:= '';
+  appDialog:= TOpenDialog.Create(nil);
+  appDialog.DefaultExt:= 'app';
+  appDialog.InitialDir:= '/Applications';
+  appDialog.Filter:= rsOpenWithMacOSFilter;
+  if appDialog.Execute and (NOT appDialog.FileName.IsEmpty) then begin
+    Result:= appDialog.FileName;
+  end;
+  FreeAndNil( appDialog );
+end;
+
+procedure TShellContextMenu.OpenWithMenuItemSelect(Sender: TObject);
+var
+  appPath: String;
+  launchParam: LSLaunchURLSpec;
+begin
+  appPath := (Sender as TMenuItem).Hint;
+
+  if appPath.IsEmpty then begin
+    appPath:= getOtherAppFromDialog;
+    if appPath.IsEmpty then
+      Exit;
+  end;
+
+  launchParam.appURL:= CFURLRef( NSUrl.fileURLWithPath(StringToNSString(appPath)) );
+  launchParam.itemURLs:= CFArrayRef( filesToNSUrlArray(FFiles) );
+  launchParam.launchFlags:= 0;
+  launchParam.asyncRefCon:= nil;
+  launchParam.passThruParams:= nil;
+  LSOpenFromURLSpec( launchParam, nil );
+end;
+
+{$ELSE}
+
 procedure TShellContextMenu.OpenWithMenuItemSelect(Sender: TObject);
 var
   ExecCmd: String;
-{$IFDEF DARWIN}
-  appDialog: TOpenDialog;
-{$ENDIF}
 begin
   ExecCmd := (Sender as TMenuItem).Hint;
-
-{$IFDEF DARWIN}
-  if ExecCmd.IsEmpty then begin
-    // Context Menu / Open with / Other...
-    appDialog:= TOpenDialog.Create(self);
-    appDialog.DefaultExt:= 'app';
-    appDialog.InitialDir:= '/Applications';
-    appDialog.Filter:= rsOpenWithMacOSFilter;
-    if appDialog.Execute and (NOT appDialog.FileName.IsEmpty) then begin
-      ExecCmd:= QuoteStr(appDialog.FileName) + #32 + QuoteStr(FFiles[0].FullPath);
-    end;
-    FreeAndNil(appDialog);
-  end;
-{$ENDIF}
 
   if ExecCmd.IsEmpty then
     Exit;
@@ -395,93 +492,63 @@ begin
       MessageDlg(rsMsgErrorInContextMenuCommand, rsMsgInvalidCommandLine + ': ' + e.Message, mtError, [mbOK], 0);
   end;
 end;
-
-{$IF DEFINED(DARWIN)}
-function OpenWithComparator(param1:id; param2:id; theArray: pointer): NSInteger; cdecl;
-var
-  fileManager: NSFileManager;
-  string1: NSString;
-  string2: NSString;
-begin
-  if param1 = NSArray(theArray).firstObject then
-    Exit( NSOrderedAscending );
-
-  fileManager:= NSFileManager.defaultManager;
-  string1:= fileManager.displayNameAtPath( param1.path );
-  string2:= fileManager.displayNameAtPath( param2.path );
-  Result:= string1.localizedStandardCompare( string2 );
-end;
 {$ENDIF}
 
 function TShellContextMenu.FillOpenWithSubMenu: Boolean;
 {$IF DEFINED(DARWIN)}
-const
-  ROLE_MASK = kLSRolesViewer or kLSRolesEditor or kLSRolesShell;
 var
   I: Integer;
   ImageIndex: PtrInt;
   bmpTemp: TBitmap = nil;
   mi, miOpenWith: TMenuItem;
 
-  appRawArray: NSArray;
   appArray: NSArray;
-  contextFileUrl: NSURL;
   appUrl: NSURL;
 begin
   Result:= False;
-  if FFiles.Count<>1
-    then Exit;
+  if FFiles.Count=0 then
+    Exit;
 
-  try
-    contextFileUrl:= NSURL.fileURLWithPath( StringToNSString(FFiles[0].FullPath) );
-    appRawArray:= NSArray( LSCopyApplicationURLsForURL(
-                             CFURLRef(contextFileUrl), ROLE_MASK) );
+  appArray:= getAppArrayFromFiles( FFiles );
 
-    miOpenWith:= TMenuItem.Create(Self);
-    miOpenWith.Caption:= rsMnuOpenWith;
+  miOpenWith:= TMenuItem.Create(Self);
+  miOpenWith.Caption:= rsMnuOpenWith;
 
-    if Assigned(appRawArray) and (appRawArray.count>0) then begin
-      FMenuImageList := TImageList.Create(nil);
-      miOpenWith.SubMenuImages := FMenuImageList;
+  if Assigned(appArray) and (appArray.count>0) then begin
+    FMenuImageList := TImageList.Create(nil);
+    miOpenWith.SubMenuImages := FMenuImageList;
 
-      appArray := appRawArray.sortedArrayUsingFunction_context(
-        @OpenWithComparator, appRawArray );
-
-      for I:= 0 to appArray.count-1 do begin
-        appUrl:= NSURL( appArray.objectAtIndex(I) );
-        mi:= TMenuItem.Create( miOpenWith );
-        mi.Caption:= NSFileManager.defaultManager.displayNameAtPath(appUrl.path).UTF8String;
-        mi.Hint := QuoteStr(appUrl.path.UTF8String) + #32 + QuoteStr(FFiles[0].FullPath);
-        ImageIndex:= PixMapManager.GetApplicationBundleIcon(appUrl.path.UTF8String, -1);
-        if ImageIndex >= 0 then begin
-          bmpTemp:= PixMapManager.GetBitmap(ImageIndex);
-          if Assigned(bmpTemp) then begin
-            mi.ImageIndex:=FMenuImageList.Count;
-            FMenuImageList.Add( bmpTemp , nil );
-            FreeAndNil(bmpTemp);
-          end;
+    for I:= 0 to appArray.count-1 do begin
+      appUrl:= NSURL( appArray.objectAtIndex(I) );
+      mi:= TMenuItem.Create( miOpenWith );
+      mi.Caption:= NSFileManager.defaultManager.displayNameAtPath(appUrl.path).UTF8String;
+      mi.Hint := appUrl.path.UTF8String;
+      ImageIndex:= PixMapManager.GetApplicationBundleIcon(appUrl.path.UTF8String, -1);
+      if ImageIndex >= 0 then begin
+        bmpTemp:= PixMapManager.GetBitmap(ImageIndex);
+        if Assigned(bmpTemp) then begin
+          mi.ImageIndex:=FMenuImageList.Count;
+          FMenuImageList.Add( bmpTemp , nil );
+          FreeAndNil(bmpTemp);
         end;
-        mi.OnClick := Self.OpenWithMenuItemSelect;
-        miOpenWith.Add(mi);
-        if (i=0) and (appArray.count>=2) then
-          addDelimiterMenuItem( miOpenWith );
       end;
+      mi.OnClick := Self.OpenWithMenuItemSelect;
+      miOpenWith.Add(mi);
+      if (i=0) and (appArray.count>=2) then
+        addDelimiterMenuItem( miOpenWith );
     end;
-
-    // Other...
-    addDelimiterMenuItem( miOpenWith );
-
-    mi:= TMenuItem.Create(miOpenWith);
-    mi.Caption:= rsMnuOpenWithOther;
-    mi.OnClick := Self.OpenWithMenuItemSelect;
-    miOpenWith.Add(mi);
-
-    Self.Items.Add(miOpenWith);
-    Result:= True;
-  finally
-    if Assigned(appRawArray) then
-      appRawArray.release;
   end;
+
+  // Other...
+  addDelimiterMenuItem( miOpenWith );
+
+  mi:= TMenuItem.Create(miOpenWith);
+  mi.Caption:= rsMnuOpenWithOther;
+  mi.OnClick := Self.OpenWithMenuItemSelect;
+  miOpenWith.Add(mi);
+
+  Self.Items.Add(miOpenWith);
+  Result:= True;
 end;
 {$ELSEIF DEFINED(HAIKU)}
 begin
