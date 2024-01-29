@@ -1,5 +1,5 @@
 name: 0-build-snapshot-win
-# 2023-12-26 16:30
+# 2024-01-29 07:30
 
 on:
   workflow_dispatch:
@@ -52,7 +52,7 @@ jobs:
         echo "IP:$public_ip:"
 
     - name: Checkout source
-      uses: deep-soft/checkout@v3
+      uses: deep-soft/checkout@v4
       with:
         fetch-depth: 0
 
@@ -91,7 +91,7 @@ jobs:
 
     - name: create SHA_SUMS
       if: ${{ inputs.create_SHA_all }}
-      uses: deep-soft/sha-checksums@main
+      uses: deep-soft/sha-checksums@v1
       with:
         type: sha256
         filename: '${{ env.TAG_NAME }}-${{ env.DC_VER }}-win.sha256'
@@ -105,7 +105,7 @@ jobs:
     - name: Upload artifact
       if: ${{ inputs.create_SHA_all }}
       continue-on-error: true
-      uses: deep-soft/upload-artifact@main
+      uses: deep-soft/upload-artifact@v4
       with:
         name: ${{ env.TAG_NAME }}-${{ env.DC_VER }}-win
         path: ${{ env.SHA_SUMS }}
@@ -125,7 +125,7 @@ jobs:
         ls -l ${{ env.ZIP_RELEASE_ARCHIVE }}
 
     - name: create release SHA_SUMS 
-      uses: deep-soft/sha-checksums@main
+      uses: deep-soft/sha-checksums@v1
       with:
         type: sha256
         filename: '${{ env.TAG_NAME }}-${{ env.DC_VER }}-win-zip.sha256'
@@ -139,7 +139,7 @@ jobs:
 #    - name: Publish source Release
 #      if: publish-source-archive
 #      continue-on-error: true
-#      uses: deep-soft/action-gh-release@v2
+#      uses: deep-soft/action-gh-release@v2.1
 #      with:
 #        draft: true
 #        tag_name: ${{ env.TAG_NAME }}-${{ env.DC_VER }}-${{ env.DC_REVISION }}-win
@@ -173,7 +173,7 @@ jobs:
 
     - name: Publish Release
       continue-on-error: true
-      uses: deep-soft/action-gh-release@v2
+      uses: deep-soft/action-gh-release@v2.1
       with:
         draft: true
         tag_name: ${{ env.TAG_NAME }}-${{ env.DC_VER }}-${{ env.DC_REVISION }}-win
@@ -185,7 +185,7 @@ jobs:
 
     - name: Publish Release latest
       continue-on-error: true
-      uses: deep-soft/action-gh-release@v2
+      uses: deep-soft/action-gh-release@v2.1
       with:
         draft: false
         tag_name: ${{ env.TAG_NAME }}
@@ -228,7 +228,7 @@ jobs:
     - name: Upload artifact
       if: ${{ inputs.archive_all }}
       continue-on-error: true
-      uses: deep-soft/upload-artifact@main
+      uses: deep-soft/upload-artifact@v4
       with:
         name: sets.zip
         path: sets.zip
