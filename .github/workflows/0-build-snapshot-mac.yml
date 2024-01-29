@@ -1,5 +1,5 @@
 name: 0-build-snapshot-mac
-# 2023-12-26 16:30
+# 2024-01-29 07:30
 
 on:
 # if: ${{ inputs.setup-fpc.deep-soft }}
@@ -54,7 +54,7 @@ jobs:
         echo "IP[$public_ip]"
 
     - name: Checkout source
-      uses: deep-soft/checkout@v3
+      uses: deep-soft/checkout@v4
       with:
         fetch-depth: 0
 
@@ -93,7 +93,7 @@ jobs:
 
     - name: create SHA_SUMS
       if: ${{ inputs.create_SHA_all }}
-      uses: deep-soft/sha-checksums@main
+      uses: deep-soft/sha-checksums@v1
       with:
         type: sha256
         filename: '${{ env.TAG_NAME }}-${{ env.DC_VER }}-mac.sha256'
@@ -107,7 +107,7 @@ jobs:
     - name: Upload artifact
       if: ${{ inputs.create_SHA_all }}
       continue-on-error: true
-      uses: deep-soft/upload-artifact@main
+      uses: deep-soft/upload-artifact@v4
       with:
         name: ${{ env.TAG_NAME }}-${{ env.DC_VER }}-mac
         path: ${{ env.SHA_SUMS }}
@@ -127,7 +127,7 @@ jobs:
         ls -l ${{ env.ZIP_RELEASE_ARCHIVE }}
 
     - name: create release SHA_SUMS
-      uses: deep-soft/sha-checksums@main
+      uses: deep-soft/sha-checksums@v1
       with:
         type: sha256
         filename: '${{ env.TAG_NAME }}-${{ env.DC_VER }}-mac.sha256'
@@ -155,7 +155,7 @@ jobs:
         ls -l ../${{ env.ZIP_RELEASE_ARCHIVE }}
 
     - name: Get Lazarus source
-      uses: deep-soft/checkout@v3
+      uses: deep-soft/checkout@v4
       with:
         repository: 'fpc/Lazarus'
 
@@ -189,7 +189,7 @@ jobs:
         sudo sed -i -e "s|_PPCARCH_|fpc|g; s|/Developer/lazarus|/usr/local/share/lazarus|g" /etc/lazarus/environmentoptions.xml;
 
     - name: Checkout source
-      uses: deep-soft/checkout@v3
+      uses: deep-soft/checkout@v4
       with:
         fetch-depth: 0
 
@@ -205,7 +205,7 @@ jobs:
 
     - name: Publish Release
       continue-on-error: true
-      uses: deep-soft/action-gh-release@v2
+      uses: deep-soft/action-gh-release@v2.1
       with:
         draft: true
         tag_name: ${{ env.TAG_NAME }}-${{ env.DC_VER }}-${{ env.DC_REVISION }}-mac
@@ -217,7 +217,7 @@ jobs:
 
     - name: Publish Release latest
       continue-on-error: true
-      uses: deep-soft/action-gh-release@v2
+      uses: deep-soft/action-gh-release@v2.1
       with:
         draft: false
         tag_name: ${{ env.TAG_NAME }}
