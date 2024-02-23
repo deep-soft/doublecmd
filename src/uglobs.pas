@@ -321,9 +321,12 @@ var
   gUpdatedFilesPosition: TUpdatedFilesPosition;
   gLynxLike:Boolean;
   gFirstTextSearch: Boolean;
+
+  { File views page }
   gExtraLineSpan: Integer;
   gFolderPrefix,
   gFolderPostfix: String;
+  gRenameConfirmMouse: Boolean;
 
   { Mouse }
   gMouseSelectionEnabled: Boolean;
@@ -1731,6 +1734,7 @@ begin
   gExtraLineSpan := 2;
   gFolderPrefix := '[';
   gFolderPostfix := ']';
+  gRenameConfirmMouse := False;
   { Brief view page }
   gBriefViewFixedCount := 2;
   gBriefViewFixedWidth := 100;
@@ -2495,10 +2499,16 @@ procedure LoadXmlConfig;
       end;
   end;
   procedure GetDCFont(Node: TXmlNode; var FontOptions: TDCFontOptions);
+  var
+    FontQuality: Integer;
   begin
     if Assigned(Node) then
-      gConfig.GetFont(Node, '', FontOptions.Name, FontOptions.Size, Integer(FontOptions.Style), Integer(FontOptions.Quality),
-                                FontOptions.Name, FontOptions.Size, Integer(FontOptions.Style), Integer(FontOptions.Quality));
+    begin
+      FontQuality:= Integer(FontOptions.Quality);
+      gConfig.GetFont(Node, '', FontOptions.Name, FontOptions.Size, Integer(FontOptions.Style), FontQuality,
+                                FontOptions.Name, FontOptions.Size, Integer(FontOptions.Style), FontQuality);
+      FontOptions.Quality:= TFontQuality(FontQuality);
+    end;
   end;
   procedure LoadOption(Node: TXmlNode; var Options: TDrivesListButtonOptions; Option: TDrivesListButtonOption; AName: String);
   var
@@ -2865,6 +2875,7 @@ begin
       gExtraLineSpan := GetValue(Node, 'ExtraLineSpan', gExtraLineSpan);
       gFolderPrefix := GetValue(Node, 'FolderPrefix', gFolderPrefix);
       gFolderPostfix := GetValue(Node, 'FolderPostfix', gFolderPostfix);
+      gRenameConfirmMouse := GetValue(Node, 'RenameConfirmMouse', gRenameConfirmMouse);
     end;
 
     { Keys page }
@@ -3531,6 +3542,7 @@ begin
     SetValue(Node, 'ExtraLineSpan', gExtraLineSpan);
     SetValue(Node, 'FolderPrefix', gFolderPrefix);
     SetValue(Node, 'FolderPostfix', gFolderPostfix);
+    SetValue(Node, 'RenameConfirmMouse', gRenameConfirmMouse);
 
     { Keys page }
     Node := FindNode(Root, 'Keyboard', True);
