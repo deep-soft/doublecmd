@@ -56,6 +56,7 @@ uses
   {$ELSEIF DEFINED(LCLGTK2)}
   , Glib2, Gtk2
   {$ELSEIF DEFINED(DARWIN)}
+  , CocoaMenus
   , uMyDarwin
   {$ENDIF}
   , Types, LMessages;
@@ -68,6 +69,7 @@ type
 
   TfrmMain = class(TAloneForm, IFormCommands)
     actAddPlugin: TAction;
+    actMapNetworkDrive: TAction;
     actShowTabsList: TAction;
     actSaveFileDetailsToFile: TAction;
     actLoadList: TAction;
@@ -602,6 +604,7 @@ type
     procedure miTrayIconExitClick(Sender: TObject);
     procedure miTrayIconRestoreClick(Sender: TObject);
     procedure PanelButtonClick(Button: TSpeedButton; FileView: TFileView);
+    procedure pnlDiskResize(Sender: TObject);
     procedure ShellTreeViewSelect;
     procedure ShellTreeViewKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
@@ -792,10 +795,8 @@ type
     procedure RightDriveBarExecuteDrive(ToolItem: TKASToolItem);
     procedure SetDragCursor(Shift: TShiftState);
     {$IFDEF DARWIN}
-    procedure createDarwinAppMenu;
-    procedure aboutOnClick(Sender: TObject);
-    procedure optionsOnClick(Sender: TObject);
     procedure GlobalMacOSKeyDownHandler(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure OpenNewWindow(Sender: TObject);
     {$ENDIF}
 
   protected
@@ -1250,7 +1251,6 @@ begin
 {$IF DEFINED(DARWIN)}
   InitNSServiceProvider( @OnNSServiceOpenWithNewTab, @NSServiceMenuIsReady, @NSServiceMenuGetFilenames );
   InitNSThemeChangedObserver( @NSThemeChangedHandler );
-  createDarwinAppMenu;
 {$ENDIF}
 end;
 
@@ -1712,6 +1712,24 @@ begin
 
   if tb_activate_panel_on_click in gDirTabOptions then
     SetActiveFrame(FileView);
+end;
+
+procedure TfrmMain.pnlDiskResize(Sender: TObject);
+var
+  AWidth: Integer;
+begin
+  if not gDriveBarSyncWidth then
+  begin
+    if gDriveBar1 and gDriveBar2 then
+      AWidth:= Max(0, pnlDisk.ClientWidth div 2)
+    else begin
+      AWidth:= Max(0, pnlDisk.ClientWidth);
+    end;
+    pnlDskLeft.Constraints.MinWidth:= AWidth;
+    pnlDskLeft.Constraints.MaxWidth:= AWidth;
+    pnlDskRight.Constraints.MinWidth:= AWidth;
+    pnlDskRight.Constraints.MaxWidth:= AWidth;
+  end;
 end;
 
 procedure TfrmMain.ShellTreeViewSelect;
@@ -2923,6 +2941,26 @@ begin
 end;
 
 constructor TfrmMain.Create(TheOwner: TComponent);
+{$IF DEFINED(DARWIN)}
+  procedure setMacOSAppMenu();
+  begin
+    macOS_AppMenuIntf.aboutItem:= mnuHelpAbout;
+    macOS_AppMenuIntf.preferencesItem:= mnuConfigOptions;
+  end;
+
+  procedure setMacOSDockMenu();
+  var
+    dockMenu: TMenuItem;
+    newItem: TMenuItem;
+  begin
+    dockMenu:= TMenuItem.Create(self);
+    newItem:= TMenuItem.Create(dockMenu);
+    newItem.Caption:= rsMnuNewWindow;
+    newItem.OnClick:= @OpenNewWindow;
+    dockMenu.Add(newItem);
+    macOS_DockMenuIntf.customMenus:= dockMenu;
+  end;
+{$ENDIF}
 begin
   FMainSplitterPos := 50.0;
   inherited Create(TheOwner);
@@ -2935,6 +2973,11 @@ begin
   Screen.Cursors[crArrowCopy] := LoadCursorFromLazarusResource('ArrowCopy');
   Screen.Cursors[crArrowMove] := LoadCursorFromLazarusResource('ArrowMove');
   Screen.Cursors[crArrowLink] := LoadCursorFromLazarusResource('ArrowLink');
+
+{$IF DEFINED(DARWIN)}
+  setMacOSAppMenu;
+  setMacOSDockMenu;
+{$ENDIF}
 end;
 
 procedure TfrmMain.AfterConstruction;
@@ -4230,10 +4273,13 @@ end;
 
 procedure TfrmMain.pnlLeftResize(Sender: TObject);
 begin
-  if gDriveBar1 and gDriveBar2 and not gHorizontalFilePanels then
+  if gDriveBarSyncWidth then
   begin
-    pnlDskLeft.Constraints.MinWidth:= pnlLeft.Width;
-    pnlDskLeft.Constraints.MaxWidth:= pnlLeft.Width;
+    if gDriveBar1 and gDriveBar2 and not gHorizontalFilePanels then
+    begin
+      pnlDskLeft.Constraints.MinWidth:= pnlLeft.Width;
+      pnlDskLeft.Constraints.MaxWidth:= pnlLeft.Width;
+    end;
   end;
 
   // Put splitter after left panel.
@@ -4333,22 +4379,25 @@ procedure TfrmMain.pnlRightResize(Sender: TObject);
 var
   AWidth: Integer;
 begin
-  if gDriveBar1 and not gHorizontalFilePanels then
+  if gDriveBarSyncWidth then
   begin
-    if gDriveBar2 then
-      AWidth := pnlRight.Width + 1
-    else begin
-      AWidth := pnlNotebooks.Width - 2;
+    if gDriveBar1 and not gHorizontalFilePanels then
+    begin
+      if gDriveBar2 then
+        AWidth := pnlRight.Width + 1
+      else begin
+        AWidth := pnlNotebooks.Width - 2;
+      end;
+      if AWidth < 0 then AWidth := 0;
+      pnlDskRight.Constraints.MinWidth := AWidth;
+      pnlDskRight.Constraints.MaxWidth := AWidth;
+    end
+    else if gHorizontalFilePanels and not gDriveBar2 then
+    begin
+      AWidth := Max(0, pnlNotebooks.Width - 2);
+      pnlDskRight.Constraints.MinWidth := AWidth;
+      pnlDskRight.Constraints.MaxWidth := AWidth;
     end;
-    if AWidth < 0 then AWidth := 0;
-    pnlDskRight.Constraints.MinWidth := AWidth;
-    pnlDskRight.Constraints.MaxWidth := AWidth;
-  end
-  else if gHorizontalFilePanels and not gDriveBar2 then
-  begin
-    AWidth := Max(0, pnlNotebooks.Width - 2);
-    pnlDskRight.Constraints.MinWidth := AWidth;
-    pnlDskRight.Constraints.MaxWidth := AWidth;
   end;
 end;
 
@@ -5497,6 +5546,7 @@ begin
       dskRight.Parent := pnlDskRight;
     end;
 
+    pnlDiskResize(pnlDisk);
     pnlRightResize(pnlRight);
 
     dskLeft.GlyphSize:= gDiskIconsSize;
@@ -5910,10 +5960,10 @@ end;
 function TfrmMain.ExecuteCommandFromEdit(sCmd: String; bRunInTerm: Boolean): Boolean;
 var
   iIndex: Integer;
+  aFile: TFile = nil;
   sDir, sParams: String;
   sFilename: String = '';
   Operation: TFileSourceExecuteOperation = nil;
-  aFile: TFile = nil;
 begin
   Result:= True;
 
@@ -5925,8 +5975,13 @@ begin
 
   if (fspDirectAccess in ActiveFrame.FileSource.GetProperties) then
     begin
-      iIndex:= Pos('cd ', sCmd);
-      if (iIndex = 1) or (sCmd = 'cd') then
+      if FileNameCaseSensitive then
+        sDir:= sCmd
+      else begin
+        sDir:= LowerCase(sCmd);
+      end;
+      iIndex:= Pos('cd ', sDir);
+      if (iIndex = 1) or (sDir = 'cd') then
         begin
           sCmd:= ReplaceEnvVars(sCmd);
 
@@ -6943,7 +6998,7 @@ var
   FoundPath: Boolean = False;
   aFileView, OtherFileView: TFileView;
 begin
-  if (Drive^.DriveType in [dtSpecial, dtVirtual]) or IsAvailable(Drive, Drive^.AutoMount) then
+  if (Drive^.DriveType in [dtSpecial, dtVirtual]) or IsAvailable(Drive, True) then
   begin
     case aPanel of
       fpLeft:
@@ -7157,43 +7212,6 @@ begin
 end;
 
 {$IFDEF DARWIN}
-procedure TfrmMain.createDarwinAppMenu;
-var
-  appMenu: TMenuItem;
-  aboutItem: TMenuItem;
-  sepItem: TMenuItem;
-  prefItem: TMenuItem;
-begin
-  appMenu:= TMenuItem.Create(mnuMain);
-  appMenu.Caption:= '';
-  mnuMain.Items.Insert(0, appMenu);
-
-  aboutItem:= TMenuItem.Create(mnuMain);
-  aboutItem.Caption:= 'About ' + Application.Title;
-  aboutItem.OnClick:= @aboutOnClick;
-  appMenu.Add(aboutItem);
-
-  sepItem := TMenuItem.Create(mnuMain);
-  sepItem.Caption := '-';
-  appMenu.Add(sepItem);
-
-  prefItem := TMenuItem.Create(mnuMain);
-  prefItem.Caption := 'Preferences...';
-  prefItem.OnClick := @optionsOnClick;
-  prefItem.Shortcut := ShortCut(VK_OEM_COMMA, [ssMeta]);
-  appMenu.Add(prefItem);
-end;
-
-procedure TfrmMain.aboutOnClick(Sender: TObject);
-begin
-  Commands.cm_About([]);
-end;
-
-procedure TfrmMain.optionsOnClick(Sender: TObject);
-begin
-  Commands.cm_Options([]);
-end;
-
 procedure TfrmMain.GlobalMacOSKeyDownHandler(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 var
@@ -7211,6 +7229,11 @@ begin
       end;
     end;
   end;
+end;
+
+procedure TfrmMain.OpenNewWindow(Sender: TObject);
+begin
+  uMyDarwin.openNewInstance;
 end;
 {$ENDIF}
 

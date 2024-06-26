@@ -2474,6 +2474,10 @@ msgstr "&Загрузіць укладкі з файла"
 msgid "Create &Directory"
 msgstr "Стварыць &каталог"
 
+#: tfrmmain.actmapnetworkdrive.caption
+msgid "Map Network Drive..."
+msgstr "Мапа сеткавага дыска..."
+
 #: tfrmmain.actmarkcurrentextension.caption
 msgid "Select All with the Same E&xtension"
 msgstr "Абраць усе з гэтым пашырэннем"
@@ -10810,10 +10814,6 @@ msgstr "Наладзіць адвольныя слупкі"
 msgid "Enter new custom columns name"
 msgstr "Увесці назву новых адвольных слупкоў"
 
-#: ulng.rsmenumacosservices
-msgid "Services"
-msgstr "Службы"
-
 #: ulng.rsmenumacosshare
 msgid "Share..."
 msgstr ""
@@ -10852,10 +10852,6 @@ msgstr "Выняць"
 msgid "Extract here..."
 msgstr "Распакаваць сюды..."
 
-#: ulng.rsmnumapnetworkdrive
-msgid "Map Network Drive..."
-msgstr "Мапа сеткавага дыска..."
-
 #: ulng.rsmnumount
 msgid "Mount"
 msgstr "Прымантаваць"
@@ -10864,6 +10860,10 @@ msgstr "Прымантаваць"
 msgctxt "ulng.rsmnunew"
 msgid "New"
 msgstr "Новы"
+
+#: ulng.rsmnunewwindow
+msgid "New Window"
+msgstr ""
 
 #: ulng.rsmnunomedia
 msgid "No media available"

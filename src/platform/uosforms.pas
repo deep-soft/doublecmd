@@ -122,6 +122,7 @@ function GetControlHandle(AWindow: TWinControl): HWND;
 function GetWindowHandle(AWindow: TWinControl): HWND; overload;
 function GetWindowHandle(AHandle: HWND): HWND; overload;
 procedure CopyNetNamesToClip;
+procedure MapNetworkDrive;
 function DarkStyle: Boolean;
 
 implementation
@@ -144,14 +145,16 @@ uses
     {$ENDIF}
   {$ENDIF}
   {$IF DEFINED(DARWIN)}
+  , LCLStrConsts
   , BaseUnix, Errors, fFileProperties
-  , uQuickLook, uOpenDocThumb, uMyDarwin
+  , uQuickLook, uOpenDocThumb, uMyDarwin, uDefaultTerminal
   {$ELSEIF DEFINED(UNIX)}
   , BaseUnix, Errors, fFileProperties, uJpegThumb, uOpenDocThumb
     {$IF NOT DEFINED(HAIKU)}
     , uDCReadRSVG, uMagickWand, uGio, uGioFileSource, uVfsModule, uVideoThumb
     , uDCReadWebP, uFolderThumb, uAudioThumb, uDefaultTerminal, uDCReadHEIF
     , uTrashFileSource, uFileManager, uFileSystemFileSource, fOpenWith
+    , uFileSourceUtil
     {$ENDIF}
     {$IF DEFINED(LINUX)}
     , uFlatpak
@@ -495,32 +498,11 @@ end;
 procedure MenuHandler(Self, Sender: TObject);
 var
   Ret: DWORD;
-  Res: TNetResourceA;
-  CDS: TConnectDlgStruct;
 begin
-  if (Sender as TMenuItem).Tag = 0 then
-  begin
-    ZeroMemory(@Res, SizeOf(TNetResourceA));
-    Res.dwType := RESOURCETYPE_DISK;
-    CDS.cbStructure := SizeOf(TConnectDlgStruct);
-    CDS.hwndOwner := frmMain.Handle;
-    CDS.lpConnRes := @Res;
-    CDS.dwFlags := 0;
-    Ret:= WNetConnectionDialog1(CDS);
-    if Ret = NO_ERROR then
-    begin
-      SetFileSystemPath(frmMain.ActiveFrame, AnsiChar(Int64(CDS.dwDevNum) + Ord('a') - 1) + ':\');
-    end
-    else if Ret <> DWORD(-1) then begin
-      MessageDlg(mbSysErrorMessage(Ret), mtError, [mbOK], 0);
-    end;
-  end
-  else begin
-    Ret:= WNetDisconnectDialog(fmain.frmMain.Handle, RESOURCETYPE_DISK);
-    case Ret of
-      NO_ERROR, DWORD(-1): ;
-      else MessageDlg(mbSysErrorMessage(Ret), mtError, [mbOK], 0);
-    end;
+  Ret:= WNetDisconnectDialog(fmain.frmMain.Handle, RESOURCETYPE_DISK);
+  case Ret of
+    NO_ERROR, DWORD(-1): ;
+    else MessageDlg(mbSysErrorMessage(Ret), mtError, [mbOK], 0);
   end;
 end;
 
@@ -585,17 +567,7 @@ end;
 
 {$ENDIF}
 
-{$IF DEFINED(DARWIN)}
-
-procedure MenuHandler(Self, Sender: TObject);
-var
-  Address: String = '';
-begin
-  if ShowInputQuery(Application.Title, rsMsgURL, False, Address) then
-    MountNetworkDrive(Address);
-end;
-
-{$ELSEIF DEFINED(LCLGTK2)}
+{$IF DEFINED(LCLGTK2)}
 
 procedure OnThemeChange; cdecl;
 begin
@@ -677,14 +649,11 @@ begin
     mnuNetwork.Add(MenuItem);
 
     MenuItem:= TMenuItem.Create(mnuMain);
-    MenuItem.Caption:= rsMnuMapNetworkDrive;
-    MenuItem.Tag:= 0;
-    MenuItem.OnClick:= TNotifyEvent(Handler);
+    MenuItem.Action:= actMapNetworkDrive;
     mnuNetwork.Add(MenuItem);
 
     MenuItem:= TMenuItem.Create(mnuMain);
     MenuItem.Caption:= rsMnuDisconnectNetworkDrive;
-    MenuItem.Tag:= 1;
     MenuItem.OnClick:= TNotifyEvent(Handler);
     mnuNetwork.Add(MenuItem);
 
@@ -704,11 +673,12 @@ begin
   end;
 end;
 {$ELSE}
-{$IF DEFINED(LCLQT) or DEFINED(LCLQT5) or DEFINED(LCLQT6) or DEFINED(LCLGTK2) or DEFINED(DARWIN)}
+{$IF DEFINED(LCLQT) or DEFINED(LCLQT5) or DEFINED(LCLQT6) or DEFINED(LCLGTK2)}
 var
   Handler: TMethod;
 {$ENDIF}
 {$IF DEFINED(DARWIN)}
+var
   MenuItem: TMenuItem;
 {$ENDIF}
 begin
@@ -752,16 +722,12 @@ begin
   begin
     with frmMain do
     begin
-      Handler.Code:= @MenuHandler;
-      Handler.Data:= MainForm;
-
       MenuItem:= TMenuItem.Create(mnuMain);
       MenuItem.Caption:= '-';
       mnuNetwork.Add(MenuItem);
 
       MenuItem:= TMenuItem.Create(mnuMain);
-      MenuItem.Caption:= rsMnuMapNetworkDrive;
-      MenuItem.OnClick:= TNotifyEvent(Handler);
+      MenuItem.Action:= actMapNetworkDrive;
       mnuNetwork.Add(MenuItem);
     end;
   end;
@@ -805,7 +771,7 @@ begin
   ShellContextMenu.OnClose := CloseEvent;
   // Show context menu
   {$IF DEFINED(DARWIN)}
-  MacosServiceMenuHelper.PopUp( ShellContextMenu, uLng.rsMenuMacOsServices );
+  MacosServiceMenuHelper.PopUp( ShellContextMenu, rsMacOSMenuServices );
   {$ELSE}
   ShellContextMenu.PopUp(X, Y);
   {$ENDIF}
@@ -823,8 +789,15 @@ begin
     ShowVirtualDriveMenu(ADrive, X, Y, CloseEvent)
   else begin
     aFile := TFileSystemFileSource.CreateFile(EmptyStr);
-    aFile.FullPath := ADrive^.Path;
-    aFile.Attributes := faFolder;
+    if ADrive^.DriveType = dtSpecial then
+    begin
+      aFile.LinkProperty.LinkTo := ADrive^.DeviceId;
+      aFile.Attributes := FILE_ATTRIBUTE_DEVICE;
+    end
+    else begin
+      aFile.FullPath := ADrive^.Path;
+      aFile.Attributes := faFolder or FILE_ATTRIBUTE_DEVICE;
+    end;
     Files:= TFiles.Create(EmptyStr); // free in ShowContextMenu
     Files.Add(aFile);
     ShowContextMenu(Parent, Files, X, Y, False, CloseEvent);
@@ -1029,6 +1002,47 @@ begin
   finally
     FreeAndNil(sl);
     FreeAndNil(SelectedFiles);
+  end;
+end;
+{$ELSE}
+begin
+  msgWarning(rsMsgErrNotSupported);
+end;
+{$ENDIF}
+
+procedure MapNetworkDrive;
+{$IF DEFINED(MSWINDOWS)}
+var
+  Ret: DWORD;
+  Res: TNetResourceA;
+  CDS: TConnectDlgStruct;
+begin
+  ZeroMemory(@Res, SizeOf(TNetResourceA));
+  Res.dwType := RESOURCETYPE_DISK;
+  CDS.cbStructure := SizeOf(TConnectDlgStruct);
+  CDS.hwndOwner := frmMain.Handle;
+  CDS.lpConnRes := @Res;
+  CDS.dwFlags := 0;
+  Ret:= WNetConnectionDialog1(CDS);
+  if Ret = NO_ERROR then
+  begin
+    SetFileSystemPath(frmMain.ActiveFrame, AnsiChar(Int64(CDS.dwDevNum) + Ord('a') - 1) + ':\');
+  end
+  else if Ret <> DWORD(-1) then begin
+    MessageDlg(mbSysErrorMessage(Ret), mtError, [mbOK], 0);
+  end;
+end;
+{$ELSEIF DEFINED(UNIX) AND NOT DEFINED(HAIKU)}
+var
+  Address: String = '';
+begin
+  if ShowInputQuery(Application.Title, rsMsgURL, False, Address) then
+  begin
+  {$IF DEFINED(DARWIN)}
+    MountNetworkDrive(Address);
+  {$ELSE}
+    ChooseFileSource(frmMain.ActiveFrame, Address);
+  {$ENDIF}
   end;
 end;
 {$ELSE}

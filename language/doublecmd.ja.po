@@ -2526,6 +2526,10 @@ msgstr "ファイルからタブを読み込む(&L)"
 msgid "Create &Directory"
 msgstr "ディレクトリを作成(&D)"
 
+#: tfrmmain.actmapnetworkdrive.caption
+msgid "Map Network Drive..."
+msgstr "ネットワークドライブの割り当て…"
+
 #: tfrmmain.actmarkcurrentextension.caption
 msgid "Select All with the Same E&xtension"
 msgstr "同じ拡張子の項目を全て選択(&x)"
@@ -11050,10 +11054,6 @@ msgstr "カスタム列の構成"
 msgid "Enter new custom columns name"
 msgstr "新しいカスタムカラム名を入力"
 
-#: ulng.rsmenumacosservices
-msgid "Services"
-msgstr "サービス"
-
 #: ulng.rsmenumacosshare
 msgid "Share..."
 msgstr "共有..."
@@ -11092,10 +11092,6 @@ msgstr "取り出し"
 msgid "Extract here..."
 msgstr "ここに抽出…"
 
-#: ulng.rsmnumapnetworkdrive
-msgid "Map Network Drive..."
-msgstr "ネットワークドライブの割り当て…"
-
 #: ulng.rsmnumount
 msgid "Mount"
 msgstr "マウント"
@@ -11104,6 +11100,10 @@ msgstr "マウント"
 msgctxt "ulng.rsmnunew"
 msgid "New"
 msgstr "新規"
+
+#: ulng.rsmnunewwindow
+msgid "New Window"
+msgstr "新しい窓"
 
 #: ulng.rsmnunomedia
 msgid "No media available"

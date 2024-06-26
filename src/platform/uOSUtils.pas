@@ -57,7 +57,7 @@ const
   faFolder = S_IFDIR;
   ReversePathDelim = '\';
   {$IF DEFINED(DARWIN)}
-  RunTermCmd = '/Applications/Utilities/Terminal.app';  // default terminal
+  RunTermCmd: String = '/Applications/Utilities/Terminal.app';  // default terminal
   RunTermParams = '%D';
   RunInTermStayOpenCmd = '%COMMANDER_PATH%/scripts/terminal.sh'; // default run in terminal command AND Stay open after command
   RunInTermStayOpenParams = '''{command}''';
@@ -78,7 +78,7 @@ const
   RunInTermStayOpenCmd: String = 'xterm'; // default run in terminal command AND Stay open after command
   RunInTermStayOpenParams: String = '-e sh -c ''{command}; echo -n Press ENTER to exit... ; read a''';
   RunInTermCloseCmd: String = 'xterm'; // default run in terminal command AND Close after command
-  RunInTermCloseParams: String = '-e sh -c {command}';
+  RunInTermCloseParams: String = '-e sh -c ''{command}''';
   MonoSpaceFont: String = 'Monospace';
   {$ENDIF}
   fmtCommandPath = '[%s]$:';
@@ -166,6 +166,8 @@ function mbFileNameToSysEnc(const LongPath: String): String;
 }
 function mbFileNameToNative(const FileName: String): NativeString; inline;
 
+function AccessDenied(LastError: Integer): Boolean; inline;
+
 procedure FixFormIcon(Handle: LCLType.HWND);
 procedure HideConsoleWindow;
 procedure FixDateNamesToUTF8;
@@ -187,10 +189,10 @@ implementation
 
 uses
   StrUtils, uFileProcs, FileUtil, uDCUtils, DCOSUtils, DCStrUtils, uGlobs, uLng,
-  fConfirmCommandLine, uLog, DCConvertEncoding, LazUTF8, uSysFolders
+  fConfirmCommandLine, uLog, DCConvertEncoding, LazUTF8
   {$IF DEFINED(MSWINDOWS)}
-  , Windows, uMyWindows, JwaWinNetWk,
-    uShlObjAdditional, DCWindows, uNetworkThread
+  , Windows, Shlwapi, WinRT.Classes, uMyWindows, JwaWinNetWk,
+    uShlObjAdditional, DCWindows, uNetworkThread, uClipboard
   {$ENDIF}
   {$IF DEFINED(UNIX)}
   , BaseUnix, Unix, uMyUnix, dl
@@ -372,18 +374,53 @@ end;
 function ShellExecute(URL: String): Boolean;
 {$IF DEFINED(MSWINDOWS)}
 var
+  cchOut: DWORD;
   Return: HINST;
   wsFileName: UnicodeString;
   wsStartPath: UnicodeString;
+  AppID, FileExt: UnicodeString;
 begin
+  cchOut:= MAX_PATH;
+  SetLength(AppID, cchOut);
   URL:= NormalizePathDelimiters(URL);
-  wsFileName:= CeUtf8ToUtf16(QuoteDouble(URL));
+  FileExt:= CeUtf8ToUtf16(ExtractFileExt(URL));
+
+  if CheckWin32Version(10) then
+  begin
+    if (AssocQueryStringW(ASSOCF_NONE, ASSOCSTR_APPID,
+                          PWideChar(FileExt), nil, PWideChar(AppID), @cchOut) = S_OK) then
+    begin
+      if cchOut > 0 then
+      begin
+        SetLength(AppID, cchOut - 1);
+        // Special case Microsoft Photos
+        if (AppID = 'Microsoft.Windows.Photos_8wekyb3d8bbwe!App') then
+        begin
+          if (Win32BuildNumber >= 22631) then
+          begin
+            URL:= URIEncode(URL);
+            URL:= 'ms-photos:viewer?fileName=' + StringReplace(URL, '%5C', '\', [rfReplaceAll]);
+          end
+          // Microsoft Photos does not work correct
+          // when process has administrator rights
+          else if (IsUserAdmin <> dupAccept) then
+          begin
+            TLauncherThread.LaunchFileAsync(URL);
+            Exit(True);
+          end;
+        end;
+      end;
+    end;
+  end;
+  wsFileName:= CeUtf8ToUtf16(URL);
   wsStartPath:= CeUtf8ToUtf16(mbGetCurrentDir());
+
   Return:= ShellExecuteW(0, nil, PWideChar(wsFileName), nil, PWideChar(wsStartPath), SW_SHOWNORMAL);
   if Return = SE_ERR_NOASSOC then
-    Result:= ExecCmdFork('rundll32 shell32.dll OpenAs_RunDLL ' + URL)
-  else
+    Result:= ExecCmdFork('rundll32 shell32.dll OpenAs_RunDLL ' + QuoteDouble(URL))
+  else begin
     Result:= Return > 32;
+  end;
 end;
 {$ELSEIF DEFINED(DARWIN)}
 var
@@ -723,6 +760,17 @@ end;
 {$ELSE}
 begin
   Result:= CeUtf8ToSys(LongPath);
+end;
+{$ENDIF}
+
+function AccessDenied(LastError: Integer): Boolean;
+{$IF DEFINED(MSWINDOWS)}
+begin
+  Result:= (LastError = ERROR_ACCESS_DENIED);
+end;
+{$ELSE}
+begin
+  Result:= (LastError = ESysEPERM) or (LastError = ESysEACCES);
 end;
 {$ENDIF}
 

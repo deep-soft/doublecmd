@@ -49,6 +49,8 @@ procedure setMacOSAppearance( mode:Integer );
 
 function getMacOSDefaultTerminal(): String;
 
+procedure FixMacFormatSettings;
+
 function NSGetTempPath: String;
 
 function NSGetFolderPath(Folder: NSSearchPathDirectory): String;
@@ -57,6 +59,8 @@ function GetFileDescription(const FileName: String): String;
 function MountNetworkDrive(const serverAddress: String): Boolean;
 
 function unmountAndEject(const path: String): Boolean;
+
+procedure openNewInstance();
 
 // Workarounds for FPC RTL Bug
 // copied from ptypes.inc and modified fstypename only
@@ -421,6 +425,55 @@ begin
   Result:= theArray;
 end;
 
+function CFStringToStr(AString: CFStringRef): String;
+var
+  Str: Pointer;
+  StrSize: CFIndex;
+  StrRange: CFRange;
+begin
+  if AString = nil then
+  begin
+    Result:= EmptyStr;
+    Exit;
+  end;
+  // Try the quick way first
+  Str:= CFStringGetCStringPtr(AString, kCFStringEncodingUTF8);
+  if Str <> nil then
+    Result:= PAnsiChar(Str)
+  else begin
+    // if that doesn't work this will
+    StrRange.location:= 0;
+    StrRange.length:= CFStringGetLength(AString);
+
+    CFStringGetBytes(AString, StrRange, kCFStringEncodingUTF8,
+                     Ord('?'), False, nil, 0, StrSize{%H-});
+    SetLength(Result, StrSize);
+
+    if StrSize > 0 then
+    begin
+      CFStringGetBytes(AString, StrRange, kCFStringEncodingUTF8,
+                       Ord('?'), False, @Result[1], StrSize, StrSize);
+    end;
+  end;
+end;
+
+procedure FixMacFormatSettings;
+var
+  S: String;
+  ALocale: CFLocaleRef;
+begin
+  ALocale:= CFLocaleCopyCurrent;
+  if Assigned(ALocale) then
+  begin
+    S:= CFStringToStr(CFLocaleGetValue(ALocale, kCFLocaleGroupingSeparator));
+    if Length(S) = 0 then
+    begin
+      DefaultFormatSettings.ThousandSeparator:= #0;
+    end;
+    CFRelease(ALocale);
+  end;
+end;
+
 function NSGetTempPath: String;
 begin
   Result:= IncludeTrailingBackslash(NSTemporaryDirectory.UTF8String);
@@ -474,6 +527,15 @@ end;
 function unmountAndEject(const path: String): Boolean;
 begin
   Result:= NSWorkspace.sharedWorkspace.unmountAndEjectDeviceAtPath( StringToNSString(path) );
+end;
+
+procedure openNewInstance();
+begin
+  NSWorkspace.sharedWorkspace.launchApplicationAtURL_options_configuration_error(
+    NSBundle.mainBundle.bundleURL,
+    NSWorkspaceLaunchNewInstance,
+    nil,
+    nil);
 end;
 
 

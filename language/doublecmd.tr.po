@@ -2678,6 +2678,10 @@ msgstr ""
 msgid "Create &Directory"
 msgstr "Yeni Dizin F7"
 
+#: tfrmmain.actmapnetworkdrive.caption
+msgid "Map Network Drive..."
+msgstr ""
+
 #: tfrmmain.actmarkcurrentextension.caption
 msgid "Select All with the Same E&xtension"
 msgstr "Ayni uzantıya &sahip olanların tümünü seç"
@@ -11469,10 +11473,6 @@ msgstr "Özel sütunları yapılandır"
 msgid "Enter new custom columns name"
 msgstr ""
 
-#: ulng.rsmenumacosservices
-msgid "Services"
-msgstr ""
-
 #: ulng.rsmenumacosshare
 msgid "Share..."
 msgstr ""
@@ -11511,10 +11511,6 @@ msgstr "Çıkar"
 msgid "Extract here..."
 msgstr ""
 
-#: ulng.rsmnumapnetworkdrive
-msgid "Map Network Drive..."
-msgstr ""
-
 #: ulng.rsmnumount
 msgid "Mount"
 msgstr "Monte et"
@@ -11523,6 +11519,10 @@ msgstr "Monte et"
 msgctxt "ulng.rsmnunew"
 msgid "New"
 msgstr "Yeni"
+
+#: ulng.rsmnunewwindow
+msgid "New Window"
+msgstr ""
 
 #: ulng.rsmnunomedia
 msgid "No media available"

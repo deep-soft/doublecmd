@@ -2467,6 +2467,10 @@ msgstr "파일에서 탭 불러오기(&L)"
 msgid "Create &Directory"
 msgstr "디렉터리 만들기(&D)"
 
+#: tfrmmain.actmapnetworkdrive.caption
+msgid "Map Network Drive..."
+msgstr "네트워크 드라이브 맵..."
+
 #: tfrmmain.actmarkcurrentextension.caption
 msgid "Select All with the Same E&xtension"
 msgstr "동일한 확장자 모두 선택(&X)"
@@ -10792,10 +10796,6 @@ msgstr "사용자 지정 열 구성"
 msgid "Enter new custom columns name"
 msgstr "새 사용자 지정 열 이름 입력"
 
-#: ulng.rsmenumacosservices
-msgid "Services"
-msgstr "서비스"
-
 #: ulng.rsmenumacosshare
 msgid "Share..."
 msgstr "공유..."
@@ -10834,10 +10834,6 @@ msgstr "꺼내기"
 msgid "Extract here..."
 msgstr "여기에 추출..."
 
-#: ulng.rsmnumapnetworkdrive
-msgid "Map Network Drive..."
-msgstr "네트워크 드라이브 맵..."
-
 #: ulng.rsmnumount
 msgid "Mount"
 msgstr "마운트"
@@ -10846,6 +10842,10 @@ msgstr "마운트"
 msgctxt "ulng.rsmnunew"
 msgid "New"
 msgstr "새로 만들기"
+
+#: ulng.rsmnunewwindow
+msgid "New Window"
+msgstr "새 창"
 
 #: ulng.rsmnunomedia
 msgid "No media available"
@@ -14035,3 +14035,4 @@ msgstr "교체가 이루어지지 않았습니다."
 #, object-pascal-format
 msgid "No setup named \"%s\""
 msgstr "\"%s\"라는 설정이 없습니다"
+

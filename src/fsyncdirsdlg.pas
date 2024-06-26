@@ -111,6 +111,7 @@ type
     sbCopyRight: TSpeedButton;
     sbEqual: TSpeedButton;
     sbNotEqual: TSpeedButton;
+    sbUnknown: TSpeedButton;
     sbCopyLeft: TSpeedButton;
     sbDuplicates: TSpeedButton;
     sbSingles: TSpeedButton;
@@ -153,6 +154,7 @@ type
     { private declarations }
     FCancel: Boolean;
     FScanning: Boolean;
+    FComparing: Boolean;
     FFoundItems: TStringListEx;
     FVisibleItems: TStringListEx;
     FSortIndex: Integer;
@@ -323,7 +325,9 @@ end;
 
 procedure TCheckContentThread.DoFinish;
 begin
+  FOwner.FComparing:= False;
   FOwner.HeaderDG.Enabled:= True;
+  FOwner.TopPanel.Enabled:= True;
   FOwner.GroupBox1.Enabled:= True;
 end;
 
@@ -373,6 +377,7 @@ procedure TCheckContentThread.Execute;
   end;
 
 var
+  B: Boolean;
   i, j: Integer;
   r: TFileSyncRec;
 begin
@@ -388,7 +393,9 @@ begin
         if Assigned(r) and (r.FState = srsUnknown) then
         begin
           try
-            if CompareFiles(r.FFileL.FullPath, r.FFileR.FullPath, r.FFileL.Size) then
+            B:= CompareFiles(r.FFileL.FullPath, r.FFileR.FullPath, r.FFileL.Size);
+            if Terminated then Exit;
+            if B then
             begin
               Inc(Fequal);
               Dec(Fnoneq);
@@ -774,6 +781,7 @@ begin
   gSyncDirsShowFilterCopyRight  := sbCopyRight.Down;
   gSyncDirsShowFilterEqual      := sbEqual.Down;
   gSyncDirsShowFilterNotEqual   := sbNotEqual.Down;
+  gSyncDirsShowFilterUnknown    := sbUnknown.Down;
   gSyncDirsShowFilterCopyLeft   := sbCopyLeft.Down;
   gSyncDirsShowFilterDuplicates := sbDuplicates.Down;
   gSyncDirsShowFilterSingles    := sbSingles.Down;
@@ -804,6 +812,11 @@ begin
   begin
     FCancel := True;
     CanClose := False;
+  end
+  else if FComparing then
+  begin
+    CanClose := False;
+    StopCheckContentThread;
   end;
 end;
 
@@ -834,6 +847,7 @@ begin
   sbCopyRight.Down       := gSyncDirsShowFilterCopyRight;
   sbEqual.Down           := gSyncDirsShowFilterEqual;
   sbNotEqual.Down        := gSyncDirsShowFilterNotEqual;
+  sbUnknown.Down         := gSyncDirsShowFilterUnknown;
   sbCopyLeft.Down        := gSyncDirsShowFilterCopyLeft;
   sbDuplicates.Down      := gSyncDirsShowFilterDuplicates;
   sbSingles.Down         := gSyncDirsShowFilterSingles;
@@ -999,6 +1013,8 @@ begin
     Key := 0;
     if FScanning then
       FCancel := True
+    else if FComparing then
+      StopCheckContentThread
     else
       Close;
   end;
@@ -1123,7 +1139,7 @@ begin
     ScanDirs;
     MainDrawGrid.SetFocus;
   finally
-    TopPanel.Enabled := True;
+    TopPanel.Enabled := not FComparing;
   end;
 end;
 
@@ -1177,7 +1193,7 @@ procedure TfrmSyncDirsDlg.InitVisibleItems;
 var
   i, j: Integer;
   AFilter: record
-    copyLeft, copyRight, eq, neq: Boolean;
+    copyLeft, copyRight, eq, neq, unkn: Boolean;
     dup, single: Boolean;
   end;
   r: TFileSyncRec;
@@ -1196,6 +1212,7 @@ begin
     copyRight := sbCopyRight.Down;
     eq := sbEqual.Down;
     neq := sbNotEqual.Down;
+    unkn := sbUnknown.Down;
     dup := sbDuplicates.Down;
     single := sbSingles.Down;
   end;
@@ -1217,7 +1234,7 @@ begin
             (r.FState = srsDeleteRight) and AFilter.copyLeft or
             (r.FState = srsEqual) and AFilter.eq or
             (r.FState = srsNotEq) and AFilter.neq or
-            (r.FState = srsUnknown))
+            (r.FState = srsUnknown) and AFilter.unkn)
         then
           FVisibleItems.AddObject(Strings[j], Objects[j]);
       end;
@@ -1412,7 +1429,10 @@ begin
   FillFoundItemsDG;
   if FCancel then Exit;
   if (FFoundItems.Count > 0) and chkByContent.Checked then
+  begin
     CheckContentThread := TCheckContentThread.Create(Self);
+    FComparing := True;
+  end;
   finally
   FScanning := False;
   end;

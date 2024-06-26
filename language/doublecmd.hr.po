@@ -2639,6 +2639,10 @@ msgctxt "tfrmmain.actmakedir.caption"
 msgid "Create &Directory"
 msgstr "Napravi &Mapu"
 
+#: tfrmmain.actmapnetworkdrive.caption
+msgid "Map Network Drive..."
+msgstr "Karta mrežnog pogona"
+
 #: tfrmmain.actmarkcurrentextension.caption
 msgctxt "tfrmmain.actmarkcurrentextension.caption"
 msgid "Select All with the Same E&xtension"
@@ -11494,10 +11498,6 @@ msgstr "Podesite prilagođene stupce"
 msgid "Enter new custom columns name"
 msgstr "Unesite novi naziv prilagođenih stupaca"
 
-#: ulng.rsmenumacosservices
-msgid "Services"
-msgstr ""
-
 #: ulng.rsmenumacosshare
 msgid "Share..."
 msgstr ""
@@ -11536,10 +11536,6 @@ msgstr "Izbaci"
 msgid "Extract here..."
 msgstr "Raspakirajte ovdje"
 
-#: ulng.rsmnumapnetworkdrive
-msgid "Map Network Drive..."
-msgstr "Karta mrežnog pogona"
-
 #: ulng.rsmnumount
 msgid "Mount"
 msgstr "Prikači"
@@ -11548,6 +11544,10 @@ msgstr "Prikači"
 msgctxt "ulng.rsmnunew"
 msgid "New"
 msgstr "Nova"
+
+#: ulng.rsmnunewwindow
+msgid "New Window"
+msgstr ""
 
 #: ulng.rsmnunomedia
 msgid "No media available"

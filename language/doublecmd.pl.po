@@ -2461,6 +2461,10 @@ msgstr "Wczytaj zakładki z p&liku"
 msgid "Create &Directory"
 msgstr "Utwórz &katalog"
 
+#: tfrmmain.actmapnetworkdrive.caption
+msgid "Map Network Drive..."
+msgstr "Mapuj dysk sieciowy..."
+
 #: tfrmmain.actmarkcurrentextension.caption
 msgid "Select All with the Same E&xtension"
 msgstr "Zaznacz wszystkie z takim samym &rozszerzeniem"
@@ -10757,10 +10761,6 @@ msgstr "Konfiguruj niestandardowe kolumny"
 msgid "Enter new custom columns name"
 msgstr "Wpisz nową nazwę kolumny niestandardowej"
 
-#: ulng.rsmenumacosservices
-msgid "Services"
-msgstr "Usługi"
-
 #: ulng.rsmenumacosshare
 msgid "Share..."
 msgstr "Udostępnij..."
@@ -10799,10 +10799,6 @@ msgstr "Wysuń"
 msgid "Extract here..."
 msgstr "Wypakuj tutaj..."
 
-#: ulng.rsmnumapnetworkdrive
-msgid "Map Network Drive..."
-msgstr "Mapuj dysk sieciowy..."
-
 #: ulng.rsmnumount
 msgid "Mount"
 msgstr "Zamontuj"
@@ -10811,6 +10807,10 @@ msgstr "Zamontuj"
 msgctxt "ulng.rsmnunew"
 msgid "New"
 msgstr "Nowy"
+
+#: ulng.rsmnunewwindow
+msgid "New Window"
+msgstr ""
 
 #: ulng.rsmnunomedia
 msgid "No media available"

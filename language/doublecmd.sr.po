@@ -2516,6 +2516,10 @@ msgstr "&Учитај листове из датотеке"
 msgid "Create &Directory"
 msgstr "Направи &фасциклу"
 
+#: tfrmmain.actmapnetworkdrive.caption
+msgid "Map Network Drive..."
+msgstr "Забележи мрежно складиште..."
+
 #: tfrmmain.actmarkcurrentextension.caption
 msgid "Select All with the Same E&xtension"
 msgstr "Означи све са истим наставком&"
@@ -11031,10 +11035,6 @@ msgstr "Подесите прилагођене ступце"
 msgid "Enter new custom columns name"
 msgstr "Унесите ново произвољно име стубца"
 
-#: ulng.rsmenumacosservices
-msgid "Services"
-msgstr "Услуге"
-
 #: ulng.rsmenumacosshare
 msgid "Share..."
 msgstr ""
@@ -11073,10 +11073,6 @@ msgstr "Избаци"
 msgid "Extract here..."
 msgstr "Извуци овде..."
 
-#: ulng.rsmnumapnetworkdrive
-msgid "Map Network Drive..."
-msgstr "Забележи мрежно складиште..."
-
 #: ulng.rsmnumount
 msgid "Mount"
 msgstr "Прикачи"
@@ -11085,6 +11081,10 @@ msgstr "Прикачи"
 msgctxt "ulng.rsmnunew"
 msgid "New"
 msgstr "Нова"
+
+#: ulng.rsmnunewwindow
+msgid "New Window"
+msgstr ""
 
 #: ulng.rsmnunomedia
 msgid "No media available"

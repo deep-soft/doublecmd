@@ -2481,6 +2481,10 @@ msgstr "&Laad tabbladen vanuit bestand"
 msgid "Create &Directory"
 msgstr "Maak map"
 
+#: tfrmmain.actmapnetworkdrive.caption
+msgid "Map Network Drive..."
+msgstr "Breng netwerkschijf in kaart..."
+
 #: tfrmmain.actmarkcurrentextension.caption
 msgid "Select All with the Same E&xtension"
 msgstr "Kies alles met hetzelfde achtervoegsel"
@@ -10828,10 +10832,6 @@ msgstr "Configureer aangepaste kolommen"
 msgid "Enter new custom columns name"
 msgstr "Geef nieuwe aangepaste kolommennaam"
 
-#: ulng.rsmenumacosservices
-msgid "Services"
-msgstr ""
-
 #: ulng.rsmenumacosshare
 msgid "Share..."
 msgstr ""
@@ -10870,10 +10870,6 @@ msgstr "Uitwerpen"
 msgid "Extract here..."
 msgstr "Pak hier uit..."
 
-#: ulng.rsmnumapnetworkdrive
-msgid "Map Network Drive..."
-msgstr "Breng netwerkschijf in kaart..."
-
 #: ulng.rsmnumount
 msgid "Mount"
 msgstr "Aankoppelen"
@@ -10882,6 +10878,10 @@ msgstr "Aankoppelen"
 msgctxt "ulng.rsmnunew"
 msgid "New"
 msgstr "Nieuw"
+
+#: ulng.rsmnunewwindow
+msgid "New Window"
+msgstr ""
 
 #: ulng.rsmnunomedia
 msgid "No media available"

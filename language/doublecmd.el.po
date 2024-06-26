@@ -2517,6 +2517,10 @@ msgstr "Φόρτωση Καρτελών από το Αρχείο"
 msgid "Create &Directory"
 msgstr "Δημιουργία Καταλόγου"
 
+#: tfrmmain.actmapnetworkdrive.caption
+msgid "Map Network Drive..."
+msgstr "Σχεδιασμός Δικτυακού Οδηγού..."
+
 #: tfrmmain.actmarkcurrentextension.caption
 msgid "Select All with the Same E&xtension"
 msgstr "Επιλογή όλων με την Ίδια Επέκταση"
@@ -11019,10 +11023,6 @@ msgstr "Διαμόρφωση εξατομικευμένων στηλών"
 msgid "Enter new custom columns name"
 msgstr "Εισάγετε νέα προσαρμοσμένα χρώματα στηλών"
 
-#: ulng.rsmenumacosservices
-msgid "Services"
-msgstr "Υπηρεσίες"
-
 #: ulng.rsmenumacosshare
 msgid "Share..."
 msgstr "Διαμοιρασμός..."
@@ -11061,10 +11061,6 @@ msgstr "Εξαγωγή"
 msgid "Extract here..."
 msgstr "Εξαγωγή εδώ..."
 
-#: ulng.rsmnumapnetworkdrive
-msgid "Map Network Drive..."
-msgstr "Σχεδιασμός Δικτυακού Οδηγού..."
-
 #: ulng.rsmnumount
 msgid "Mount"
 msgstr "Προσάρτηση"
@@ -11073,6 +11069,10 @@ msgstr "Προσάρτηση"
 msgctxt "ulng.rsmnunew"
 msgid "New"
 msgstr "Νέο"
+
+#: ulng.rsmnunewwindow
+msgid "New Window"
+msgstr ""
 
 #: ulng.rsmnunomedia
 msgid "No media available"

@@ -2465,6 +2465,10 @@ msgstr ""
 msgid "Create &Directory"
 msgstr ""
 
+#: tfrmmain.actmapnetworkdrive.caption
+msgid "Map Network Drive..."
+msgstr ""
+
 #: tfrmmain.actmarkcurrentextension.caption
 msgid "Select All with the Same E&xtension"
 msgstr ""
@@ -10775,10 +10779,6 @@ msgstr ""
 msgid "Enter new custom columns name"
 msgstr ""
 
-#: ulng.rsmenumacosservices
-msgid "Services"
-msgstr ""
-
 #: ulng.rsmenumacosshare
 msgid "Share..."
 msgstr ""
@@ -10817,10 +10817,6 @@ msgstr ""
 msgid "Extract here..."
 msgstr ""
 
-#: ulng.rsmnumapnetworkdrive
-msgid "Map Network Drive..."
-msgstr ""
-
 #: ulng.rsmnumount
 msgid "Mount"
 msgstr ""
@@ -10828,6 +10824,10 @@ msgstr ""
 #: ulng.rsmnunew
 msgctxt "ulng.rsmnunew"
 msgid "New"
+msgstr ""
+
+#: ulng.rsmnunewwindow
+msgid "New Window"
 msgstr ""
 
 #: ulng.rsmnunomedia

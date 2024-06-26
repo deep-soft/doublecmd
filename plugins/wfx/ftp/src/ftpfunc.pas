@@ -125,7 +125,7 @@ implementation
 uses
   IniFiles, StrUtils, FtpAdv, FtpUtils, FtpConfDlg, syncobjs, LazFileUtils,
   LazUTF8, DCClassesUtf8, DCConvertEncoding, SftpSend, ScpSend, FtpProxy,
-  FtpPropDlg;
+  FtpPropDlg, DCFileAttributes;
 
 var
   DefaultIniName: String;
@@ -420,15 +420,16 @@ begin
     end;
 end;
 
-function QuickConnection: Boolean;
+function QuickConnection(out FtpSend: TFTPSendEx): Boolean;
 var
   Index: Integer;
-  FtpSend: TFTPSendEx;
   Connection: TConnection;
 begin
-  Result:= ActiveConnectionList.IndexOf(cQuickConnection) >= 0;
-  if not Result then
-  begin
+  Index:= ActiveConnectionList.IndexOf(cQuickConnection);
+  Result:= (Index >= 0);
+  if Result then
+    FtpSend:= TFTPSendEx(ActiveConnectionList.Objects[Index])
+  else begin
     Connection := TConnection.Create;
     Connection.ConnectionName:= cQuickConnection;
     if ShowFtpConfDlg(Connection) then
@@ -622,7 +623,7 @@ begin
   begin
     Connection := TConnection(ConnectionList.Objects[I - RootCount]);
     StrPCopy(FindData.cFileName, CeUtf8ToUtf16(Connection.ConnectionName));
-    FindData.dwFileAttributes := FILE_ATTRIBUTE_NORMAL;
+    FindData.dwFileAttributes := FILE_ATTRIBUTE_VOLUME;
     Inc(ListRec^.Index);
     Result := True;
   end;
@@ -728,13 +729,9 @@ begin
           begin
             if not FtpConnect(asFileName, FtpSend) then
               Result := FS_EXEC_OK
-            else
-              begin
-                wsFileName := FtpSend.ServerToClient(FtpSend.GetCurrentDir);
-                wsFileName := SetDirSeparators(RemoteName + wsFileName);
-                StrPLCopy(RemoteName, wsFileName, MAX_PATH);
-                Result := FS_EXEC_SYMLINK;
-              end;
+            else begin
+              Result := FS_EXEC_SYMLINK;
+            end;
           end
         else  // special item
           begin
@@ -745,11 +742,18 @@ begin
               end
             else if asFileName = cQuickConnection then
               begin
-                if QuickConnection then
-                  Result := FS_EXEC_SYMLINK
-                else
-                  Result := FS_EXEC_OK;
+                if not QuickConnection(FtpSend) then
+                  Result := FS_EXEC_OK
+                else begin
+                  Result := FS_EXEC_SYMLINK;
+                end;
               end;
+          end;
+          if (Result = FS_EXEC_SYMLINK) then
+          begin
+            wsFileName := FtpSend.ServerToClient(FtpSend.GetCurrentDir);
+            wsFileName := SetDirSeparators(RemoteName + wsFileName);
+            StrPLCopy(RemoteName, wsFileName, MAX_PATH);
           end;
       end; // root path
     end // Verb = open

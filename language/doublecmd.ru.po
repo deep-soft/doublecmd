@@ -2512,6 +2512,10 @@ msgstr "Загрузить вкладки из файла"
 msgid "Create &Directory"
 msgstr "Создать &каталог"
 
+#: tfrmmain.actmapnetworkdrive.caption
+msgid "Map Network Drive..."
+msgstr "Подключить сетевой диск..."
+
 #: tfrmmain.actmarkcurrentextension.caption
 msgid "Select All with the Same E&xtension"
 msgstr "Выделить файлы по рас&ширению"
@@ -11052,10 +11056,6 @@ msgstr "Настроить наборы колонок"
 msgid "Enter new custom columns name"
 msgstr "Введите имя нового набора колонок"
 
-#: ulng.rsmenumacosservices
-msgid "Services"
-msgstr "Службы"
-
 #: ulng.rsmenumacosshare
 msgid "Share..."
 msgstr "Поделиться..."
@@ -11094,10 +11094,6 @@ msgstr "Извлечь"
 msgid "Extract here..."
 msgstr "Распаковать здесь..."
 
-#: ulng.rsmnumapnetworkdrive
-msgid "Map Network Drive..."
-msgstr "Подключить сетевой диск..."
-
 #: ulng.rsmnumount
 msgid "Mount"
 msgstr "Смонтировать"
@@ -11106,6 +11102,10 @@ msgstr "Смонтировать"
 msgctxt "ulng.rsmnunew"
 msgid "New"
 msgstr "Создать"
+
+#: ulng.rsmnunewwindow
+msgid "New Window"
+msgstr "Новое окно"
 
 #: ulng.rsmnunomedia
 msgid "No media available"

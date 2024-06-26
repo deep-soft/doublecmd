@@ -2544,6 +2544,10 @@ msgstr "Carregar &separadores de ficheiro"
 msgid "Create &Directory"
 msgstr "Criar &pasta"
 
+#: tfrmmain.actmapnetworkdrive.caption
+msgid "Map Network Drive..."
+msgstr "Mapear unidade de rede..."
+
 #: tfrmmain.actmarkcurrentextension.caption
 msgid "Select All with the Same E&xtension"
 msgstr "Seleccionar todos com a mesma e&xtensão"
@@ -11079,10 +11083,6 @@ msgstr "Configurar colunas personalizadas"
 msgid "Enter new custom columns name"
 msgstr "Insira o novo nome das colunas"
 
-#: ulng.rsmenumacosservices
-msgid "Services"
-msgstr ""
-
 #: ulng.rsmenumacosshare
 msgid "Share..."
 msgstr ""
@@ -11121,10 +11121,6 @@ msgstr "Ejectar"
 msgid "Extract here..."
 msgstr "Extrair aqui..."
 
-#: ulng.rsmnumapnetworkdrive
-msgid "Map Network Drive..."
-msgstr "Mapear unidade de rede..."
-
 #: ulng.rsmnumount
 msgid "Mount"
 msgstr "Montar"
@@ -11133,6 +11129,10 @@ msgstr "Montar"
 msgctxt "ulng.rsmnunew"
 msgid "New"
 msgstr "Novo"
+
+#: ulng.rsmnunewwindow
+msgid "New Window"
+msgstr ""
 
 #: ulng.rsmnunomedia
 msgid "No media available"

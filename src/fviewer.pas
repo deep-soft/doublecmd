@@ -3,7 +3,7 @@
    -------------------------------------------------------------------------
    Build-in File Viewer.
 
-   Copyright (C) 2007-2023  Alexander Koblov (alexx2000@mail.ru)
+   Copyright (C) 2007-2024  Alexander Koblov (alexx2000@mail.ru)
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -437,6 +437,7 @@ type
 
     procedure ShowTextViewer(AMode: TViewerControlMode);
     procedure CopyMoveFile(AViewerAction:TViewerCopyMoveAction);
+    procedure ZoomImage(ADelta: Double);
     procedure RotateImage(AGradus:integer);
     procedure MirrorImage(AVertically:boolean=False);
 
@@ -1622,6 +1623,12 @@ begin
   end;
 end;
 
+procedure TfrmViewer.ZoomImage(ADelta: Double);
+begin
+  FZoomFactor := Round(FZoomFactor * ADelta);
+  AdjustImageSize;
+end;
+
 procedure TfrmViewer.RotateImage(AGradus: integer);
 // AGradus now supported only 90,180,270 values
 var
@@ -1997,7 +2004,7 @@ procedure TfrmViewer.TimerViewerTimer(Sender: TObject);
 begin
   if (miFullScreen.Checked) then
   begin
-    if (ToolBar1.Visible) and (i_timer > 60) and (not ToolBar1.MouseEntered) then
+    if (ToolBar1.Visible) and (i_timer > 60) and (not ToolBar1.MouseInClient) then
     begin
       ToolBar1.Visible:= False;
       AdjustImageSize;
@@ -2011,7 +2018,7 @@ begin
   Inc(i_timer);
   if (btnSlideShow.Down) and (i_timer = 60 * btnSlideShow.Tag) then
   begin
-    if (ToolBar1.Visible) and (not ToolBar1.MouseEntered) then
+    if (ToolBar1.Visible) and (not ToolBar1.MouseInClient) then
     begin
       ToolBar1.Visible:= False;
       AdjustImageSize;
@@ -2673,6 +2680,12 @@ begin
     Exit(False);
   end;
 
+  if Result and not bForce then
+  begin
+    if (mbFileSize(sFileName) > (gMaxCodeSize * $100000)) then
+      Exit(False);
+  end;
+
   if Result then
   begin
     FHighlighter:= GetHighlighterFromFileExt(dmHighl.SynHighlighterList, ExtractFileExt(sFileName));
@@ -2801,6 +2814,11 @@ begin
     begin
       MarkupInfo.Background:= clWindow;
       MarkupInfo.Foreground:= clGrayText;
+    end;
+    with SynEdit.Gutter.LineNumberPart() do
+    begin
+      MarkupInfo.Background:= clBtnFace;
+      MarkupInfo.Foreground:= clBtnText;
     end;
     SynEdit.Options:= gEditorSynEditOptions;
     SynEdit.TabWidth := gEditorSynEditTabWidth;
@@ -3484,22 +3502,19 @@ begin
 end;
 
 procedure TfrmViewer.cm_Zoom(const Params: array of string);
-var
-  K: Double;
 begin
+  if miGraphics.Checked then
   try
-    K:= StrToFloat(Params[0]);
+    ZoomImage(StrToFloat(Params[0]));
   except
-    Exit;
+    // Exit
   end;
-  FZoomFactor := Round(FZoomFactor * K);
-  AdjustImageSize;
 end;
 
 procedure TfrmViewer.cm_ZoomIn(const Params: array of string);
 begin
   if miGraphics.Checked then
-     cm_Zoom(['1.1'])
+     ZoomImage(1.1)
   else
   begin
     gFonts[dcfViewer].Size:=gFonts[dcfViewer].Size+1;
@@ -3511,7 +3526,7 @@ end;
 procedure TfrmViewer.cm_ZoomOut(const Params: array of string);
 begin
   if miGraphics.Checked then
-     cm_Zoom(['0.9'])
+     ZoomImage(0.9)
   else
   begin
     gFonts[dcfViewer].Size:=gFonts[dcfViewer].Size-1;

@@ -8,6 +8,8 @@
       <Version Value="11"/>
       <PathDelim Value="\"/>
       <SearchPaths>
+        <IncludeFiles Value="iconvenc"/>
+        <OtherUnitFiles Value="iconvenc"/>
         <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Conditionals Value="if (TargetCPU &lt;> &apos;arm&apos;) then

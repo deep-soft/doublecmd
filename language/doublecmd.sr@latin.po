@@ -2564,6 +2564,10 @@ msgstr "&Učitaj kartice iz datoteke"
 msgid "Create &Directory"
 msgstr "Napravi &fasciklu"
 
+#: tfrmmain.actmapnetworkdrive.caption
+msgid "Map Network Drive..."
+msgstr ""
+
 #: tfrmmain.actmarkcurrentextension.caption
 msgid "Select All with the Same E&xtension"
 msgstr "Označi sve sa istim nastavkom&"
@@ -5254,7 +5258,7 @@ msgid "Alwa&ys expand tree"
 msgstr "Uvek širi stablo fascikli"
 
 #: tfrmoptionsdirectoryhotlist.cbshowonlyvalidenv.caption
-#, fuzzy, badformat
+#, fuzzy
 #| msgid "Show only valid environment variables"
 msgid "Show only &valid environment variables"
 msgstr "Prikazuj samo ispravne %env_var%"
@@ -11321,10 +11325,6 @@ msgstr "Podesite prilagođene stupce"
 msgid "Enter new custom columns name"
 msgstr ""
 
-#: ulng.rsmenumacosservices
-msgid "Services"
-msgstr ""
-
 #: ulng.rsmenumacosshare
 msgid "Share..."
 msgstr ""
@@ -11363,10 +11363,6 @@ msgstr "Izbaci"
 msgid "Extract here..."
 msgstr ""
 
-#: ulng.rsmnumapnetworkdrive
-msgid "Map Network Drive..."
-msgstr ""
-
 #: ulng.rsmnumount
 msgid "Mount"
 msgstr "Prikači"
@@ -11375,6 +11371,10 @@ msgstr "Prikači"
 msgctxt "ulng.rsmnunew"
 msgid "New"
 msgstr "Nova"
+
+#: ulng.rsmnunewwindow
+msgid "New Window"
+msgstr ""
 
 #: ulng.rsmnunomedia
 msgid "No media available"

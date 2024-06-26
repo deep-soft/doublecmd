@@ -3,7 +3,7 @@
    -------------------------------------------------------------------------
    Wfx plugin for working with File Transfer Protocol
 
-   Copyright (C) 2013-2023 Alexander Koblov (alexx2000@mail.ru)
+   Copyright (C) 2013-2024 Alexander Koblov (alexx2000@mail.ru)
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -44,7 +44,7 @@ type
     function OpenChannel: Boolean;
     function CloseChannel(Channel: PLIBSSH2_CHANNEL): Boolean;
     function SendCommand(const Command: String): Boolean; overload;
-    function SendCommand(const Command: String; out Answer: String): Boolean; overload;
+    function SendCommand(const Command: String; out Answer: String; Err: Boolean = True): Boolean; overload;
   private
     FAnswer: String;
   protected
@@ -199,12 +199,13 @@ begin
   Result:= (FLastError >= 0);
 end;
 
-function TScpSend.SendCommand(const Command: String;
-  out Answer: String): Boolean;
+function TScpSend.SendCommand(const Command: String; out Answer: String;
+  Err: Boolean): Boolean;
 const
   BUFFER_SIZE = 4096;
 var
   Ret: cint;
+  S, E, Buffer: String;
 begin
   Result:= OpenChannel;
   if Result then
@@ -212,18 +213,30 @@ begin
     Result:= SendCommand(Command);
     if Result then
     begin
-      SetLength(Answer, BUFFER_SIZE + 1);
+      E:= EmptyStr;
+      Answer:= EmptyStr;
+      SetLength(Buffer, BUFFER_SIZE + 1);
       while libssh2_channel_eof(FChannel) = 0 do
       begin
-        if libssh2_channel_read_stderr(FChannel, Pointer(Answer), BUFFER_SIZE) > 0 then
-          Result:= False;
-        Ret:= libssh2_channel_read(FChannel, Pointer(Answer), BUFFER_SIZE);
-        if (Ret > 0) then begin
-          SetLength(Answer, Ret);
-          Answer:= TrimRightLineEnding(Answer, tlbsLF);
+        repeat
+          Ret:= libssh2_channel_read_stderr(FChannel, Pointer(Buffer), BUFFER_SIZE);
+        until Ret <> LIBSSH2_ERROR_EAGAIN;
+        if Ret > 0 then E+= Copy(Buffer, 1, Ret);
+
+        repeat
+          Ret:= libssh2_channel_read(FChannel, Pointer(Buffer), BUFFER_SIZE);
+        until Ret <> LIBSSH2_ERROR_EAGAIN;
+        if (Ret > 0) then Answer+= Copy(Buffer, 1, Ret);
+      end;
+      Result:= (libssh2_channel_get_exit_status(FChannel) = 0) and (Length(E) = 0);
+      if Err and (Length(E) > 0) then
+      begin
+        Ret:= 1;
+        while GetNextLine(E, S, Ret) do
+        begin
+          LogProc(PluginNumber, msgtype_importanterror, PWideChar(ServerToClient(S)));
         end;
       end;
-      Result:=  Result and (libssh2_channel_get_exit_status(FChannel) = 0);
     end;
     CloseChannel(FChannel);
   end;
@@ -542,7 +555,6 @@ end;
 
 constructor TScpSend.Create(const Encoding: String);
 begin
-  FCurrentDir:= '/';
   inherited Create(Encoding);
   FTargetPort:= '22';
   FListCommand:= 'ls -la';
@@ -568,12 +580,24 @@ begin
   Result:= Connect;
   if Result then
   begin
+    if FAuto then DetectEncoding;
+
+    if (Length(FCurrentDir) = 0) then
+    begin
+      if not SendCommand('pwd', FAnswer) then
+        FCurrentDir:= '/'
+      else begin
+        FCurrentDir:= TrimRightLineEnding(FAnswer, tlbsLF);
+        FCurrentDir:= CeUtf16ToUtf8(ServerToClient(FCurrentDir));
+      end;
+      DoStatus(False, 'Remote directory: ' + FCurrentDir);
+    end;
     if not FAutoDetect then
     begin
       FAutoDetect:= True;
       // Try to use custom time style
       ACommand:= LIST_LOCALE_C + FListCommand + LIST_TIME_STYLE;
-      if SendCommand(ACommand + ' > /dev/null', FAnswer) then
+      if SendCommand(ACommand + ' > /dev/null', FAnswer, False) then
       begin
         FListCommand:= ACommand;
         FFtpList.Masks.Insert(0, 'pppppppppp $!!!S* YYYY MM DD hh mm ss $n*');
@@ -581,13 +605,12 @@ begin
       else begin
         // Try to use 'C' locale
         ACommand:= LIST_LOCALE_C + FListCommand;
-        if SendCommand(ACommand + ' > /dev/null', FAnswer) then
+        if SendCommand(ACommand + ' > /dev/null', FAnswer, False) then
         begin
           FListCommand:= ACommand
         end;
       end;
     end;
-    if FAuto then DetectEncoding;
   end;
 end;
 
@@ -623,7 +646,7 @@ end;
 
 function TScpSend.FileExists(const FileName: String): Boolean;
 begin
-  Result:= SendCommand('stat ' + EscapeNoQuotes(FileName), FAnswer);
+  Result:= SendCommand('stat ' + EscapeNoQuotes(FileName), FAnswer, False);
 end;
 
 function TScpSend.CreateDir(const Directory: string): Boolean;

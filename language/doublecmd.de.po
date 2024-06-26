@@ -2489,6 +2489,10 @@ msgstr "&Lade Tabs aus Datei"
 msgid "Create &Directory"
 msgstr "&Verzeichnis erstellen"
 
+#: tfrmmain.actmapnetworkdrive.caption
+msgid "Map Network Drive..."
+msgstr "Netzwerklaufwerk mappen ..."
+
 #: tfrmmain.actmarkcurrentextension.caption
 msgid "Select All with the Same E&xtension"
 msgstr "Alle mit gleicher &Erweiterung wählen"
@@ -10983,10 +10987,6 @@ msgstr "Konfiguriere benutzerdefinierte Spalten"
 msgid "Enter new custom columns name"
 msgstr "Neuen Namen für die benutzerdefinierte Spaltenansicht angeben"
 
-#: ulng.rsmenumacosservices
-msgid "Services"
-msgstr "Dienste"
-
 #: ulng.rsmenumacosshare
 msgid "Share..."
 msgstr "Teilen ..."
@@ -11025,10 +11025,6 @@ msgstr "Auswerfen"
 msgid "Extract here..."
 msgstr "Archiv hier entpacken ..."
 
-#: ulng.rsmnumapnetworkdrive
-msgid "Map Network Drive..."
-msgstr "Netzwerklaufwerk mappen ..."
-
 #: ulng.rsmnumount
 msgid "Mount"
 msgstr "Einhängen"
@@ -11037,6 +11033,10 @@ msgstr "Einhängen"
 msgctxt "ulng.rsmnunew"
 msgid "New"
 msgstr "Neu"
+
+#: ulng.rsmnunewwindow
+msgid "New Window"
+msgstr "Neues Fenster"
 
 #: ulng.rsmnunomedia
 msgid "No media available"

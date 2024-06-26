@@ -118,7 +118,9 @@ begin
   FStatistics := RetrieveStatistics;
   with FStatistics do
   begin
+    DoneBytes := -1;
     DoneFiles := -1;
+    RemainingTime := -1;
     CurrentFileDoneBytes := -1;
     UpdateStatistics(FStatistics);
   end;
@@ -215,6 +217,9 @@ begin
     // Get maximum acceptable command errorlevel
     FErrorLevel:= ExtractErrorLevel(sCommandLine);
     if Pos('%F', sCommandLine) <> 0 then // extract file by file
+    begin
+      FStatistics.DoneBytes:= 0;
+
       for I:= 0 to FFullFilesTreeToExtract.Count - 1 do
       begin
         CheckOperationState;
@@ -259,6 +264,7 @@ begin
             CheckForErrors(aFile.FullPath, TargetFileName, FExProcess.ExitStatus);
           end;
     end // for
+  end
   else  // extract whole file list
     begin
       sTempDir:= TargetPath; // directory where files will be unpacked
@@ -284,6 +290,20 @@ begin
 
       if FilesToExtract.Count = 0 then Exit;
 
+      with FStatistics do
+      begin
+        if FilesToExtract.Count = 1 then
+        begin
+          FStatistics.CurrentFileFrom:= FilesToExtract[0].FullPath;
+          FStatistics.CurrentFileTo:= TargetFileName;
+        end
+        else begin
+          FStatistics.CurrentFileFrom:= SourceFiles.Path;
+          FStatistics.CurrentFileTo:= TargetPath;
+        end;
+        UpdateStatistics(FStatistics);
+      end;
+
       sReadyCommand:= FormatArchiverCommand(
                                             MultiArcItem.FArchiver,
                                             sCommandLine,
@@ -307,6 +327,7 @@ begin
       // if extract from not root directory and with path
       if (SourceFiles.Path <> PathDelim) and (FExtractWithoutPath = False) then
       begin
+        FStatistics.DoneBytes:= 0;
         // move files to real target directory
         for I:= 0 to FilesToExtract.Count - 1 do
         begin

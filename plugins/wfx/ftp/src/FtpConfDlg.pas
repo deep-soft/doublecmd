@@ -41,6 +41,7 @@ uses
   FtpProxy, TypInfo;
 
 var
+  Protocol: PtrInt;
   ProxyIndex: Integer;
   gConnection: TConnection;
 
@@ -77,13 +78,13 @@ begin
     if not gConnection.OpenSSH then
     begin
       SendDlgMsg(pDlg, 'chkCopySCP', DM_SETCHECK, 0, 0);
-      SendDlgMsg(pDlg, 'chkOnlySCP', DM_SETCHECK, 0, 0);
       SendDlgMsg(pDlg, 'chkAgentSSH', DM_SETCHECK, 0, 0);
     end
     else begin
       SendDlgMsg(pDlg, 'chkShowHidden', DM_SETCHECK, 0, 0);
       SendDlgMsg(pDlg, 'chkPassiveMode', DM_SETCHECK, 0, 0);
       SendDlgMsg(pDlg, 'chkKeepAliveTransfer', DM_SETCHECK, 0, 0);
+      SendDlgMsg(pDlg, 'chkCopySCP', DM_ENABLE, PtrInt(not gConnection.OnlySCP), 0);
     end;
   end;
 end;
@@ -256,7 +257,20 @@ begin
             Text += ':' + gConnection.Port;
           end;
           if gConnection.FullSSL then
-            Text:= 'ftps://' + Text;
+            Protocol:= 1
+          else if gConnection.AutoTLS then
+            Protocol:= 2
+          else if gConnection.OpenSSH then
+          begin
+            if gConnection.OnlySCP then
+              Protocol:= 3
+            else
+              Protocol:= 4;
+          end
+          else begin
+            Protocol:= 0;
+          end;
+          SendDlgMsg(pDlg, 'cmbProtocol', DM_LISTSETITEMINDEX, Protocol, 0);
           Data:= PtrInt(PAnsiChar(Text));
           SendDlgMsg(pDlg, 'edtHost', DM_SETTEXT, Data, 0);
           Text:= gConnection.UserName;
@@ -283,16 +297,10 @@ begin
           SendDlgMsg(pDlg, 'edtInitCommands', DM_SETTEXT, Data, 0);
           Data:= PtrInt(gConnection.PassiveMode);
           SendDlgMsg(pDlg, 'chkPassiveMode', DM_SETCHECK, Data, 0);
-          Data:= PtrInt(gConnection.AutoTLS);
-          SendDlgMsg(pDlg, 'chkAutoTLS', DM_SETCHECK, Data, 0);
-          Data:= PtrInt(gConnection.OpenSSH);
-          SendDlgMsg(pDlg, 'chkOpenSSH', DM_SETCHECK, Data, 0);
           Data:= PtrInt(gConnection.AgentSSH);
           SendDlgMsg(pDlg, 'chkAgentSSH', DM_SETCHECK, Data, 0);
           Data:= PtrInt(gConnection.CopySCP);
           SendDlgMsg(pDlg, 'chkCopySCP', DM_SETCHECK, Data, 0);
-          Data:= PtrInt(gConnection.OnlySCP);
-          SendDlgMsg(pDlg, 'chkOnlySCP', DM_SETCHECK, Data, 0);
           Data:= PtrInt(gConnection.ShowHiddenItems);
           SendDlgMsg(pDlg, 'chkShowHidden', DM_SETCHECK, Data, 0);
           Data:= PtrInt(gConnection.KeepAliveTransfer);
@@ -321,41 +329,52 @@ begin
             gConnection.MasterPassword:= Boolean(Data);
             gConnection.PasswordChanged:= True;
           end
-        else if DlgItemName = 'chkAutoTLS' then
-          begin
-            Data:= SendDlgMsg(pDlg, 'chkAutoTLS', DM_GETCHECK, 0, 0);
-            gConnection.AutoTLS:= Boolean(Data);
-            if gConnection.AutoTLS then
+        else if DlgItemName = 'cmbProtocol' then
+        begin
+          Data:= SendDlgMsg(pDlg, 'cmbProtocol', DM_LISTGETITEMINDEX, 0, 0);
+          case Data of
+            0: // FTP
+              begin
+                Protocol:= Data;
+                gConnection.OpenSSH:= False;
+                gConnection.OnlySCP:= False;
+                gConnection.FullSSL:= False;
+                gConnection.AutoTLS:= False;
+              end;
+            1, 2: // FTPS, FTPES
             begin
-              gConnection.OpenSSH:= False;
               if (SSLImplementation = TSSLNone) then
               begin
                 ShowWarningSSL;
-                gConnection.AutoTLS:= False;
-                Data:= PtrInt(gConnection.AutoTLS);
-                SendDlgMsg(pDlg, 'chkAutoTLS', DM_SETCHECK, Data, 0);
+                SendDlgMsg(pDlg, 'cmbProtocol', DM_LISTSETITEMINDEX, Protocol, 0);
+              end
+              else begin
+                Protocol:= Data;
+                gConnection.OpenSSH:= False;
+                gConnection.OnlySCP:= False;
+                gConnection.FullSSL:= (Data = 1);
+                gConnection.AutoTLS:= (Data = 2);
               end;
-              SendDlgMsg(pDlg, 'chkOpenSSH', DM_SETCHECK, 0, 0);
             end;
-            EnableControls(pDlg);
-          end
-        else if DlgItemName = 'chkOpenSSH' then
-          begin
-            Data:= SendDlgMsg(pDlg, 'chkOpenSSH', DM_GETCHECK, 0, 0);
-            gConnection.OpenSSH:= Boolean(Data);
-            if gConnection.OpenSSH then
+            3, 4: // SSH+SCP, SFTP
             begin
               if libssh2 = NilHandle then
               begin
                 ShowWarningSSH;
-                gConnection.OpenSSH:= False;
-                Data:= PtrInt(gConnection.OpenSSH);
-                SendDlgMsg(pDlg, 'chkOpenSSH', DM_SETCHECK, Data, 0);
-               end;
-              SendDlgMsg(pDlg, 'chkAutoTLS', DM_SETCHECK, 0, 0);
+                SendDlgMsg(pDlg, 'cmbProtocol', DM_LISTSETITEMINDEX, Protocol, 0);
+               end
+              else begin
+                Protocol:= Data;
+                gConnection.OpenSSH:= True;
+                gConnection.FullSSL:= False;
+                gConnection.AutoTLS:= False;
+                gConnection.OnlySCP:= (Data = 3);
+                SendDlgMsg(pDlg, 'chkCopySCP', DM_SETCHECK, PtrInt(Data = 3), 0);
+              end;
             end;
-            EnableControls(pDlg);
-          end
+          end;
+          EnableControls(pDlg);
+        end
         else if DlgItemName = 'cmbProxy' then
           begin
             UpdateProxy(pDlg);
@@ -440,14 +459,10 @@ begin
             gConnection.InitCommands:= Text;
             Data:= SendDlgMsg(pDlg, 'chkPassiveMode', DM_GETCHECK, 0, 0);
             gConnection.PassiveMode:= Boolean(Data);
-            Data:= SendDlgMsg(pDlg, 'chkAutoTLS', DM_GETCHECK, 0, 0);
-            gConnection.AutoTLS:= Boolean(Data);
             Data:= SendDlgMsg(pDlg, 'chkAgentSSH', DM_GETCHECK, 0, 0);
             gConnection.AgentSSH:= Boolean(Data);
             Data:= SendDlgMsg(pDlg, 'chkCopySCP', DM_GETCHECK, 0, 0);
             gConnection.CopySCP:= Boolean(Data);
-            Data:= SendDlgMsg(pDlg, 'chkOnlySCP', DM_GETCHECK, 0, 0);
-            gConnection.OnlySCP:= Boolean(Data);
             Data:= SendDlgMsg(pDlg, 'chkShowHidden', DM_GETCHECK, 0, 0);
             gConnection.ShowHiddenItems:= Boolean(Data);
             Data:= SendDlgMsg(pDlg, 'chkKeepAliveTransfer', DM_GETCHECK, 0, 0);

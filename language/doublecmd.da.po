@@ -2621,6 +2621,11 @@ msgstr "Ind&læs faneblade fra fil"
 msgid "Create &Directory"
 msgstr "Ny mappe"
 
+# Netværk
+#: tfrmmain.actmapnetworkdrive.caption
+msgid "Map Network Drive..."
+msgstr "Opret net&værksdrev..."
+
 # Marker
 #: tfrmmain.actmarkcurrentextension.caption
 msgid "Select All with the Same E&xtension"
@@ -11884,10 +11889,6 @@ msgstr "Indstillinger for kolonner"
 msgid "Enter new custom columns name"
 msgstr "Indtast navn til den tilpassede kolonne"
 
-#: ulng.rsmenumacosservices
-msgid "Services"
-msgstr ""
-
 #: ulng.rsmenumacosshare
 msgid "Share..."
 msgstr ""
@@ -11928,11 +11929,6 @@ msgstr "Skub ud"
 msgid "Extract here..."
 msgstr "Udpak her..."
 
-# Netværk
-#: ulng.rsmnumapnetworkdrive
-msgid "Map Network Drive..."
-msgstr "Opret net&værksdrev..."
-
 #: ulng.rsmnumount
 msgid "Mount"
 msgstr "Mount"
@@ -11941,6 +11937,10 @@ msgstr "Mount"
 msgctxt "ulng.rsmnunew"
 msgid "New"
 msgstr "Ny"
+
+#: ulng.rsmnunewwindow
+msgid "New Window"
+msgstr ""
 
 #: ulng.rsmnunomedia
 msgid "No media available"

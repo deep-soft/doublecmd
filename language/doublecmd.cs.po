@@ -2484,6 +2484,10 @@ msgstr "Načíst zá&ložky ze souboru"
 msgid "Create &Directory"
 msgstr "Vytvořit složku"
 
+#: tfrmmain.actmapnetworkdrive.caption
+msgid "Map Network Drive..."
+msgstr "Připojit síťovou jednotku..."
+
 #: tfrmmain.actmarkcurrentextension.caption
 msgid "Select All with the Same E&xtension"
 msgstr "Vybrat všechny soubory se stejnou příponou"
@@ -10831,10 +10835,6 @@ msgstr "Nastavit uživatelské sloupce"
 msgid "Enter new custom columns name"
 msgstr "Zadejte nový název vlastních sloupců"
 
-#: ulng.rsmenumacosservices
-msgid "Services"
-msgstr ""
-
 #: ulng.rsmenumacosshare
 msgid "Share..."
 msgstr ""
@@ -10873,10 +10873,6 @@ msgstr "Vysunout"
 msgid "Extract here..."
 msgstr "Rozbalit zde..."
 
-#: ulng.rsmnumapnetworkdrive
-msgid "Map Network Drive..."
-msgstr "Připojit síťovou jednotku..."
-
 #: ulng.rsmnumount
 msgid "Mount"
 msgstr "Připojit"
@@ -10885,6 +10881,10 @@ msgstr "Připojit"
 msgctxt "ulng.rsmnunew"
 msgid "New"
 msgstr "Nový"
+
+#: ulng.rsmnunewwindow
+msgid "New Window"
+msgstr ""
 
 #: ulng.rsmnunomedia
 msgid "No media available"

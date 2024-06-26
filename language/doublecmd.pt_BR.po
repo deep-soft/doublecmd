@@ -2575,6 +2575,10 @@ msgstr "&Carregar guias de Arquivo."
 msgid "Create &Directory"
 msgstr "Criar &Pasta"
 
+#: tfrmmain.actmapnetworkdrive.caption
+msgid "Map Network Drive..."
+msgstr "Mapa do Drive de Rede"
+
 #: tfrmmain.actmarkcurrentextension.caption
 msgid "Select All with the Same E&xtension"
 msgstr "Selecionar todos com a mesma e&xtensão."
@@ -11246,10 +11250,6 @@ msgstr "Configurar colunas personalizadas"
 msgid "Enter new custom columns name"
 msgstr "Digite nome das novas colunas personalizadas"
 
-#: ulng.rsmenumacosservices
-msgid "Services"
-msgstr ""
-
 #: ulng.rsmenumacosshare
 msgid "Share..."
 msgstr ""
@@ -11288,10 +11288,6 @@ msgstr "Ejetar"
 msgid "Extract here..."
 msgstr "Extrair aqui..."
 
-#: ulng.rsmnumapnetworkdrive
-msgid "Map Network Drive..."
-msgstr "Mapa do Drive de Rede"
-
 #: ulng.rsmnumount
 msgid "Mount"
 msgstr "Montar"
@@ -11300,6 +11296,10 @@ msgstr "Montar"
 msgctxt "ulng.rsmnunew"
 msgid "New"
 msgstr "Novo"
+
+#: ulng.rsmnunewwindow
+msgid "New Window"
+msgstr ""
 
 #: ulng.rsmnunomedia
 msgid "No media available"

@@ -2507,6 +2507,10 @@ msgstr "从档案载入分頁 (&L)"
 msgid "Create &Directory"
 msgstr "建立資料夾"
 
+#: tfrmmain.actmapnetworkdrive.caption
+msgid "Map Network Drive..."
+msgstr "映射網路磁碟..."
+
 #: tfrmmain.actmarkcurrentextension.caption
 msgid "Select All with the Same E&xtension"
 msgstr "選擇所有相同副檔名 (&X)"
@@ -11523,10 +11527,6 @@ msgstr "設置自訂欄位"
 msgid "Enter new custom columns name"
 msgstr ""
 
-#: ulng.rsmenumacosservices
-msgid "Services"
-msgstr "服務"
-
 #: ulng.rsmenumacosshare
 msgid "Share..."
 msgstr "共享..."
@@ -11565,10 +11565,6 @@ msgstr "退出"
 msgid "Extract here..."
 msgstr "解壓縮到此處..."
 
-#: ulng.rsmnumapnetworkdrive
-msgid "Map Network Drive..."
-msgstr "映射網路磁碟..."
-
 #: ulng.rsmnumount
 msgid "Mount"
 msgstr "掛載"
@@ -11577,6 +11573,10 @@ msgstr "掛載"
 msgctxt "ulng.rsmnunew"
 msgid "New"
 msgstr "新增"
+
+#: ulng.rsmnunewwindow
+msgid "New Window"
+msgstr "新建視窗"
 
 #: ulng.rsmnunomedia
 msgid "No media available"

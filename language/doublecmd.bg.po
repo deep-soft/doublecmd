@@ -2560,6 +2560,10 @@ msgstr "&Зареждане на подпрозорци от файл"
 msgid "Create &Directory"
 msgstr "&Нова папка"
 
+#: tfrmmain.actmapnetworkdrive.caption
+msgid "Map Network Drive..."
+msgstr "Прикачане на мрежово устройство..."
+
 #: tfrmmain.actmarkcurrentextension.caption
 msgid "Select All with the Same E&xtension"
 msgstr "Избор на всички със същото раз&ширение"
@@ -11288,10 +11292,6 @@ msgstr "Настройка на нагласените стълбове"
 msgid "Enter new custom columns name"
 msgstr "Задайте ново име за стълбовете"
 
-#: ulng.rsmenumacosservices
-msgid "Services"
-msgstr ""
-
 #: ulng.rsmenumacosshare
 msgid "Share..."
 msgstr ""
@@ -11330,10 +11330,6 @@ msgstr "Изваждане"
 msgid "Extract here..."
 msgstr "Извличане тук..."
 
-#: ulng.rsmnumapnetworkdrive
-msgid "Map Network Drive..."
-msgstr "Прикачане на мрежово устройство..."
-
 #: ulng.rsmnumount
 msgid "Mount"
 msgstr "Прикачане"
@@ -11342,6 +11338,10 @@ msgstr "Прикачане"
 msgctxt "ulng.rsmnunew"
 msgid "New"
 msgstr "Нов"
+
+#: ulng.rsmnunewwindow
+msgid "New Window"
+msgstr ""
 
 #: ulng.rsmnunomedia
 msgid "No media available"

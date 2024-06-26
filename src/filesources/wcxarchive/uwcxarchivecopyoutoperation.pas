@@ -90,7 +90,6 @@ type
 
     class procedure ClearCurrentOperation;
 
-    function GetDescription(Details: TFileSourceOperationDescriptionDetails): String; override;
     class function GetOptionsUIClass: TFileSourceOperationOptionsUIClass; override;
 
     property ExtractWithoutPath: Boolean read FExtractWithoutPath write FExtractWithoutPath;
@@ -337,7 +336,11 @@ begin
         begin
           CurrentFileFrom := Header.FileName;
           CurrentFileTo := TargetFileName;
-          CurrentFileTotalBytes := Header.UnpSize;
+          if (Header.UnpSize < 0) then
+            CurrentFileTotalBytes := 0
+          else begin
+            CurrentFileTotalBytes := Header.UnpSize;
+          end;
           CurrentFileDoneBytes := -1;
 
           UpdateStatistics(FStatistics);
@@ -408,16 +411,6 @@ begin
   ClearCurrentOperation;
 end;
 
-function TWcxArchiveCopyOutOperation.GetDescription(Details: TFileSourceOperationDescriptionDetails): String;
-begin
-  case Details of
-    fsoddJobAndTarget:
-      Result := Format(rsOperExtractingFromTo, [FWcxArchiveFileSource.ArchiveFileName, TargetPath]);
-    else
-      Result := rsOperExtracting;
-  end;
-end;
-
 procedure TWcxArchiveCopyOutOperation.CreateDirsAndCountFiles(
               const theFiles: TFiles; MaskList: TMaskList;
               sDestPath: String; CurrentArchiveDir: String;
@@ -477,7 +470,10 @@ begin
       begin
         if ((MaskList = nil) or MaskList.Matches(ExtractFileNameEx(Header.FileName))) then
         begin
-          Inc(FStatistics.TotalBytes, Header.UnpSize);
+          if (Header.UnpSize > 0) then
+          begin
+            Inc(FStatistics.TotalBytes, Header.UnpSize);
+          end;
           Inc(FStatistics.TotalFiles, 1);
 
           CurrentFileName := ExtractDirLevel(CurrentArchiveDir, ExtractFilePathEx(Header.FileName));
@@ -559,7 +555,7 @@ var
   PathIndex: Integer;
   TargetDir: String;
   Header: TWCXHeader;
-  Time: TFileTime;
+  Time: TFileTimeEx;
 begin
   Result := True;
 
@@ -576,10 +572,10 @@ begin
         // Restore attributes
         mbFileSetAttr(TargetDir, Header.FileAttr);
 
-        Time := WcxFileTimeToFileTime(Header.FileTime);
+        Time := DateTimeToFileTimeEx(Header.DateTime);
 
         // Set creation, modification time
-        mbFileSetTime(TargetDir, Time, Time, Time);
+        mbFileSetTimeEx(TargetDir, Time, Time, Time);
 
       except
         Result := False;
@@ -616,6 +612,14 @@ const
     = (fsourOverwrite, fsourSkip, fsourOverwriteLarger, fsourOverwriteAll,
        fsourSkipAll, fsourOverwriteSmaller, fsourOverwriteOlder, fsourCancel,
        fsourRenameSource, fsourAutoRenameSource);
+  ResponsesNoSize: array[0..8] of TFileSourceOperationUIResponse
+    = (fsourOverwrite,      fsourSkip,    fsourRenameSource,
+       fsourOverwriteAll,   fsourSkipAll, fsourAutoRenameSource,
+       fsourOverwriteOlder, fsourCancel,  fsouaCompare);
+  ResponsesNoSizeNoCompare: array[0..7] of TFileSourceOperationUIResponse
+    = (fsourOverwrite,      fsourSkip,    fsourRenameSource,
+       fsourOverwriteAll,   fsourSkipAll, fsourAutoRenameSource,
+       fsourOverwriteOlder, fsourCancel);
 var
   PossibleResponses: TFileSourceOperationUIResponses;
   Answer: Boolean;
@@ -623,7 +627,7 @@ var
 
   function OverwriteOlder: TFileSourceOperationOptionFileExists;
   begin
-    if WcxFileTimeToDateTime(Header.FileTime) > FileTimeToDateTime(mbFileAge(AbsoluteTargetFileName)) then
+    if Header.DateTime > FileTimeToDateTime(mbFileAge(AbsoluteTargetFileName)) then
       Result := fsoofeOverwrite
     else
       Result := fsoofeSkip;
@@ -655,11 +659,25 @@ begin
         // Can't asynchoronously extract file for comparison when multiple operations are not supported
         // TODO: implement synchronous CopyOut to temp directory or close the connection until the question is answered
         case FNeedsConnection of
-          True :  PossibleResponses := ResponsesNoCompare;
-          False:  PossibleResponses := Responses;
+          True :
+            begin
+              if (Header.UnpSize < 0) then
+                PossibleResponses := ResponsesNoSizeNoCompare
+              else begin
+                PossibleResponses := ResponsesNoCompare;
+              end;
+            end;
+          False:
+            begin
+              if (Header.UnpSize < 0) then
+                PossibleResponses := ResponsesNoSize
+              else begin
+                PossibleResponses := Responses;
+              end;
+            end;
         end;
         Message:= FileExistsMessage(AbsoluteTargetFileName, Header.FileName,
-                                    Header.UnpSize, WcxFileTimeToDateTime(Header.FileTime));
+                                    Header.UnpSize, Header.DateTime);
         FCurrentFilePath := Header.FileName;
         FCurrentTargetFilePath := AbsoluteTargetFileName;
         case AskQuestion(Message, '',

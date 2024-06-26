@@ -474,14 +474,11 @@ begin
     else
       begin
         SizeProperty := TFileSizeProperty.Create(WcxHeader.UnpSize);
+        SizeProperty.IsValid := (WcxHeader.UnpSize >= 0);
         CompressedSizeProperty := TFileCompressedSizeProperty.Create(WcxHeader.PackSize);
       end;
-    ModificationTimeProperty := TFileModificationDateTimeProperty.Create(0);
-    try
-      ModificationTime := WcxFileTimeToDateTime(WcxHeader.FileTime);
-    except
-      on EConvertError do;
-    end;
+    ModificationTimeProperty := TFileModificationDateTimeProperty.Create(WcxHeader.DateTime);
+    ModificationTimeProperty.IsValid := (WcxHeader.DateTime <= SysUtils.MaxDateTime);
 
     // Set name after assigning Attributes property, because it is used to get extension.
     Name := ExtractFileNameEx(WcxHeader.FileName);
@@ -676,7 +673,7 @@ var
   AllDirsList, ExistsDirList : TStringHashListUtf8;
   I : Integer;
   NameLength: Integer;
-  ArchiveTime: LongInt;
+  ArchiveTime: TDateTime;
 begin
   Result:= False;
 
@@ -743,7 +740,7 @@ begin
         if FOpenResult <> E_SUCCESS then Exit;
       end; // while
 
-      ArchiveTime:= FileTimeToWcxFileTime(mbFileAge(ArchiveFileName));
+      ArchiveTime:= FileTimeToDateTime(mbFileAge(ArchiveFileName));
 
       (* if plugin does not give a list of folders *)
       for I := 0 to AllDirsList.Count - 1 do
@@ -756,7 +753,7 @@ begin
             Header.FileName := AllDirsList.List[I]^.Key;
             Header.ArcName  := ArchiveFileName;
             Header.FileAttr := GENERIC_ATTRIBUTE_FOLDER;
-            Header.FileTime := ArchiveTime;
+            Header.DateTime := ArchiveTime;
 
             AFileList.Add(Header);
           except

@@ -93,7 +93,7 @@ implementation
 
 uses
   SysUtils, LazUTF8, ZipConfDlg, AbBrowse, DCConvertEncoding, DCOSUtils, ZipOpt,
-  ZipLng, ZipCache;
+  ZipLng, ZipCache, DCDateTimeUtils;
 
 var
   PasswordCache: TPasswordCache;
@@ -245,6 +245,7 @@ begin
       HeaderData.FileCRC      := CRC32;
       HeaderData.FileTime     := NativeLastModFileTime;
       HeaderData.FileAttr     := NativeFileAttributes;
+      HeaderData.MfileTime    := DateTimeToWinFileTime(LastModTimeAsDateTime);
 
       if IsEncrypted then begin
         HeaderData.Flags      := RHDF_ENCRYPTED;
@@ -491,9 +492,10 @@ end;
 function DeleteFilesW(PackedFile, DeleteList : PWideChar) : Integer;dcpcall; export;
 var
  Arc : TAbZipKitEx;
+ FileNameUTF8 : String;
  pFileName : PWideChar;
  FileName : UnicodeString;
- FileNameUTF8 : String;
+ ArchiveFormat: TArchiveFormat;
 begin
   Arc := TAbZipKitEx.Create(nil);
   try
@@ -505,6 +507,10 @@ begin
 
     try
       Arc.OpenArchive(UTF16ToUTF8(UnicodeString(PackedFile)));
+
+      ArchiveFormat:= ARCHIVE_FORMAT[Arc.ArchiveType];
+
+      Arc.ZipArchive.CompressionLevel:= PluginConfig[ArchiveFormat].Level;
 
       // Set this after opening archive, to get only progress of deleting.
       Arc.OnArchiveItemProgress := @Arc.AbArchiveItemProgressEvent;

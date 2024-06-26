@@ -12,10 +12,10 @@ uses
   {$ENDIF}
   {$ENDIF}
   {$IFDEF UNIX}
-  cthreads,
   {$IFNDEF HEAPTRC}
   cmem,
   {$ENDIF}
+  cthreads,
   {$IFDEF DARWIN}
   iosxwstr,
   iosxlocale,
@@ -154,6 +154,7 @@ begin
 {$ENDIF}
 
 {$IF DEFINED(darwin)}
+  FixMacFormatSettings;
   setMacOSAppearance( gAppMode );
 {$ENDIF}
 

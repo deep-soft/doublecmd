@@ -3,7 +3,7 @@
   -------------------------------------------------------------------------
   Windows dark style widgetset implementation
 
-  Copyright (C) 2021-2023 Alexander Koblov (alexx2000@mail.ru)
+  Copyright (C) 2021-2024 Alexander Koblov (alexx2000@mail.ru)
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -157,8 +157,8 @@ type
   TThemeClassMap = specialize TDictionary<HTHEME, String>;
 
 var
-  Theme: TThemeData;
   ThemeClass: TThemeClassMap;
+  Win32Theme: TWin32ThemeServices;
   OldUpDownWndProc: Windows.WNDPROC;
   CustomFormWndProc: Windows.WNDPROC;
   SysColor: array[0..COLOR_ENDCOLORS] of TColor;
@@ -843,18 +843,8 @@ function DrawThemeTextDark(hTheme: HTHEME; hdc: HDC; iPartId, iStateId: Integer;
   dwTextFlags, dwTextFlags2: DWORD; const pRect: TRect): HRESULT; stdcall;
 var
   OldColor: COLORREF;
-  Index, Element: TThemedElement;
 begin
-  for Index:= Low(TThemedElement) to High(TThemedElement) do
-  begin
-    if Theme[Index] = hTheme then
-    begin
-      Element:= Index;
-      Break;
-    end;
-  end;
-
-  if Element = teToolTip then
+  if (hTheme = Win32Theme.Theme[teToolTip]) then
     OldColor:= SysColor[COLOR_INFOTEXT]
   else begin
     OldColor:= SysColor[COLOR_BTNTEXT];
@@ -879,18 +869,8 @@ var
   AColor: TColor;
   LCanvas: TCanvas;
   AStyle: TTextStyle;
-  Index, Element: TThemedElement;
 begin
-  for Index:= Low(TThemedElement) to High(TThemedElement) do
-  begin
-    if Theme[Index] = hTheme then
-    begin
-      Element:= Index;
-      Break;
-    end;
-  end;
-
-  if Element = teHeader then
+  if (hTheme = Win32Theme.Theme[teHeader]) then
   begin
     if iPartId in [HP_HEADERITEM, HP_HEADERITEMRIGHT] then
     begin
@@ -922,7 +902,7 @@ begin
     end;
   end
 
-  else if Element = teMenu then
+  else if (hTheme = Win32Theme.Theme[teMenu]) then
   begin
     if iPartId in [MENU_BARBACKGROUND, MENU_POPUPITEM, MENU_POPUPGUTTER,
                    MENU_POPUPSUBMENU, MENU_POPUPSEPARATOR, MENU_POPUPCHECK,
@@ -986,7 +966,7 @@ begin
     end;
   end
 
-  else if Element = teToolBar then
+  else if (hTheme = Win32Theme.Theme[teToolBar]) then
   begin
     if iPartId in [TP_BUTTON] then
     begin
@@ -1030,7 +1010,7 @@ begin
     end;
   end
 
-  else if Element = teButton then
+  else if (hTheme = Win32Theme.Theme[teButton]) then
   begin
     DrawButton(hTheme, hdc, iPartId, iStateId, pRect, pClipRect);
   end;
@@ -1331,14 +1311,11 @@ begin
   DrawThemeText:= @DrawThemeTextDark;
   DrawThemeBackground:= @DrawThemeBackgroundDark;
 
-  for Index:= Low(TThemedElement) to High(TThemedElement) do
-  begin
-    Theme[Index]:= TWin32ThemeServices(ThemeServices).Theme[Index];
-  end;
-
   DefaultWindowInfo.DefWndProc:= @WindowProc;
 
   TaskDialogIndirect:= @TaskDialogIndirectDark;
+
+  Win32Theme:= TWin32ThemeServices(ThemeServices);
 end;
 
 function FormWndProc(Window: HWnd; Msg: UInt; WParam: Windows.WParam;
@@ -1510,11 +1487,7 @@ begin
     AColor:= SysColor[COLOR_BTNFACE];
     ALight:= Lighter(AColor, 160);
 
-    case iPartId of
-      TABP_TOPTABITEM,
-      TABP_TOPTABITEMLEFTEDGE,
-      TABP_TOPTABITEMBOTHEDGE,
-      TABP_TOPTABITEMRIGHTEDGE:
+    if (iPartId < TABP_PANE) then
       begin
         ARect:= pRect;
         // Fill tab inside
@@ -1534,7 +1507,8 @@ begin
         LCanvas.FillRect(ARect);
         LCanvas.Pen.Color:= ALight;
 
-        if iPartId in [TABP_TOPTABITEMLEFTEDGE, TABP_TOPTABITEMBOTHEDGE] then
+        if iPartId in [TABP_TABITEMLEFTEDGE, TABP_TABITEMBOTHEDGE,
+                       TABP_TOPTABITEMLEFTEDGE, TABP_TOPTABITEMBOTHEDGE] then
         begin
           // Draw left border
           LCanvas.Line(pRect.Left, pRect.Top, pRect.Left, pRect.Bottom);
@@ -1547,7 +1521,7 @@ begin
         end
         else begin
           // Draw left border
-          if (iPartId = TABP_TOPTABITEM) then
+          if (iPartId in [TABP_TABITEM, TABP_TOPTABITEM]) then
           begin
             LCanvas.Line(pRect.Left, pRect.Top, pRect.Left, pRect.Bottom - 1);
           end;
@@ -1556,15 +1530,14 @@ begin
         end;
         // Draw top border
         LCanvas.Line(pRect.Left, pRect.Top, pRect.Right, pRect.Top);
-      end;
-      TABP_PANE:
+      end
+      else if (iPartId = TABP_PANE) then
       begin
         // Draw tab pane border
         LCanvas.Brush.Color:= AColor;
         LCanvas.Pen.Color:= ALight;
         LCanvas.Rectangle(pRect);
       end;
-    end;
   finally
     LCanvas.Handle:= 0;
     LCanvas.Free;
