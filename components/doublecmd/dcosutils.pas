@@ -1455,9 +1455,16 @@ function FileAllocate(Handle: System.THandle; Size: Int64): Boolean;
 var
   Ret: cint;
   Sta: TStat;
+  StaFS: TStatFS;
 begin
   if (Size > 0) then
   begin
+    repeat
+      Ret:= fpfStatFS(Handle, @StaFS);
+    until (Ret <> -1) or (fpgeterrno <> ESysEINTR);
+    // FAT32 does not support a fast allocation
+    if (StaFS.fstype = MSDOS_SUPER_MAGIC) then
+      Exit(False);
     repeat
       Ret:= fpFStat(Handle, Sta);
     until (Ret <> -1) or (fpgeterrno <> ESysEINTR);
@@ -1467,7 +1474,7 @@ begin
       Sta.st_size:= (Size + Sta.st_blksize - 1) and not (Sta.st_blksize - 1);
       repeat
         Ret:= fpFAllocate(Handle, 0, 0, Sta.st_size);
-      until (Ret <> -1) or (fpgeterrno <> ESysEINTR) or (fpgeterrno <> ESysEAGAIN);
+      until (Ret <> -1) or (fpgeterrno <> ESysEINTR);
     end;
   end;
   Result:= FileTruncate(Handle, Size);
