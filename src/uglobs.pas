@@ -47,7 +47,7 @@ uses
   uFileSourceOperationOptions, uWFXModule, uWCXModule, uWDXModule, uwlxmodule,
   udsxmodule, DCXmlConfig, uInfoToolTip, fQuickSearch, uTypes, uClassesEx, uColors,
   uHotDir, uSpecialDir, SynEdit, SynEditTypes, uFavoriteTabs, fTreeViewMenu,
-  uConvEncoding, DCJsonConfig;
+  uConvEncoding, DCJsonConfig, uFileSourceOperationTypes;
 
 type
   { Configuration options }
@@ -493,6 +493,8 @@ var
   gAutoExtractOpenMask: String;
   gFileOperationsProgressKind: TFileOperationsProgressKind;
   gFileOperationsConfirmations: TFileOperationsConfirmations;
+  gFileOperationsSounds: array[TFileSourceOperationType] of String;
+  gFileOperationDuration: Integer;
 
   { Multi-Rename}
   gMulRenShowMenuBarOnTop : boolean;
@@ -1934,6 +1936,7 @@ begin
   gAutoExtractOpenMask := EmptyStr;
   gFileOperationsProgressKind := fopkSeparateWindow;
   gFileOperationsConfirmations := [focCopy, focMove, focDelete, focDeleteToTrash];
+  gFileOperationDuration := 10;
 
   { Multi-Rename }
   gMulRenShowMenuBarOnTop := True;
@@ -2004,6 +2007,7 @@ begin
   gSaveFolderTabs := True;
   gSaveSearchReplaceHistory := True;
   gSaveDirHistory := True;
+  gDirHistoryCount := 30;
   gSaveCmdLineHistory := True;
   gSaveFileMaskHistory := True;
   gSaveVolumeSizeHistory := True;
@@ -2243,7 +2247,6 @@ begin
   { - Not in config - }
   gHelpLang := '';
   gRepeatPassword := True;
-  gDirHistoryCount := 30;
   gFirstTextSearch := True;
   gErrorFile := gpCfgDir + ExtractOnlyFileName(Application.ExeName) + '.err';
   DefaultDateTimeFormat := FormatSettings.ShortDateFormat + ' hh:nn:ss';
@@ -2892,6 +2895,18 @@ begin
       gSearchDefaultTemplate := GetValue(Node, 'SearchDefaultTemplate', gSearchDefaultTemplate);
       gFileOperationsProgressKind := TFileOperationsProgressKind(GetValue(Node, 'ProgressKind', Integer(gFileOperationsProgressKind)));
       gFileOperationsConfirmations := TFileOperationsConfirmations(GetValue(Node, 'Confirmations', Integer(gFileOperationsConfirmations)));
+      // Operations sounds
+      SubNode := Node.FindNode('Sounds');
+      if Assigned(SubNode) then
+      begin
+        gFileOperationDuration:= GetAttr(SubNode, 'Duration', gFileOperationDuration);
+        gFileOperationsSounds[fsoCopy]:= GetValue(SubNode, 'Copy', EmptyStr);
+        gFileOperationsSounds[fsoMove]:= GetValue(SubNode, 'Move', EmptyStr);
+        gFileOperationsSounds[fsoWipe]:= GetValue(SubNode, 'Wipe', EmptyStr);
+        gFileOperationsSounds[fsoDelete]:= GetValue(SubNode, 'Delete', EmptyStr);
+        gFileOperationsSounds[fsoSplit]:= GetValue(SubNode, 'Split', EmptyStr);
+        gFileOperationsSounds[fsoCombine]:= GetValue(SubNode, 'Combine', EmptyStr);
+      end;
       // Operations options
       SubNode := Node.FindNode('Options');
       if Assigned(SubNode) then
@@ -2969,6 +2984,7 @@ begin
     gSaveFolderTabs := GetAttr(Root, 'Configuration/FolderTabs/Save', gSaveFolderTabs);
     gSaveSearchReplaceHistory:= GetAttr(Root, 'History/SearchReplaceHistory/Save', gSaveSearchReplaceHistory);
     gSaveDirHistory := GetAttr(Root, 'History/DirHistory/Save', gSaveDirHistory);
+    gDirHistoryCount := GetAttr(Root, 'History/DirHistory/Count', gDirHistoryCount);
     gSaveCmdLineHistory := GetAttr(Root, 'History/CmdLineHistory/Save', gSaveCmdLineHistory);
     gSaveFileMaskHistory := GetAttr(Root, 'History/FileMaskHistory/Save', gSaveFileMaskHistory);
     gSaveVolumeSizeHistory := GetAttr(Root, 'History/VolumeSizeHistory/Save', gSaveVolumeSizeHistory);
@@ -3617,6 +3633,7 @@ begin
     SetAttr(Root, 'Configuration/FolderTabs/Save', gSaveFolderTabs);
     SetAttr(Root, 'History/SearchReplaceHistory/Save', gSaveSearchReplaceHistory);
     SetAttr(Root, 'History/DirHistory/Save', gSaveDirHistory);
+    SetAttr(Root, 'History/DirHistory/Count', gDirHistoryCount);
     SetAttr(Root, 'History/CmdLineHistory/Save', gSaveCmdLineHistory);
     SetAttr(Root, 'History/FileMaskHistory/Save', gSaveFileMaskHistory);
     SetAttr(Root, 'History/VolumeSizeHistory/Save', gSaveVolumeSizeHistory);
