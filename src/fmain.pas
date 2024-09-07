@@ -56,7 +56,7 @@ uses
   {$ELSEIF DEFINED(LCLGTK2)}
   , Glib2, Gtk2
   {$ELSEIF DEFINED(DARWIN)}
-  , CocoaMenus
+  , CocoaConfig
   , uMyDarwin
   {$ENDIF}
   , Types, LMessages;
@@ -769,7 +769,6 @@ type
     function  FindMatchingDrive(Address, Path: String): Integer;
     procedure UpdateDriveToolbarSelection(DriveToolbar: TKAStoolBar; FileView: TFileView);
     procedure UpdateDriveButtonSelection(DriveButton: TSpeedButton; FileView: TFileView);
-    procedure UpdateSelectedDrive(ANoteBook: TFileViewNotebook);
 {$IF DEFINED(MSWINDOWS)}
     procedure OnDriveIconLoaded(Data: PtrInt);
 {$ENDIF}
@@ -872,6 +871,7 @@ type
     procedure UpdateGUIFunctionKeys;
     procedure UpdateMainTitleBar;
     procedure CreateDiskPanel(dskPanel : TKASToolBar);
+    procedure UpdateSelectedDrive(ANoteBook: TFileViewNotebook);
     procedure SetPanelDrive(aPanel: TFilePanelSelect; Drive: PDrive; ActivateIfNeeded: Boolean);
     function CreateFileView(sType: String; Page: TFileViewPage; AConfig: TXmlConfig; ANode: TXmlNode): TFileView;
     procedure AssignEvents(AFileView: TFileView);
@@ -2953,8 +2953,8 @@ constructor TfrmMain.Create(TheOwner: TComponent);
 {$IF DEFINED(DARWIN)}
   procedure setMacOSAppMenu();
   begin
-    macOS_AppMenuIntf.aboutItem:= mnuHelpAbout;
-    macOS_AppMenuIntf.preferencesItem:= mnuConfigOptions;
+    CocoaConfigMenu.appMenu.aboutItem:= mnuHelpAbout;
+    CocoaConfigMenu.appMenu.preferencesItem:= mnuConfigOptions;
   end;
 
   procedure setMacOSDockMenu();
@@ -2967,7 +2967,7 @@ constructor TfrmMain.Create(TheOwner: TComponent);
     newItem.Caption:= rsMnuNewWindow;
     newItem.OnClick:= @OpenNewWindow;
     dockMenu.Add(newItem);
-    macOS_DockMenuIntf.customMenus:= dockMenu;
+    CocoaConfigMenu.dockMenu.customMenus:= dockMenu;
   end;
 {$ENDIF}
 begin
