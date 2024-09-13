@@ -92,6 +92,12 @@ uses
   {$IFDEF UNIX}
   , uMyUnix
   {$ENDIF}
+  {$IFDEF LclCocoa}
+{$if NOT defined(DisableCocoaModernForm)}
+  ,uCocoaModernFormConfig
+{$endif}
+  ,CocoaConfig
+  {$ENDIF}
   ;
 
 {$R *.res}
@@ -141,6 +147,7 @@ begin
 
 {$IF DEFINED(DARWIN)}
   GetMacFormatSettings(DefaultFormatSettings);
+  CocoaConfigGlobal.useIcon:= True;
   Application.Icon:= nil;
 {$ENDIF}
 

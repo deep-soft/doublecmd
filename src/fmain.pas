@@ -65,6 +65,10 @@ type
 
   TForEachViewFunction = procedure (AFileView: TFileView; UserData: Pointer) of object;
 
+  // currently only used on Cocoa, but it is universal,
+  // so no conditional compilation instruction is set.
+  TFileViewUpdatedHandler = procedure (const AFileView: TFileView);
+
   { TfrmMain }
 
   TfrmMain = class(TAloneForm, IFormCommands)
@@ -889,7 +893,7 @@ type
     {$IF DEFINED(DARWIN)}
     procedure OnNSServiceOpenWithNewTab( filenames:TStringList );
     function NSServiceMenuIsReady(): boolean;
-    function NSServiceMenuGetFilenames(): TStringList;
+    function NSServiceMenuGetFilenames(): TStringArray;
     procedure NSThemeChangedHandler();
     {$ENDIF}
     procedure LoadWindowState;
@@ -937,6 +941,7 @@ type
 
 var
   frmMain: TfrmMain;
+  onFileViewUpdated: TFileViewUpdatedHandler;
   Cons: TCustomPtyDevice = nil;
 
 implementation
@@ -4877,6 +4882,8 @@ begin
     actBriefView.Checked:= True
   else if AFileView is TThumbFileView then
     actThumbnailsView.Checked:= True;
+  if Assigned(onFileViewUpdated) then
+    onFileViewUpdated(AFileView);
 end;
 
 procedure TfrmMain.UpdateShellTreeView;
@@ -6318,37 +6325,38 @@ begin
   Result:= true;
 end;
 
-function TfrmMain.NSServiceMenuGetFilenames(): TStringList;
+function TfrmMain.NSServiceMenuGetFilenames(): TStringArray;
 var
-  filenames: TStringList;
+  filenames: TStringArray;
   i: Integer;
   files: TFiles;
   activeFile: TFile;
+  path: String;
 begin
-  Result:= nil;
-  filenames:= TStringList.Create;
-
+  filenames:= nil;
   files:= ActiveFrame.CloneSelectedFiles();
-  if files.Count>0 then
-  begin
-    for i:=0 to files.Count-1 do
-    begin
-      filenames.add( files[i].FullPath );
+  if files.Count>0 then begin
+    SetLength( filenames, files.Count );
+    for i:=0 to files.Count-1 do begin
+      filenames[i]:= files[i].FullPath;
+    end;
+  end else begin
+    activeFile:= ActiveFrame.CloneActiveFile;
+    if activeFile<>nil then begin
+      if activeFile.IsNameValid() then
+        path:= activeFile.FullPath
+      else
+        path:= activeFile.Path;
+      FreeAndNil( activeFile );
+      if path <> '' then begin
+        SetLength( filenames, 1 );
+        filenames[0]:= path;
+      end;
     end;
   end;
+
   FreeAndNil( files );
-
-  if filenames.Count = 0 then
-  begin
-    activeFile:= ActiveFrame.CloneActiveFile;
-    if activeFile.IsNameValid() then
-      filenames.add( activeFile.FullPath )
-    else
-      filenames.add( activeFile.Path );
-    FreeAndNil( activeFile );
-  end;
-
-  if filenames.Count>0 then Result:= filenames;
+  Result:= filenames;
 end;
 
 procedure TfrmMain.NSThemeChangedHandler;

@@ -1102,7 +1102,9 @@ end;
 
 function TColumnsFileView.GetActiveFileIndex: PtrInt;
 begin
-  Result := dgPanel.Row - dgPanel.FixedRows;
+  Result:= -1;
+  if dgPanel<>nil then
+    Result := dgPanel.Row - dgPanel.FixedRows;
 end;
 
 function TColumnsFileView.GetVisibleFilesIndexes: TRange;
@@ -1813,7 +1815,7 @@ var
       ColAlign: TAlignment;
     begin
       CellText := AFile.DisplayStrings[ACell.Col];
-      CellWidth := Canvas.TextWidth(CellText) + 2*CELL_PADDING;
+      CellWidth := Canvas.TextWidth(CellText) + 3*CELL_PADDING;
       if (ACell.Col = 0) and (gShowIcons <> sim_none) then
         CellWidth := CellWidth + gIconsSize + 2;
 
@@ -2140,6 +2142,11 @@ begin
   AllowOutboundEvents := False;
   inherited MouseDown(Button, Shift, X, Y);
   AllowOutboundEvents := True;
+
+  if not Focused then
+  begin
+    if CanSetFocus then SetFocus;
+  end;
 end;
 
 procedure TDrawGridEx.MouseMove(Shift: TShiftState; X, Y: Integer);
