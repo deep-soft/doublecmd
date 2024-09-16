@@ -8,9 +8,11 @@ interface
 uses
   Classes, SysUtils,
   LCLType, Forms, Menus,
-  fMain, uMyDarwin, uDCUtils,
+  fMain, uMyDarwin, uDCUtils, uLng,
   uFileView, uBriefFileView, uColumnsFileView, uThumbFileView,
   CocoaAll, CocoaConfig, CocoaToolBar, Cocoa_Extra;
+
+procedure initCocoaModernFormConfig;
 
 implementation
 
@@ -84,6 +86,24 @@ begin
 end;
 
 
+
+const
+  COMMON_FOLDERS: TStringArray = (
+    '~/Documents',
+    '~/Desktop',
+    '~',
+    '~/Pictures',
+    '~/Movies',
+    '~/Music',
+    '/Applications/Utilities',
+
+    '~/Downloads',
+    '~/Library',
+    '/Applications',
+
+    '~/.Trash'
+  );
+
 type
   
   { TToolBarMenuHandler }
@@ -115,28 +135,22 @@ begin
 end;
 
 procedure TToolBarMenuHandler.goToFolder(Sender: TObject);
-const
-  folders: TStringArray = (
-    '~/Documents',
-    '~/Desktop',
-    '~',
-    '~/Pictures',
-    '~/Movies',
-    '~/Music',
-
-    '~/Downloads',
-    '~/Library',
-    '/Applications',
-    '/Applications/Utilities',
-
-    '~/.Trash'
-  );
 var
   menuItem: TMenuItem absolute Sender;
   path: String;
 begin
-  path:= uDCUtils.ReplaceTilde( folders[menuItem.Tag] );
+  path:= uDCUtils.ReplaceTilde( COMMON_FOLDERS[menuItem.Tag] );
   frmMain.Commands.cm_ChangeDir( [path] );
+end;
+
+function getMacOSDisplayNameFromPath(const path: String): String;
+var
+  cocoaPath: NSString;
+  displayName: NSString;
+begin
+  cocoaPath:= StringToNSString( uDCUtils.ReplaceTilde(path) );
+  displayName:= NSFileManager.defaultManager.displayNameAtPath( cocoaPath );
+  Result:= displayName.UTF8String;
 end;
 
 function onGetFolderMenu: TMenuItem;
@@ -145,9 +159,12 @@ var
   tag: PtrInt = 0;
 
   function newItem( caption: String ): TMenuItem;
+  var
+    folderName: String;
   begin
+    folderName:= getMacOSDisplayNameFromPath( COMMON_FOLDERS[tag] );
     Result:= TMenuItem.Create( menu );
-    Result.Caption:= caption;
+    Result.Caption:= caption + '  ' + folderName;
     Result.onClick:= @toolBarMenuHandler.goToFolder;
     Result.Tag:= tag;
     inc( tag );
@@ -155,19 +172,19 @@ var
 
 begin
   menu:= TMenuItem.Create( frmMain );
-  menu.Add( newItem('􀈕  Documents') );
-  menu.Add( newItem('􀣰  Desktop') );
-  menu.Add( newItem('􀎞  Home') );
-  menu.Add( newItem('􀏅  Pictures') );
-  menu.Add( newItem('􀎶  Movies') );
-  menu.Add( newItem('􀫀  Music') );
+  menu.Add( newItem('􀈕') );
+  menu.Add( newItem('􀣰') );
+  menu.Add( newItem('􀎞') );
+  menu.Add( newItem('􀏅') );
+  menu.Add( newItem('􀎶') );
+  menu.Add( newItem('􀫀') );
+  menu.Add( newItem('􀤋') );
   menu.AddSeparator;
-  menu.Add( newItem(' 􀁸  Downloads') );
-  menu.Add( newItem(' 􀀚  Library') );
-  menu.Add( newItem(' 􀀄  Applications') );
-  menu.Add( newItem(' 􀀬  Utilities') );
+  menu.Add( newItem(' 􀁸') );
+  menu.Add( newItem(' 􀀚') );
+  menu.Add( newItem(' 􀀄') );
   menu.AddSeparator;
-  menu.Add( newItem(' 􀈑  Trash') );
+  menu.Add( newItem(' 􀈑') );
   Result:= menu;
 end;
 
@@ -185,21 +202,21 @@ var
   function createShowHotlistMenuItem: TMenuItem;
   begin
     Result:= TMenuItem.Create( menu );
-    Result.Caption:= 'Directory Hotlist';
+    Result.Caption:= rsMFSTBICommandMenuDirectoryHotlist;
     Result.OnClick:= @toolBarMenuHandler.showHotlist;
   end;
 
   function createShowFavoriteMenuItem: TMenuItem;
   begin
     Result:= TMenuItem.Create( menu );
-    Result.Caption:= 'Favorite Tabs';
+    Result.Caption:= rsMFSTBICommandMenuFavoriteTabs;
     Result.OnClick:= @toolBarMenuHandler.showFavoriteTabs;
   end;
 
   function createQuickLookMenuItem: TMenuItem;
   begin
     Result:= TMenuItem.Create( menu );
-    Result.Caption:= 'macOS QuickLook';
+    Result.Caption:= rsMFSTBICommandMenuQuickLook;
     Result.OnClick:= @toolBarMenuHandler.showQuickLookPanel;
     Result.ShortCut:= ShortCut( Word(' '), [ssAlt] );
   end;
@@ -261,8 +278,8 @@ const
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: True;
     iconName: 'sidebar.left';
-    title: 'Tree View';
-    tips: 'Tree View Panel';
+    title: rsMFSTBITreeViewTitle;
+    tips: rsMFSTBITreeViewTips;
     bordered: True;
     onAction: @toggleTreeViewAction;
   );
@@ -272,8 +289,8 @@ const
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: True;
     iconName: 'rectangle.split.1x2';
-    title: 'HorzSplit';
-    tips: 'Horizontal Panels Mode';
+    title: rsMFSTBIHorzSplitTitle;
+    tips: rsMFSTBIHorzSplitTips;
     bordered: True;
     onAction: @toggleHorzSplitAction;
   );
@@ -283,8 +300,8 @@ const
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: True;
     iconName: 'arrow.left.arrow.right.square';
-    title: 'Swap';
-    tips: 'Swap Panels';
+    title: rsMFSTBISwapPanelsTitle;
+    tips: rsMFSTBISwapPanelsTips;
     bordered: True;
     onAction: @swapPanelsAction;
   );
@@ -293,8 +310,8 @@ const
   showBriefItemConfig: TCocoaConfigToolBarItem = (
     identifier: 'MainForm.ShowMode.Brief';
     iconName: 'rectangle.split.3x1';
-    title: 'Brief';
-    tips: 'Brief Mode';
+    title: rsMFSTBIShowBriefTitle;
+    tips: '';
     bordered: True;
     onAction: nil;
   );
@@ -302,8 +319,8 @@ const
   showFullItemConfig: TCocoaConfigToolBarItem = (
     identifier: 'MainForm.ShowMode.Full';
     iconName: 'list.bullet';
-    title: 'Full';
-    tips: 'Full';
+    title: rsMFSTBIShowFullTitle;
+    tips: '';
     bordered: True;
     onAction: nil;
   );
@@ -311,8 +328,8 @@ const
   showThumbnailsItemConfig: TCocoaConfigToolBarItem = (
     identifier: 'MainForm.ShowMode.Thumbnails';
     iconName: 'square.grid.2x2';
-    title: 'Thumbnails';
-    tips: 'Thumbnails';
+    title: rsMFSTBIShowThumbnailsTitle;
+    tips: '';
     bordered: True;
     onAction: nil;
   );
@@ -321,8 +338,8 @@ const
     identifier: 'MainForm.ShowMode';
     priority: NSToolbarItemVisibilityPriorityHigh;
     iconName: '';
-    title: 'ShowMode';
-    tips: 'Show Mode';
+    title: rsMFSTBIShowModeTitle;
+    tips: rsMFSTBIShowModeTips;
     bordered: True;
     onAction: @showModeAction;
 
@@ -338,8 +355,8 @@ const
     identifier: 'MainForm.Share';
     priority: NSToolbarItemVisibilityPriorityUser;
     iconName: '';
-    title: 'Share';
-    tips: 'Share...';
+    title: rsMFSTBIShareTitle;
+    tips: '';
     bordered: True;
 
     onGetItems: @onGetSharingItems;
@@ -350,8 +367,8 @@ const
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: False;
     iconName: 'airplayaudio';
-    title: 'AirDrop';
-    tips: 'AirDrop';
+    title: rsMFSTBIAirDropTitle;
+    tips: rsMFSTBIAirDropTips;
     bordered: True;
     onAction: @airdropAction;
   );
@@ -362,8 +379,8 @@ const
      priority: NSToolbarItemVisibilityPriorityStandard;
      navigational: False;
      iconName: 'eye';
-     title: 'Preview';
-     tips: 'Preview...';
+     title: rsMFSTBIQuickLookTitle;
+     tips: rsMFSTBIQuickLookTips;
      bordered: True;
      onAction: @quickLookAction;
    );
@@ -371,8 +388,8 @@ const
   goItemConfig: TCocoaConfigToolBarItemMenu = (
     identifier: 'MainForm.Go';
     iconName: 'folder';
-    title: 'Go';
-    tips: 'Go...';
+    title: rsMFSTBIGoTitle;
+    tips: rsMFSTBIGoTips;
     bordered: True;
     onAction: nil;
 
@@ -386,8 +403,8 @@ const
      priority: NSToolbarItemVisibilityPriorityStandard;
      navigational: False;
      iconName: 'faceid';
-     title: 'Reveal in Finder';
-     tips: 'Reveal in Finder';
+     title: rsMFSTBIFinderRevealTitle;
+     tips: rsMFSTBIFinderRevealTips;
      bordered: True;
      onAction: @finderRevealAction;
    );
@@ -397,8 +414,8 @@ const
      priority: NSToolbarItemVisibilityPriorityStandard;
      navigational: False;
      iconName: 'info.circle';
-     title: 'Show Info';
-     tips: 'Show Info in Finder';
+     title: rsMFSTBIShowInfoTitle;
+     tips: rsMFSTBIShowInfoTips;
      bordered: True;
      onAction: @finderInfoAction;
    );
@@ -407,7 +424,7 @@ const
   commandItemConfig: TCocoaConfigToolBarItemMenu = (
     identifier: 'MainForm.Command';
     iconName: 'ellipsis.circle';
-    title: 'Command';
+    title: rsMFSTBICommandTitle;
     tips: '';
     bordered: True;
     onAction: nil;
@@ -423,8 +440,8 @@ const
      priority: NSToolbarItemVisibilityPriorityStandard;
      navigational: False;
      iconName: 'arrow.clockwise';
-     title: 'Refresh';
-     tips: 'Refresh';
+     title: rsMFSTBIRefreshTitle;
+     tips: rsMFSTBIRefreshTips;
      bordered: True;
      onAction: @refreshAction;
    );
@@ -434,8 +451,8 @@ const
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: False;
     iconName: 'terminal';
-    title: 'Terminal';
-    tips: 'Open in Terminal';
+    title: rsMFSTBITerminalTitle;
+    tips: rsMFSTBITerminalTips;
     bordered: True;
     onAction: @terminalAction;
   );
@@ -445,8 +462,8 @@ const
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: False;
     iconName: 'magnifyingglass';
-    title: 'Search';
-    tips: 'Search Files...';
+    title: rsMFSTBISearchTitle;
+    tips: rsMFSTBISearchTips;
     bordered: True;
     onAction: @searchFilesAction;
   );
@@ -513,7 +530,7 @@ const
     );
   );
 
-procedure initCocoaModernFormConfig;
+procedure doInitConfig;
 begin
   showModeItemConfig.subitems:= [
     TCocoaToolBarUtils.toClass(showBriefItemConfig),
@@ -542,16 +559,15 @@ begin
   CocoaConfigForms:= [ mainFormConfig ];
 end;
 
-procedure init;
+procedure initCocoaModernFormConfig;
 begin
+  if NSAppKitVersionNumber < NSAppKitVersionNumber11_0 then
+    Exit;
+
   fMain.onFileViewUpdated:= @onFileViewUpdated;
   toolBarMenuHandler:= TToolBarMenuHandler.Create;
-  initCocoaModernFormConfig;
+  doInitConfig;
 end;
-
-initialization
-  if NSAppKitVersionNumber >= NSAppKitVersionNumber11_0 then
-    init;
 
 end.
 
