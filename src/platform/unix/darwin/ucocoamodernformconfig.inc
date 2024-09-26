@@ -8,7 +8,7 @@ interface
 uses
   Classes, SysUtils,
   LCLType, Forms, Menus,
-  fMain, uMyDarwin, uDCUtils, uLng,
+  fMain, uMyDarwin, uDarwinFinder, uDCUtils, uLng,
   uFileView, uBriefFileView, uColumnsFileView, uThumbFileView,
   CocoaAll, CocoaConfig, CocoaToolBar, Cocoa_Extra;
 
@@ -75,6 +75,25 @@ begin
   showQuickLookPanel;
 end;
 
+procedure editTagAction( const Sender: id );
+var
+  tagItem: NSToolBarItem absolute Sender;
+  filenames: TStringArray;
+  view: NSView;
+begin
+  filenames:= frmMain.NSServiceMenuGetFilenames();
+  if length(filenames) = 0 then
+    Exit;
+
+  view:= nil;
+  if NSObject(Sender).isKindOfClass(NSToolBarItem) then
+    view:= tagItem.valueForKey( NSSTR('_itemViewer') );
+  if (view=nil) or (view.window=nil) then
+    view:= NSView( frmMain.Handle );
+
+  uDarwinFinderUtil.popoverFileTags( filenames[0], view , NSMaxYEdge );
+end;
+
 procedure finderRevealAction( const Sender: id );
 begin
   performMacOSService( 'Finder/Reveal' );
@@ -113,6 +132,7 @@ type
     procedure showHotlist( Sender: TObject );
     procedure showFavoriteTabs( Sender: TObject );
     procedure showQuickLookPanel( Sender: TObject );
+    procedure showEditTagPanel( Sender: TObject );
     procedure goToFolder( Sender: TObject );
   end;
 
@@ -132,6 +152,11 @@ end;
 procedure TToolBarMenuHandler.showQuickLookPanel( Sender: TObject );
 begin
   quickLookAction( nil );
+end;
+
+procedure TToolBarMenuHandler.showEditTagPanel( Sender: TObject );
+begin
+  editTagAction( nil );
 end;
 
 procedure TToolBarMenuHandler.goToFolder(Sender: TObject);
@@ -221,6 +246,13 @@ var
     Result.ShortCut:= ShortCut( Word(' '), [ssAlt] );
   end;
 
+  function createTagMenuItem: TMenuItem;
+  begin
+    Result:= TMenuItem.Create( menu );
+    Result.Caption:= 'Edit Finder Tag...';
+    Result.OnClick:= @toolBarMenuHandler.showEditTagPanel;
+  end;
+
 begin
   menu:= TMenuItem.Create( frmMain );
   menu.Add( toItem(frmMain.miMultiRename) );
@@ -243,6 +275,7 @@ begin
   menu.Add( toItem(frmMain.mnuShowOperations) );
   menu.AddSeparator;
   menu.Add( toItem(frmMain.miEditComment) );
+  menu.Add( createTagMenuItem );
   menu.AddSeparator;
   menu.Add( toItem(frmMain.mnuFilesSymLink) );
   menu.Add( toItem(frmMain.mnuFilesHardLink) );
@@ -375,15 +408,26 @@ const
 
 
   quickLookItemConfig: TCocoaConfigToolBarItem = (
-     identifier: 'MainForm.QuickLook';
-     priority: NSToolbarItemVisibilityPriorityStandard;
-     navigational: False;
-     iconName: 'eye';
-     title: rsMFSTBIQuickLookTitle;
-     tips: rsMFSTBIQuickLookTips;
-     bordered: True;
-     onAction: @quickLookAction;
-   );
+    identifier: 'MainForm.QuickLook';
+    priority: NSToolbarItemVisibilityPriorityStandard;
+    navigational: False;
+    iconName: 'eye';
+    title: rsMFSTBIQuickLookTitle;
+    tips: rsMFSTBIQuickLookTips;
+    bordered: True;
+    onAction: @quickLookAction;
+  );
+
+  tagItemConfig: TCocoaConfigToolBarItem = (
+    identifier: 'MainForm.Tag';
+    priority: NSToolbarItemVisibilityPriorityStandard;
+    navigational: False;
+    iconName: 'tag';
+    title: 'EditTag';
+    tips: 'Edit Tag...';
+    bordered: True;
+    onAction: @editTagAction;
+  );
 
   goItemConfig: TCocoaConfigToolBarItemMenu = (
     identifier: 'MainForm.Go';
@@ -499,6 +543,7 @@ const
         'MainForm.AirDrop',
         'NSToolbarFlexibleSpaceItem',
         'MainForm.QuickLook',
+        'MainForm.Tag',
         'MainForm.Go',
         'MainForm.FinderReveal',
         'MainForm.FinderInfo',
@@ -518,6 +563,7 @@ const
         'MainForm.Share',
         'MainForm.AirDrop',
         'MainForm.QuickLook',
+        'MainForm.Tag',
         'MainForm.Go',
         'MainForm.FinderReveal',
         'MainForm.FinderInfo',
@@ -548,6 +594,7 @@ begin
     TCocoaToolBarUtils.toClass(airdropItemConfig),
     TCocoaToolBarUtils.toClass(commandItemConfig),
     TCocoaToolBarUtils.toClass(quickLookItemConfig),
+    TCocoaToolBarUtils.toClass(tagItemConfig),
     TCocoaToolBarUtils.toClass(goItemConfig),
     TCocoaToolBarUtils.toClass(finderRevealItemConfig),
     TCocoaToolBarUtils.toClass(finderInfoItemConfig),
