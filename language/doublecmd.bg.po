@@ -4053,6 +4053,10 @@ msgstr "Показване на изхода към &конзолата"
 msgid "Use archive name without extension as list"
 msgstr ""
 
+#: tfrmoptionsarchivers.chkhide.caption
+msgid "Show as normal files"
+msgstr ""
+
 #: tfrmoptionsarchivers.ckbarchiverunixfileattributes.caption
 msgid "Uni&x file attributes"
 msgstr ""
@@ -11292,6 +11296,21 @@ msgstr "Настройка на нагласените стълбове"
 msgid "Enter new custom columns name"
 msgstr "Задайте ново име за стълбовете"
 
+#: ulng.rsmenumacosaddfindertag
+#, object-pascal-format
+msgid "Add \"%s\""
+msgstr ""
+
+#: ulng.rsmenumacoseditfindertags
+msgctxt "ulng.rsmenumacoseditfindertags"
+msgid "Edit Finder Tags..."
+msgstr ""
+
+#: ulng.rsmenumacosremovefindertag
+#, object-pascal-format
+msgid "Remove \"%s\""
+msgstr ""
+
 #: ulng.rsmenumacosshare
 msgid "Share..."
 msgstr ""
@@ -11328,6 +11347,35 @@ msgctxt "ulng.rsmfstbicommandtitle"
 msgid "Command"
 msgstr "Заповед"
 
+#: ulng.rsmfstbicomparetips
+msgid "Compare by Contents..."
+msgstr ""
+
+#: ulng.rsmfstbicomparetitle
+#, fuzzy
+msgctxt "ulng.rsmfstbicomparetitle"
+msgid "Compare"
+msgstr "Сравняване"
+
+#: ulng.rsmfstbieditfindertagtips
+msgctxt "ulng.rsmfstbieditfindertagtips"
+msgid "Edit Finder Tags..."
+msgstr ""
+
+#: ulng.rsmfstbieditfindertagtitle
+msgid "EditTag"
+msgstr ""
+
+#: ulng.rsmfstbiedittips
+msgid "Edit..."
+msgstr ""
+
+#: ulng.rsmfstbiedittitle
+#, fuzzy
+msgctxt "ulng.rsmfstbiedittitle"
+msgid "Edit"
+msgstr "Обработка"
+
 #: ulng.rsmfstbifinderrevealtips
 msgid "Reveal in Finder"
 msgstr ""
@@ -11352,6 +11400,14 @@ msgstr ""
 
 #: ulng.rsmfstbihorzsplittitle
 msgid "HorzSplit"
+msgstr ""
+
+#: ulng.rsmfstbiprivilegetips
+msgid "As a file manager, Double Command requires full disk access permissions. Clicking this button will pop up the macOS system settings page. Please add \"Double Commander.app\" to the \"Full Disk Access\" list to complete the authorization."
+msgstr ""
+
+#: ulng.rsmfstbiprivilegetitle
+msgid "Privilege"
 msgstr ""
 
 #: ulng.rsmfstbiquicklooktips
@@ -11418,6 +11474,14 @@ msgstr ""
 
 #: ulng.rsmfstbiswappanelstitle
 msgid "SwapPanels"
+msgstr ""
+
+#: ulng.rsmfstbisynctips
+msgid "Synchronize Dirs..."
+msgstr ""
+
+#: ulng.rsmfstbisynctitle
+msgid "Sync"
 msgstr ""
 
 #: ulng.rsmfstbiterminaltips

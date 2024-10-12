@@ -6,9 +6,17 @@ unit uDarwinFinder;
 interface
 
 uses
-  Classes, SysUtils, LCLType,
-  sqldb, SQLite3Conn,
-  MacOSAll, CocoaAll, CocoaConst, CocoaTextEdits, CocoaUtils;
+  Classes, SysUtils, LCLType, Menus,
+  uLng,
+  uDarwinFinderModel,
+  MacOSAll, CocoaAll, CocoaConst, CocoaTextEdits, CocoaUtils, Cocoa_Extra;
+
+const
+  FINDER_FAVORITE_TAGS_MENU_ITEM_CAPTION = #$EF#$BF#$BC'FinderFavoriteTags';
+
+const
+  FINDER_FAVORITE_TAGS_MENU_ITEM_SIZE = 20.0;
+  FINDER_FAVORITE_TAGS_MENU_ITEM_SPACING = 4.0;
 
 const
   TAG_POPOVER_WIDTH = 228.0;
@@ -24,63 +32,20 @@ const
   TAG_TOKEN_LINE_SPACING = 1.0;
 
 type
-
   { uDarwinFinderUtil }
 
   uDarwinFinderUtil = class
   public
     class procedure popoverFileTags(
       const path: String; const positioningView: NSView; const edge: NSRectEdge );
-  private
-    class function getTagNamesOfFile( const url: NSUrl ): NSArray;
-    class procedure setTagNamesOfFile( const url: NSUrl; const tagNames: NSArray );
-  private
-    class function getAllTags: NSDictionary;
-    class function getAllTagsFromPlist( const plistBytes: TBytes ): NSDictionary;
-    class function getTagsPlistFromDatabase: TBytes;
+    class procedure attachFinderTagsMenu(
+      const path: String; const lclMenu: TPopupMenu );
   private
     class procedure drawTagName( const tagName: NSString;
       const fontSize: CGFloat; const color: NSColor; const rect: NSRect );
   end;
 
 implementation
-
-type
-
-  { TFinderTag }
-
-  TFinderTag = objcclass( NSObject )
-  private
-    _name: NSString;
-    _colorIndex: NSInteger;
-    _isUserDefined: Boolean;
-  public
-    class function tagWithParams( const name: NSString; const colorIndex: Integer;
-      const isUserDefined: Boolean ): TFinderTag; message 'tagWithParams:name:colorIndex:';
-    procedure dealloc; override;
-
-    function name: NSString; message 'tag_name';
-    function colorIndex: NSInteger; message 'tag_colorIndex';
-    function isUserDefined: Boolean; message 'tag_isUserDefined';
-    function color: NSColor; message 'tag_color';
-  end;
-
-  { TFinderTags }
-
-  TFinderTags = class
-  private class var
-    _tags: NSDictionary;
-  public
-    class procedure update;
-    class function getTagOfName( tagName: NSString ): TFinderTag;
-  end;
-
-type
-  TFinderTagNSColors = Array of NSColor;
-
-var
-  rectFinderTagNSColors: TFinderTagNSColors;
-  dotFinderTagNSColors: TFinderTagNSColors;
 
 type
 
@@ -185,69 +150,56 @@ type
     procedure updateLayout; message 'doublecmd_updateLayout';
   end;
 
-{ TFinderTag }
+  TFinderFavoriteTagsMenuView = objcclass;
 
-class function TFinderTag.tagWithParams( const name: NSString; const colorIndex: Integer;
-  const isUserDefined: Boolean): TFinderTag;
-begin
-  Result:= TFinderTag.new;
-  Result._name:= name.retain;
-  if (colorIndex>=0) and (colorIndex<length(rectFinderTagNSColors)) then
-    Result._colorIndex:= colorIndex;
-  Result._isUserDefined:= isUserDefined;
-  Result.autorelease;
-end;
+  { TFinderFavoriteTagMenuItem }
 
-procedure TFinderTag.dealloc;
-begin
-  _name.release;
-  Inherited;
-end;
+  TFinderFavoriteTagMenuItem = objcclass( NSView )
+  private
+    _finderTag: TFinderTag;
+    _trackingArea: NSTrackingArea;
+    _using: Boolean;
+    _hover: Boolean;
+  public
+    procedure setFinderTag( const finderTag: TFinderTag ); message 'doublecmd_setFinderTag:';
+    function finderTag: TFinderTag; message 'doublecmd_finderTag';
+    procedure setUsing( const using: Boolean ); message 'doublecmd_setUsing:';
+    function using: Boolean; message 'doublecmd_using';
+  public
+    procedure dealloc; override;
+    procedure updateTrackingAreas; override;
+    procedure drawRect(dirtyRect: NSRect); override;
+    procedure mouseEntered(theEvent: NSEvent); override;
+    procedure mouseExited(theEvent: NSEvent); override;
+    procedure mouseUp(theEvent: NSEvent); override;
+  private
+    function actionHandler: TFinderFavoriteTagsMenuView;
+      message 'doublecmd_actionHandler';
+  end;
 
-function TFinderTag.name: NSString;
-begin
-  Result:= _name;
-end;
+  { TFinderFavoriteTagsMenuView }
 
-function TFinderTag.colorIndex: NSInteger;
-begin
-  Result:= _colorIndex;
-end;
-
-function TFinderTag.isUserDefined: Boolean;
-begin
-  Result:= _isUserDefined;
-end;
-
-function TFinderTag.color: NSColor;
-begin
-  Result:= rectFinderTagNSColors[ _colorIndex ];
-end;
-
-{ TFinderTags }
-
-class procedure TFinderTags.update;
-var
-  newTags: NSDictionary;
-begin
-  newTags:= uDarwinFinderUtil.getAllTags;
-  if newTags = nil then
-    Exit;
-  if _tags <> nil then
-    _tags.release;
-  _tags:= newTags;
-  _tags.retain;
-end;
-
-class function TFinderTags.getTagOfName( tagName: NSString ): TFinderTag;
-begin
-  Result:= nil;
-  if _tags = nil then
-    self.update;
-  if _tags = nil then
-    Exit;
-  Result:= _tags.objectForKey( tagName );
-end;
+  TFinderFavoriteTagsMenuView = objcclass( NSView )
+  private
+    _lclMenu: TPopupMenu;
+    _lclMateMenuItem: TMenuItem;
+    _favoriteTags: NSArray;
+    _url: NSURL;
+  public
+    procedure setLclMenu( const lclMenu: TPopupMenu; const lclMateMenuItem: TMenuItem );
+      message 'doublecmd_setLclMenu:lclMenu:';
+    procedure setPath( const path: NSString );
+      message 'doublecmd_setPath:';
+    procedure setFavoriteTags( const favoriteTags: NSArray );
+      message 'doublecmd_setFavoriteTags:';
+  private
+    procedure onTagMenuItemHoverChanged( tagMenuItem: TFinderFavoriteTagMenuItem );
+      message 'doublecmd_onTagMenuItemHoverChanged:';
+    procedure onTagMenuItemSelected( tagMenuItem: TFinderFavoriteTagMenuItem );
+      message 'doublecmd_onTagMenuItemSelected:';
+  public
+    procedure dealloc; override;
+  end;
 
 { TCocoaTokenAttachmentCell }
 
@@ -285,7 +237,7 @@ begin
   if finderTag <> nil then
     color:= finderTag.color
   else
-    color:= rectFinderTagNSColors[0];
+    color:= uDarwinFinderModelUtil.rectFinderTagNSColors[0];
 
   drawingRect:= self.drawingRectForBounds( cellFrame );
   path:= NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius(
@@ -433,7 +385,7 @@ var
   begin
     i:= 0;
     while i < tokenNames.count do begin
-      if tokenName.isEqualTo( tokenNames.objectAtIndex(i) ) then begin
+      if tokenName.localizedCaseInsensitiveCompare(tokenNames.objectAtIndex(i)) = NSOrderedSame then begin
         tokenNames.removeObjectAtIndex( i );
         if i < newTokenRange.location then
           dec( newTokenRange.location );
@@ -540,6 +492,7 @@ procedure TFinderTagsListView.drawRow_clipRect(row: NSInteger; clipRect: NSRect
 var
   cellRect: NSRect;
   tagName: NSString;
+  newStyle: Boolean;
 
   procedure drawSelectedBackground;
   var
@@ -550,9 +503,13 @@ var
       Exit;
     NSColor.alternateSelectedControlColor.set_;
     rect:= self.rectOfRow( row );
-    rect:= NSInsetRect( rect, 10, 0 );
-    path:= NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius( rect, 5, 5 );
-    path.fill;
+    if newStyle then begin
+      rect:= NSInsetRect( rect, 10, 0 );
+      path:= NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius( rect, 5, 5 );
+      path.fill;
+    end else begin
+      NSRectFill( rect );
+    end;
   end;
 
   procedure drawTagColor;
@@ -564,8 +521,10 @@ var
     rect:= cellRect;
     rect.size.width:= rect.size.height;
     rect:= NSInsetRect( rect, 5, 5 );
+    if NOT newStyle then
+      rect.origin.x:= rect.origin.x + 10;
     finderTag:= TFinderTags.getTagOfName( tagName );
-    dotFinderTagNSColors[finderTag.colorIndex].set_;
+    uDarwinFinderModelUtil.dotFinderTagNSColors[finderTag.colorIndex].set_;
     if finderTag.colorIndex <> 0 then begin
       path:= NSBezierPath.bezierPathWithOvalInRect( rect );
       path.fill;
@@ -588,14 +547,25 @@ var
     end;
 
     rect:= cellRect;
-    rect.origin.x:= rect.origin.x + 20;
-    rect.size.width:= rect.size.width - 20;
+    if newStyle then begin
+      rect.origin.x:= rect.origin.x + 20;
+      rect.size.width:= rect.size.width - 20;
+    end else begin
+      rect.origin.x:= rect.origin.x + 30;
+      rect.size.width:= rect.size.width - 40;
+    end;
     rect.origin.y:= rect.origin.y + TAG_LIST_FONT_SIZE + 2;
 
     uDarwinFinderUtil.drawTagName( tagName, TAG_LIST_FONT_SIZE, color, rect );
   end;
 
 begin
+  newStyle:= True;
+  if NSAppKitVersionNumber < NSAppKitVersionNumber11_0 then
+    newStyle:= false
+  else if self.style = NSTableViewStylePlain then
+    newStyle:= false;
+
   tagName:= NSTableViewDataSourceProtocol(self.datasource).tableView_objectValueForTableColumn_row(
     self, nil, row );
   cellRect:= frameOfCellAtColumn_row( 0, row );
@@ -656,7 +626,7 @@ procedure TFinderTagsEditorPanel.showPopover( const sender: NSView; const edge: 
 begin
   self.view.setFrameSize( NSMakeSize(TAG_POPOVER_WIDTH, TAG_POPOVER_HEIGHT) );
 
-  _tagsTokenField.setObjectValue( uDarwinFinderUtil.getTagNamesOfFile(_url) );
+  _tagsTokenField.setObjectValue( uDarwinFinderModelUtil.getTagNamesOfFile(_url) );
   _tagsTokenField.setFrameSize( NSMakeSize(TAG_POPOVER_WIDTH-TAG_POPOVER_PADDING*2,0) );
 
   _popover.showRelativeToRect_ofView_preferredEdge(
@@ -753,8 +723,8 @@ begin
   if editingRange.length > 0 then
     usedTagNames.removeObjectAtIndex( editingRange.location );
 
-  for tagName in TFinderTags._tags do begin
-    if (substring.length>0) and (NOT tagName.containsString(substring)) then
+  for tagName in TFinderTags.tags do begin
+    if (substring.length>0) and (NOT tagName.localizedCaseInsensitiveContainsString(substring)) then
       continue;
     if usedTagNames.containsObject(tagName) then
       continue;
@@ -847,7 +817,7 @@ begin
   if _cancel then
     Exit;
   tagNameArray:= _tagsTokenField.objectValue;
-  uDarwinFinderUtil.setTagNamesOfFile( _url, tagNameArray );
+  uDarwinFinderModelUtil.setTagNamesOfFile( _url, tagNameArray );
 end;
 
 { uDarwinFinderUtil }
@@ -861,22 +831,29 @@ begin
   panel.showPopover( positioningView, edge );
 end;
 
-class function uDarwinFinderUtil.getTagNamesOfFile( const url: NSUrl ): NSArray;
+class procedure uDarwinFinderUtil.attachFinderTagsMenu( const path: String;
+  const lclMenu: TPopupMenu );
 var
-  ret: Boolean;
-  tagNames: NSArray;
-  tagColor: NSColor;
+  menuIndex: Integer;
+  menuView: TFinderFavoriteTagsMenuView;
+  cocoaItem: NSMenuItem;
 begin
-  Result:= nil;
-  ret:= url.getResourceValue_forKey_error( @tagNames, NSURLTagNamesKey, nil );
-  if ret then
-    Result:= tagNames;
-end;
+  menuIndex:= lclMenu.Items.IndexOfCaption( FINDER_FAVORITE_TAGS_MENU_ITEM_CAPTION );
+  if menuIndex < 0 then
+    Exit;
 
-class procedure uDarwinFinderUtil.setTagNamesOfFile( const url: NSUrl;
-  const tagNames: NSArray);
-begin
-  url.setResourceValue_forKey_error( tagNames, NSURLTagNamesKey, nil );
+  menuView:= TFinderFavoriteTagsMenuView.alloc.initWithFrame(
+    NSMakeRect( 0, 0,
+      200,
+      FINDER_FAVORITE_TAGS_MENU_ITEM_SIZE + FINDER_FAVORITE_TAGS_MENU_ITEM_SPACING*2 ) );
+  menuView.setLclMenu( lclMenu, lclMenu.Items[menuIndex+1] );
+  menuView.setPath( StrToNSString(path) );
+  menuView.setFavoriteTags( uDarwinFinderModelUtil.favoriteTags );
+
+  cocoaItem:= NSMenuItem( lclMenu.Items[menuIndex].Handle );
+  cocoaItem.setView( menuView );
+
+  menuView.release;
 end;
 
 class procedure uDarwinFinderUtil.drawTagName( const tagName: NSString;
@@ -902,123 +879,226 @@ begin
   attributes.release;
 end;
 
+{ TFinderFavoriteTagMenuItemControl }
+
+procedure TFinderFavoriteTagMenuItem.setFinderTag(
+  const finderTag: TFinderTag);
+begin
+  _finderTag:= finderTag;
+end;
+
+function TFinderFavoriteTagMenuItem.finderTag: TFinderTag;
+begin
+  Result:= _finderTag;
+end;
+
+procedure TFinderFavoriteTagMenuItem.setUsing(const using: Boolean);
+begin
+  _using:= using;
+end;
+
+function TFinderFavoriteTagMenuItem.using: Boolean;
+begin
+  Result:= _using;
+end;
+
+procedure TFinderFavoriteTagMenuItem.dealloc;
+begin
+  if Assigned(_trackingArea) then begin
+    self.removeTrackingArea( _trackingArea );
+    _trackingArea.release;
+  end;
+end;
+
+procedure TFinderFavoriteTagMenuItem.updateTrackingAreas;
 const
-  NEW_FINDER_TAGS_DATABASE_PATH = '/Library/SyncedPreferences/com.apple.kvs/com.apple.KeyValueService-Production.sqlite';
-
-class function uDarwinFinderUtil.getAllTags: NSDictionary;
-var
-  plistBytes: TBytes;
+  options: NSTrackingAreaOptions = NSTrackingMouseEnteredAndExited
+                                or NSTrackingActiveAlways;
 begin
-  Result:= nil;
-  plistBytes:= uDarwinFinderUtil.getTagsPlistFromDatabase;
-  if plistBytes <> nil then
-    Result:= uDarwinFinderUtil.getAllTagsFromPlist( plistBytes );
-end;
-
-class function uDarwinFinderUtil.getTagsPlistFromDatabase: TBytes;
-var
-  connection: TSQLConnection = nil;
-  transaction: TSQLTransaction = nil;
-  query: TSQLQuery = nil;
-  databasePath: String;
-begin
-  Result:= nil;
-  try
-    connection:= TSQLite3Connection.Create( nil );
-    transaction:= TSQLTransaction.Create( connection );
-    connection.Transaction:= transaction;
-    databasePath:= NSHomeDirectory.UTF8String + NEW_FINDER_TAGS_DATABASE_PATH;
-    connection.DatabaseName:= databasePath;
-
-    query:= TSQLQuery.Create( nil );
-    query.SQL.Text:= 'select ZPLISTDATAVALUE from ZSYDMANAGEDKEYVALUE where ZKEY="FinderTagDict"';
-    query.Database:= connection;
-    query.Open;
-    Result:= query.FieldByName('ZPLISTDATAVALUE').AsBytes;
-
-    query.Close;
-    connection.Close;
-  finally
-    if query <> nil then
-      query.Free;
-    if transaction <> nil then
-      transaction.Free;
-    if connection <> nil then
-      connection.Free;
-  end;
-end;
-
-class function uDarwinFinderUtil.getAllTagsFromPlist( const plistBytes: TBytes ): NSDictionary;
-var
-  plistData: NSData;
-  plistProperties: id;
-  plistTagArray: NSArray;
-
-  plistTagItem: NSDictionary;
-  plistTagName: NSString;
-  plistTagColorNumber: NSNumber;
-  plistTagUserDefined: NSNumber;
-
-  allFinderTagDict: NSMutableDictionary;
-  tag: TFinderTag;
-begin
-  Result:= nil;
-  plistData:= NSData.dataWithBytes_length( @plistBytes[0], Length(plistBytes) );
-  if plistData = nil then
-    Exit;
-
-  plistProperties:= NSPropertyListSerialization.propertyListWithData_options_format_error(
-    plistData, NSPropertyListImmutable, nil, nil );
-
-  if plistProperties = nil then
-    Exit;
-
-  plistTagArray:= plistProperties.valueForKeyPath( NSSTR('FinderTags') );
-  if plistTagArray = nil then
-    Exit;
-
-  allFinderTagDict:= NSMutableDictionary.dictionaryWithCapacity( plistTagArray.count  );
-  for plistTagItem in plistTagArray do begin
-    plistTagName:= plistTagItem.valueForKey( NSSTR('n') );
-    plistTagColorNumber:= plistTagItem.valueForKey( NSSTR('l') );
-    plistTagUserDefined:= plistTagItem.valueForKey( NSSTR('p') );
-    tag:= TFinderTag.tagWithParams(
-      plistTagName,
-      plistTagColorNumber.integerValue,
-      plistTagUserDefined.boolValue );
-    allFinderTagDict.setValue_forKey( tag, plistTagName );
+  if Assigned(_trackingArea) then begin
+    self.removeTrackingArea( _trackingArea );
+    _trackingArea.release;
   end;
 
-  Result:= allFinderTagDict;
+  _trackingArea:= NSTrackingArea.alloc.initWithRect_options_owner_userInfo(
+    self.bounds,
+    options,
+    self,
+    nil );
+  self.addTrackingArea( _trackingArea );
 end;
 
-procedure initFinderTagNSColors;
+procedure TFinderFavoriteTagMenuItem.drawRect(dirtyRect: NSRect);
+  procedure drawCircle;
+  var
+    rect: NSRect;
+    path: NSBezierPath;
+  begin
+    rect:= NSMakeRect( 0, 0, FINDER_FAVORITE_TAGS_MENU_ITEM_SIZE, FINDER_FAVORITE_TAGS_MENU_ITEM_SIZE );
+    if NOT _hover then
+      rect:= NSInsetRect( rect, 2, 2 );
+
+    _finderTag.color.set_;
+    path:= NSBezierPath.bezierPathWithOvalInRect( rect );
+    path.fill;
+  end;
+
+  procedure drawState;
+  var
+    stateString: NSString;
+    stateRect: NSRect;
+    stateFontSize: CGFloat;
+    attributes: NSMutableDictionary;
+  begin
+    stateRect:= NSMakeRect( 5, 6, FINDER_FAVORITE_TAGS_MENU_ITEM_SIZE, FINDER_FAVORITE_TAGS_MENU_ITEM_SIZE );
+    stateFontSize:= 11;
+    if _hover then begin
+      if _using then begin
+        stateString:= StrToNSString( 'x' );
+        stateRect.origin.x:= stateRect.origin.x + 1;
+        stateFontSize:= 14;
+      end else begin
+        stateString:= StrToNSString( '+' );
+        stateFontSize:= 15;
+      end;
+    end else begin
+      if _using then
+        stateString:= StrToNSString( '✓' )
+      else
+        stateString:= nil;
+    end;
+
+    if stateString = nil then
+      Exit;
+
+    attributes:= NSMutableDictionary.new;
+    attributes.setValue_forKey( NSFont.systemFontOfSize(stateFontSize), NSFontAttributeName );
+    attributes.setValue_forKey( NSColor.whiteColor, NSForegroundColorAttributeName );
+
+    stateString.drawWithRect_options_attributes( stateRect, 0, attributes );
+
+    attributes.release;
+  end;
+
 begin
-  rectFinderTagNSColors:= [
-    NSColor.colorWithCalibratedRed_green_blue_alpha( 0.656, 0.656, 0.656, 0.5 ).retain,
-    NSColor.colorWithCalibratedRed_green_blue_alpha( 0.656, 0.656, 0.656, 1 ).retain,
-    NSColor.colorWithCalibratedRed_green_blue_alpha( 0.699, 0.836, 0.266, 1 ).retain,
-    NSColor.colorWithCalibratedRed_green_blue_alpha( 0.746, 0.547, 0.844, 1 ).retain,
-    NSColor.colorWithCalibratedRed_green_blue_alpha( 0.340, 0.629, 0.996, 1 ).retain,
-    NSColor.colorWithCalibratedRed_green_blue_alpha( 0.934, 0.852, 0.266, 1 ).retain,
-    NSColor.colorWithCalibratedRed_green_blue_alpha( 0.980, 0.383, 0.348, 1 ).retain,
-    NSColor.colorWithCalibratedRed_green_blue_alpha( 0.961, 0.660, 0.254, 1 ).retain
-  ];
-
-  dotFinderTagNSColors:= [
-    NSColor.textColor,
-    NSColor.grayColor,
-    NSColor.greenColor,
-    NSColor.purpleColor,
-    NSColor.blueColor,
-    NSColor.yellowColor,
-    NSColor.redColor,
-    NSColor.orangeColor
-  ];
+  drawCircle;
+  drawState;
 end;
 
-initialization
-  initFinderTagNSColors;
+procedure TFinderFavoriteTagMenuItem.mouseEntered(theEvent: NSEvent);
+begin
+  inherited mouseEntered(theEvent);
+  _hover:= True;
+  self.setNeedsDisplay_( True );
+  self.actionHandler.onTagMenuItemHoverChanged( self );
+end;
+
+procedure TFinderFavoriteTagMenuItem.mouseExited(theEvent: NSEvent);
+begin
+  inherited mouseExited(theEvent);
+  _hover:= False;
+  self.setNeedsDisplay_( True );
+  self.actionHandler.onTagMenuItemHoverChanged( nil );
+end;
+
+procedure TFinderFavoriteTagMenuItem.mouseUp(theEvent: NSEvent);
+begin
+  self.actionHandler.onTagMenuItemSelected( self );
+end;
+
+function TFinderFavoriteTagMenuItem.actionHandler: TFinderFavoriteTagsMenuView;
+begin
+  Result:= TFinderFavoriteTagsMenuView( self.superview );
+end;
+
+{ TFinderFavoriteTagsMenuView }
+
+procedure TFinderFavoriteTagsMenuView.setLclMenu( const lclMenu: TPopupMenu;
+  const lclMateMenuItem: TMenuItem );
+begin
+  _lclMenu:= lclMenu;
+  _lclMateMenuItem:= lclMateMenuItem;
+end;
+
+procedure TFinderFavoriteTagsMenuView.setPath(const path: NSString);
+begin
+  _url:= NSURL.alloc.initFileURLWithPath( path );
+end;
+
+procedure TFinderFavoriteTagsMenuView.setFavoriteTags(const favoriteTags: NSArray
+  );
+var
+  finderTag: TFinderTag;
+  itemControl: TFinderFavoriteTagMenuItem;
+  itemRect: NSRect;
+  fileTagNames: NSArray;
+
+  function createItemControl: TFinderFavoriteTagMenuItem;
+  var
+    using: Boolean;
+  begin
+    using:= fileTagNames.containsObject( finderTag.name );
+    Result:= TFinderFavoriteTagMenuItem.alloc.initWithFrame( itemRect );
+    Result.setFinderTag( finderTag );
+    Result.setUsing( using );
+  end;
+
+  procedure createSubviews;
+  begin
+    fileTagNames:= uDarwinFinderModelUtil.getTagNamesOfFile( _url );
+    itemRect:= NSMakeRect(
+      16,
+      FINDER_FAVORITE_TAGS_MENU_ITEM_SPACING,
+      FINDER_FAVORITE_TAGS_MENU_ITEM_SIZE + FINDER_FAVORITE_TAGS_MENU_ITEM_SPACING,
+      FINDER_FAVORITE_TAGS_MENU_ITEM_SIZE );
+    for finderTag in _favoriteTags do begin
+      itemControl:= createItemControl;
+      self.addSubview( itemControl );
+      itemControl.release;
+      itemRect.origin.x:= itemRect.origin.x + FINDER_FAVORITE_TAGS_MENU_ITEM_SIZE + FINDER_FAVORITE_TAGS_MENU_ITEM_SPACING;
+    end;
+  end;
+
+begin
+  _favoriteTags:= favoriteTags;
+  createSubviews;
+end;
+
+procedure TFinderFavoriteTagsMenuView.onTagMenuItemHoverChanged(
+  tagMenuItem: TFinderFavoriteTagMenuItem );
+var
+  mateCaption: String;
+begin
+  if tagMenuItem <> nil then begin
+    mateCaption:= tagMenuItem.finderTag.name.UTF8String;
+    if tagMenuItem.using then
+      mateCaption:= Format( rsMenuMacOSRemoveFinderTag, [mateCaption] )
+    else
+      mateCaption:= Format( rsMenuMacOSAddFinderTag, [mateCaption] );
+  end
+  else
+    mateCaption:= rsMenuMacOSEditFinderTags;
+  _lclMateMenuItem.Caption:= mateCaption;
+end;
+
+procedure TFinderFavoriteTagsMenuView.onTagMenuItemSelected(tagMenuItem: TFinderFavoriteTagMenuItem);
+var
+  tagName: NSString;
+begin
+  tagName:= tagMenuItem.finderTag.name;
+  Writeln( tagName.utf8string );
+  if tagMenuItem.using then
+    uDarwinFinderModelUtil.removeTagForFile( _url, tagName )
+  else
+    uDarwinFinderModelUtil.addTagForFile( _url, tagName );
+  NSMenu(_lclMenu.Handle).cancelTracking;
+end;
+
+procedure TFinderFavoriteTagsMenuView.dealloc;
+begin
+  Inherited;
+  _url.release;
+end;
 
 end.
 

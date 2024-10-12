@@ -4005,6 +4005,10 @@ msgstr "Εμφάνιση αποτελέσματος στο τερματικό"
 msgid "Use archive name without extension as list"
 msgstr "Χρήση ονόματος αρχείου χωρίς επέκταση σαν λίστα"
 
+#: tfrmoptionsarchivers.chkhide.caption
+msgid "Show as normal files"
+msgstr ""
+
 #: tfrmoptionsarchivers.ckbarchiverunixfileattributes.caption
 msgid "Uni&x file attributes"
 msgstr "Ιδιότητες αρχείου Unix"
@@ -11023,6 +11027,21 @@ msgstr "Διαμόρφωση εξατομικευμένων στηλών"
 msgid "Enter new custom columns name"
 msgstr "Εισάγετε νέα προσαρμοσμένα χρώματα στηλών"
 
+#: ulng.rsmenumacosaddfindertag
+#, object-pascal-format
+msgid "Add \"%s\""
+msgstr ""
+
+#: ulng.rsmenumacoseditfindertags
+msgctxt "ulng.rsmenumacoseditfindertags"
+msgid "Edit Finder Tags..."
+msgstr ""
+
+#: ulng.rsmenumacosremovefindertag
+#, object-pascal-format
+msgid "Remove \"%s\""
+msgstr ""
+
 #: ulng.rsmenumacosshare
 msgid "Share..."
 msgstr "Διαμοιρασμός..."
@@ -11059,6 +11078,35 @@ msgctxt "ulng.rsmfstbicommandtitle"
 msgid "Command"
 msgstr "Εντολή"
 
+#: ulng.rsmfstbicomparetips
+msgid "Compare by Contents..."
+msgstr ""
+
+#: ulng.rsmfstbicomparetitle
+#, fuzzy
+msgctxt "ulng.rsmfstbicomparetitle"
+msgid "Compare"
+msgstr "Σύγκριση"
+
+#: ulng.rsmfstbieditfindertagtips
+msgctxt "ulng.rsmfstbieditfindertagtips"
+msgid "Edit Finder Tags..."
+msgstr ""
+
+#: ulng.rsmfstbieditfindertagtitle
+msgid "EditTag"
+msgstr ""
+
+#: ulng.rsmfstbiedittips
+msgid "Edit..."
+msgstr ""
+
+#: ulng.rsmfstbiedittitle
+#, fuzzy
+msgctxt "ulng.rsmfstbiedittitle"
+msgid "Edit"
+msgstr "Επεξεργασία"
+
 #: ulng.rsmfstbifinderrevealtips
 msgid "Reveal in Finder"
 msgstr ""
@@ -11083,6 +11131,14 @@ msgstr ""
 
 #: ulng.rsmfstbihorzsplittitle
 msgid "HorzSplit"
+msgstr ""
+
+#: ulng.rsmfstbiprivilegetips
+msgid "As a file manager, Double Command requires full disk access permissions. Clicking this button will pop up the macOS system settings page. Please add \"Double Commander.app\" to the \"Full Disk Access\" list to complete the authorization."
+msgstr ""
+
+#: ulng.rsmfstbiprivilegetitle
+msgid "Privilege"
 msgstr ""
 
 #: ulng.rsmfstbiquicklooktips
@@ -11149,6 +11205,14 @@ msgstr ""
 
 #: ulng.rsmfstbiswappanelstitle
 msgid "SwapPanels"
+msgstr ""
+
+#: ulng.rsmfstbisynctips
+msgid "Synchronize Dirs..."
+msgstr ""
+
+#: ulng.rsmfstbisynctitle
+msgid "Sync"
 msgstr ""
 
 #: ulng.rsmfstbiterminaltips
