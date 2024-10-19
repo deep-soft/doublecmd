@@ -3,7 +3,7 @@
    -------------------------------------------------------------------------
    This unit contains specific DARWIN functions.
 
-   Copyright (C) 2016-2023 Alexander Koblov (alexx2000@mail.ru)
+   Copyright (C) 2016-2024 Alexander Koblov (alexx2000@mail.ru)
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -28,17 +28,18 @@
 unit uMyDarwin;
 
 {$mode delphi}
-{$modeswitch objectivec1}
+{$modeswitch objectivec2}
 {$linkframework DiskArbitration}
 
 interface
 
 uses
   Classes, SysUtils, UnixType,
+  InterfaceBase, Menus, Controls, Forms, Grids,
+  uFileSourceProperty, uDisplayFile, uFileView, uColumnsFileView,
   Cocoa_Extra, MacOSAll, CocoaAll, QuickLookUI,
-  CocoaUtils, CocoaInt, CocoaConst, CocoaMenus,
-  InterfaceBase, Menus, Controls, Forms,
-  uDarwinFSWatch, uDarwinFinder;
+  CocoaUtils, CocoaInt, CocoaPrivate, CocoaConst, CocoaMenus,
+  uDarwinFSWatch, uDarwinFinder, uDarwinFinderModel;
 
 // Darwin Util Function
 function StringToNSString(const S: String): NSString;
@@ -46,6 +47,8 @@ function StringToCFStringRef(const S: String): CFStringRef;
 function NSArrayToList(const theArray:NSArray): TStringList;
 function ListToNSArray(const list:TStrings): NSArray;
 function ListToNSUrlArray(const list:TStrings): NSArray;
+
+procedure onMainMenuCreate( menu: NSMenu );
 
 procedure setMacOSAppearance( mode:Integer );
 
@@ -175,10 +178,35 @@ var
   MacosServiceMenuHelper: TMacosServiceMenuHelper;
   NSThemeChangedHandler: TNSThemeChangedHandler;
 
+type
+  
+  { TDarwinFileViewDrawHelper }
+
+  TDarwinFileViewDrawHelper = class
+    procedure onDrawCell(Sender: TFileView; aCol, aRow: Integer;
+      aRect: TRect; focused: Boolean; aFile: TDisplayFile);
+  end;
+
+var
+  DarwinFileViewDrawHelper: TDarwinFileViewDrawHelper;
+
 implementation
 
 uses
   DynLibs;
+
+procedure onMainMenuCreate( menu: NSMenu );
+var
+  lclForm: TObject;
+  keyWindow: NSWindow;
+begin
+  lclForm:= nil;
+  keyWindow:= NSApplication(NSApp).keyWindow;
+  if keyWindow <> nil then
+    lclForm:= keyWindow.lclGetTarget;
+  if (lclForm=nil) or (lclForm.ClassName='TfrmMain') then
+    AttachEditMenu( menu, menu.numberOfItems, CocoaConst.NSSTR_EDIT_MENU );
+end;
 
 { TSimpleDarwinFSWatcher }
 
@@ -276,6 +304,27 @@ begin
   serviceSubMenuCaption:= caption;
   tagFilePath:= path;
   menu.PopUp();
+end;
+
+{ TDarwinFileViewDrawHelper }
+
+procedure TDarwinFileViewDrawHelper.onDrawCell(Sender: TFileView; aCol, aRow: Integer;
+  aRect: TRect; focused: Boolean; aFile: TDisplayFile);
+var
+  url: NSURL;
+  tagNames: NSArray;
+begin
+  if (Sender is TColumnsFileView) and (aCol<>0) then
+    Exit;
+
+  if NOT (fspDirectAccess in Sender.FileSource.Properties) then
+    Exit;
+
+  url:= NSURL.fileURLWithPath( StrToNSString(aFile.FSFile.FullPath) );
+  tagNames:= uDarwinFinderModelUtil.getTagNamesOfFile( url );
+  if tagNames.count = 0 then
+    Exit;
+  uDarwinFinderUtil.drawTagsAsDecoration( tagNames, aRect, focused );
 end;
 
 
@@ -649,6 +698,7 @@ begin
   end;
   HasMountURL:= Assigned(NetFSMountURLSync) or Assigned(FSMountServerVolumeSync);
   MacosServiceMenuHelper:= TMacosServiceMenuHelper.Create;
+  DarwinFileViewDrawHelper:= TDarwinFileViewDrawHelper.Create;
 end;
 
 procedure Finalize;
