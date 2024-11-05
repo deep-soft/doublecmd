@@ -1,6 +1,6 @@
 name: 0-build-snapshot-lin
 # 0-build-snapshot-lin.yml
-# 2024-11-05 16:30
+# 2024-11-05 17:10
 
 on:
 # if: ${{ inputs.setup-fpc.deep-soft }}
@@ -39,6 +39,8 @@ on:
 env:
   TAG_NAME: "doublecmd-lin"
   TAG_REF:  "0000000"
+  PREFIX:   "/usr/local"
+#          INSTALL_FOLDER=${{ env.PROG_NAME }}-${{ env.PROG_VERSION }}-${{ env.TAG_BUILD }}-${{ matrix.toolchain }};
 
 #concurrency:
 #  group: ${{ github.ref }}
@@ -205,7 +207,7 @@ jobs:
       shell: bash
       run: |
         pushd ./install;
-        bash ./create_packages.sh -D -R -P;
+        sudo bash ./create_packages.sh -D -R -P;
         popd;
 
     - name: move back Archive src
