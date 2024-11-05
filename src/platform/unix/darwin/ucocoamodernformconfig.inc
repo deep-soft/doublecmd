@@ -8,8 +8,9 @@ interface
 uses
   Classes, SysUtils,
   LCLType, Forms, Menus,
-  fMain, uMyDarwin, uDarwinFinderModel, uSearchResultUtil, uDCUtils, uLng,
+  fMain, uDCUtils, uLng,
   uFileView, uBriefFileView, uColumnsFileView, uThumbFileView,
+  uMyDarwin, uDarwinFinder, uDarwinFinderModel, uSearchResultUtil,
   CocoaAll, CocoaConfig, CocoaToolBar, Cocoa_Extra;
 
 procedure initCocoaModernFormConfig;
@@ -110,13 +111,12 @@ const
   COMMON_FOLDERS: TStringArray = (
     '~/Documents',
     '~/Desktop',
+    '~/Downloads',
     '~',
     '~/Pictures',
     '~/Movies',
     '~/Music',
     '/Applications/Utilities',
-
-    '~/Downloads',
     '~/Library',
     '/Applications',
 
@@ -135,8 +135,10 @@ type
     procedure showEditTagPanel( Sender: TObject );
     procedure goToFolder( Sender: TObject );
 
-    procedure searchFinderTag( Sender: TObject );
-    procedure onSearchFinderTagComplete( const files: TStringArray );
+    procedure showFinderTagSelectorPanel( Sender: TObject );
+    procedure onFinderTagSelectorPanelClose( const cancel: Boolean; const tagNames: NSArray );
+    procedure searchOneFinderTagAction( Sender: TObject );
+    procedure onSearchFinderTagComplete( const searchName: String; const files: TStringArray );
   end;
 
 var
@@ -171,7 +173,25 @@ begin
   frmMain.Commands.cm_ChangeDir( [path] );
 end;
 
-procedure TToolBarMenuHandler.searchFinderTag( Sender: TObject );
+procedure TToolBarMenuHandler.showFinderTagSelectorPanel(Sender: TObject);
+begin
+  uDarwinFinderUtil.popoverTagsSelector(
+    rsMFSTBISearchCombinedTags,
+    @self.onFinderTagSelectorPanelClose,
+    NSView(frmMain.Handle) , NSMaxYEdge );
+end;
+
+procedure TToolBarMenuHandler.onFinderTagSelectorPanelClose(const cancel: Boolean;
+  const tagNames: NSArray);
+begin
+  if cancel then
+    Exit;
+  if tagNames.count = 0 then
+    Exit;
+  uDarwinFinderModelUtil.searchFilesForTagNames( tagNames, @self.onSearchFinderTagComplete );
+end;
+
+procedure TToolBarMenuHandler.searchOneFinderTagAction( Sender: TObject );
 var
   menuItem: TMenuItem absolute Sender;
   tagName: NSString;
@@ -180,9 +200,10 @@ begin
   uDarwinFinderModelUtil.searchFilesForTagName( tagName, @self.onSearchFinderTagComplete );
 end;
 
-procedure TToolBarMenuHandler.onSearchFinderTagComplete(const files: TStringArray);
+procedure TToolBarMenuHandler.onSearchFinderTagComplete(
+  const searchName: String; const files: TStringArray);
 begin
-  TSearchResultUtil.addResultPage( files );
+  TSearchResultUtil.addResultPage( searchName, files );
 end;
 
 function getMacOSDisplayNameFromPath(const path: String): String;
@@ -195,39 +216,47 @@ begin
   Result:= displayName.UTF8String;
 end;
 
-function onGetFolderMenu: TMenuItem;
+procedure onGetFolderMenu( const menu: TMenu );
 var
-  menu: TMenuItem;
+  items: TMenuItem;
   tag: PtrInt = 0;
 
-  function newItem( caption: String ): TMenuItem;
+  procedure newItem( imageName: String );
   var
     folderName: String;
+    lclItem: TMenuItem;
+    cocoaItem: NSMenuItem;
+    cocoaImage: NSImage;
   begin
     folderName:= getMacOSDisplayNameFromPath( COMMON_FOLDERS[tag] );
-    Result:= TMenuItem.Create( menu );
-    Result.Caption:= caption + '  ' + folderName;
-    Result.onClick:= @toolBarMenuHandler.goToFolder;
-    Result.Tag:= tag;
+    lclItem:= TMenuItem.Create( menu );
+    lclItem.Caption:= folderName;
+    lclItem.onClick:= @toolBarMenuHandler.goToFolder;
+    lclItem.Tag:= tag;
+    items.Add( lclItem );
+
+    cocoaImage:= NSImage.imageWithSystemSymbolName_accessibilityDescription(
+      NSSTR(imageName), nil );
+    cocoaItem:= NSMenuItem( lclItem.Handle );
+    cocoaItem.setImage( cocoaImage );
+
     inc( tag );
   end;
 
 begin
-  menu:= TMenuItem.Create( frmMain );
-  menu.Add( newItem('􀈕') );
-  menu.Add( newItem('􀣰') );
-  menu.Add( newItem('􀎞') );
-  menu.Add( newItem('􀏅') );
-  menu.Add( newItem('􀎶') );
-  menu.Add( newItem('􀫀') );
-  menu.Add( newItem('􀤋') );
-  menu.AddSeparator;
-  menu.Add( newItem(' 􀁸') );
-  menu.Add( newItem(' 􀀚') );
-  menu.Add( newItem(' 􀀄') );
-  menu.AddSeparator;
-  menu.Add( newItem(' 􀈑') );
-  Result:= menu;
+  items:= menu.Items;
+  newItem('doc');
+  newItem('menubar.dock.rectangle');
+  newItem('arrow.down.circle');
+  newItem('house');
+  newItem('photo');
+  newItem('film');
+  newItem('music.quarternote.3');
+  newItem('wrench.and.screwdriver.fill');
+  newItem('l.circle');
+  newItem('a.circle');
+  items.AddSeparator;
+  newItem('trash');
 end;
 
 function copyMenuItem( owner: TComponent; source: TMenuItem ): TMenuItem;
@@ -237,10 +266,7 @@ begin
   Result.Action:= source.Action;
 end;
 
-function onGetCommandMenu: TMenuItem;
-var
-  menu: TMenuItem;
-
+procedure onGetCommandMenu( const menu: TMenu );
   function toItem( source: TMenuItem ): TMenuItem;
   begin
     Result:= copyMenuItem( menu, source );
@@ -275,45 +301,46 @@ var
     Result.OnClick:= @toolBarMenuHandler.showEditTagPanel;
   end;
 
-begin
-  menu:= TMenuItem.Create( frmMain );
-  menu.Add( toItem(frmMain.miMultiRename) );
-  menu.Add( toItem(frmMain.mnuFilesCmpCnt) );
-  menu.Add( toItem(frmMain.mnuCmdSyncDirs) );
-  menu.AddSeparator;
-  menu.Add( toItem(frmMain.mnuCmdSearch) );
-  menu.Add( toItem(frmMain.mnuCmdAddNewSearch) );
-  menu.Add( toItem(frmMain.mnuCmdViewSearches) );
-  menu.AddSeparator;
-  menu.Add( createShowHotlistMenuItem );
-  menu.Add( toItem(frmMain.mnuCmdConfigDirHotlist) );
-  menu.AddSeparator;
-  menu.Add( createShowFavoriteMenuItem );
-  menu.Add( toItem(frmMain.mnuConfigFavoriteTabs) );
-  menu.AddSeparator;
-  menu.Add( createQuickLookMenuItem );
-  menu.Add( toItem(frmMain.mnuQuickView) );
-  menu.Add( toItem(frmMain.mnuFilesShwSysFiles) );
-  menu.Add( toItem(frmMain.mnuShowOperations) );
-  menu.AddSeparator;
-  menu.Add( toItem(frmMain.miEditComment) );
-  menu.Add( createTagMenuItem );
-  menu.AddSeparator;
-  menu.Add( toItem(frmMain.mnuFilesSymLink) );
-  menu.Add( toItem(frmMain.mnuFilesHardLink) );
-  menu.AddSeparator;
-  menu.Add( toItem(frmMain.mnuSetFileProperties) );
-  menu.Add( toItem(frmMain.mnuFilesProperties) );
-  menu.AddSeparator;
-  menu.Add( toItem(frmMain.mnuCheckSumCalc) );
-  menu.Add( toItem(frmMain.mnuCheckSumVerify) );
+var
+  items: TMenuItem;
 
-  Result:= menu;
+begin
+  items:= menu.Items;
+  items.Add( toItem(frmMain.miMultiRename) );
+  items.Add( toItem(frmMain.mnuFilesCmpCnt) );
+  items.Add( toItem(frmMain.mnuCmdSyncDirs) );
+  items.AddSeparator;
+  items.Add( toItem(frmMain.mnuCmdSearch) );
+  items.Add( toItem(frmMain.mnuCmdAddNewSearch) );
+  items.Add( toItem(frmMain.mnuCmdViewSearches) );
+  items.AddSeparator;
+  items.Add( createShowHotlistMenuItem );
+  items.Add( toItem(frmMain.mnuCmdConfigDirHotlist) );
+  items.AddSeparator;
+  items.Add( createShowFavoriteMenuItem );
+  items.Add( toItem(frmMain.mnuConfigFavoriteTabs) );
+  items.AddSeparator;
+  items.Add( createQuickLookMenuItem );
+  items.Add( toItem(frmMain.mnuQuickView) );
+  items.Add( toItem(frmMain.mnuFilesShwSysFiles) );
+  items.Add( toItem(frmMain.mnuShowOperations) );
+  items.AddSeparator;
+  items.Add( toItem(frmMain.miEditComment) );
+  items.Add( createTagMenuItem );
+  items.AddSeparator;
+  items.Add( toItem(frmMain.mnuFilesSymLink) );
+  items.Add( toItem(frmMain.mnuFilesHardLink) );
+  items.AddSeparator;
+  items.Add( toItem(frmMain.mnuSetFileProperties) );
+  items.Add( toItem(frmMain.mnuFilesProperties) );
+  items.AddSeparator;
+  items.Add( toItem(frmMain.mnuCheckSumCalc) );
+  items.Add( toItem(frmMain.mnuCheckSumVerify) );
 end;
 
-function onGetSearchMenu: TMenuItem;
+procedure onGetSearchMenu( const menu: TMenu );
 var
-  menu: TMenuItem;
+  items: TMenuItem;
 
   procedure createSidebarTagMenuItem;
   var
@@ -325,9 +352,20 @@ var
     for tagName in tagNames do begin
       menuItem:= TMenuItem.Create( menu );
       menuItem.Caption:= tagName.UTF8String;
-      menuItem.OnClick:= @ToolBarMenuHandler.searchFinderTag;
-      menu.Add( menuItem );
+      menuItem.OnClick:= @toolBarMenuHandler.searchOneFinderTagAction;
+      items.Add( menuItem );
     end;
+    uDarwinFinderUtil.attachSearchForTagsMenu( menu );
+  end;
+
+  procedure createCombinedTagMenuItem;
+  var
+    menuItem: TMenuItem;
+  begin
+    menuItem:= TMenuItem.Create( menu );
+    menuItem.Caption:= rsMFSTBISearchCombinedTags;
+    menuItem.OnClick:= @toolBarMenuHandler.showFinderTagSelectorPanel;
+    items.Add( menuItem );
   end;
 
   procedure createSearchFileMenuItem;
@@ -335,15 +373,16 @@ var
     menuItem: TMenuItem;
   begin
     menuItem:= copyMenuItem( menu, frmMain.mnuCmdSearch );
-    menu.Add( menuItem );
+    items.Add( menuItem );
   end;
 
 begin
-  menu:= TMenuItem.Create( frmMain );
+  items:= menu.Items;
   createSidebarTagMenuItem;
-  menu.AddSeparator;
+  items.AddSeparator;
+  createCombinedTagMenuItem;
+  items.AddSeparator;
   createSearchFileMenuItem;
-  Result:= menu;
 end;
 
 procedure terminalAction( const Sender: id );
@@ -362,13 +401,8 @@ begin
 end;
 
 procedure privilegeAction( const Sender: id );
-const
-  Privacy_AllFiles = 'x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles';
-var
-  url: NSURL;
 begin
-  url:= NSURL.URLWithString( NSSTR(Privacy_AllFiles) );
-  NSWorkspace.sharedWorkspace.openURL( url );
+  openSystemSecurityPreferences_PrivacyAllFiles;
 end;
 
 const
@@ -565,6 +599,7 @@ const
     onAction: nil;
 
     showsIndicator: False;
+    dynamic: True;
     menu: nil;
     onGetMenu: @onGetSearchMenu;
   );

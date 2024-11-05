@@ -49,7 +49,7 @@ type
 
   TFinderTagNSColors = Array of NSColor;
 
-  TMacOSSearchResultHandler = procedure ( const files: TStringArray ) of object;
+  TMacOSSearchResultHandler = procedure ( const searchName: String; const files: TStringArray ) of object;
 
   { uDarwinFinderModelUtil }
 
@@ -74,7 +74,9 @@ type
     class procedure setTagNamesOfFile( const url: NSURL; const tagNames: NSArray );
     class procedure addTagForFile( const url: NSURL; const tagName: NSString );
     class procedure removeTagForFile( const url: NSURL; const tagName: NSString );
+  public
     class procedure searchFilesForTagName( const tagName: NSString; const handler: TMacOSSearchResultHandler );
+    class procedure searchFilesForTagNames( const tagNames: NSArray; const handler: TMacOSSearchResultHandler );
   public
     class property rectFinderTagNSColors: TFinderTagNSColors read _rectFinderTagNSColors;
     class property dotFinderTagNSColors: TFinderTagNSColors read _dotFinderTagNSColors;
@@ -84,9 +86,10 @@ type
 implementation
 
 const
-  NEW_FINDER_TAGS_DATABASE_PATH  = '/Library/SyncedPreferences/com.apple.kvs/com.apple.KeyValueService-Production.sqlite';
-  OLD_FINDER_TAGS_FILE_PATH      = '/Library/SyncedPreferences/com.apple.finder.plist';
-  FAVORITE_FINDER_TAGS_FILE_PATH = '/Library/Preferences/com.apple.finder.plist';
+  FINDER_TAGS_DATABASE_PATH_14plus  = '/Library/Daemon Containers/F6F9E4C1-EF5D-4BF3-BEAD-0D777574F0A0/Data/com.apple.kvs/com.apple.KeyValueService-Production.sqlite';
+  FINDER_TAGS_DATABASE_PATH_12to13  = '/Library/SyncedPreferences/com.apple.kvs/com.apple.KeyValueService-Production.sqlite';
+  FINDER_TAGS_FILE_PATH_11minus     = '/Library/SyncedPreferences/com.apple.finder.plist';
+  FAVORITE_FINDER_TAGS_FILE_PATH    = '/Library/Preferences/com.apple.finder.plist';
 
 { TFinderTag }
 
@@ -168,9 +171,13 @@ end;
 type
   TMacOSQueryHandler = objcclass( NSObject )
   private
+    _queryName: NSString;
     _query: NSMetadataQuery;
     _handler: TMacOSSearchResultHandler;
     procedure initalGatherComplete( sender: id ); message 'initalGatherComplete:';
+  public
+    function initWithName( name: NSString ): id; message 'doublecmd_initWithName:';
+    procedure dealloc; override;
   end;
 
 procedure TMacOSQueryHandler.initalGatherComplete(sender: id);
@@ -198,7 +205,22 @@ begin
     end;
   end;
 
-  _handler( files );
+  _handler( _queryName.UTF8String, files );
+
+  self.release;
+end;
+
+function TMacOSQueryHandler.initWithName(name: NSString): id;
+begin
+  _queryName:= name;
+  _queryName.retain;
+  Result:= self;
+end;
+
+procedure TMacOSQueryHandler.dealloc;
+begin
+  _queryName.release;
+  _query.release;
 end;
 
 { uDarwinFinderModelUtil }
@@ -245,28 +267,70 @@ begin
   uDarwinFinderModelUtil.setTagNamesOfFile( url, newTagNames );
 end;
 
-class procedure uDarwinFinderModelUtil.searchFilesForTagName(
-  const tagName: NSString; const handler: TMacOSSearchResultHandler);
+class procedure uDarwinFinderModelUtil.searchFilesForTagNames(
+  const tagNames: NSArray; const handler: TMacOSSearchResultHandler);
+
+  function toString: NSString;
+  var
+    tagName: NSString;
+    name: NSMutableString;
+  begin
+    name:= NSMutableString.new;
+    for tagName in tagNames do begin
+      name.appendString( tagName );
+      name.appendString( NSSTR('|') );
+    end;
+    Result:= name.substringToIndex( name.length-1 );
+    name.release;
+  end;
+
+  function formatString: NSString;
+  var
+    format: NSMutableString;
+    count: Integer;
+    i: Integer;
+  begin
+    format:= NSMutableString.new;
+    count:= tagNames.count;
+    for i:=1 to count do begin
+      format.appendString( NSSTR('(kMDItemUserTags == %@) && ') );
+    end;
+    Result:= format.substringToIndex( format.length-4 );
+    format.release;
+  end;
+
 var
   queryHandler: TMacOSQueryHandler;
   query: NSMetadataQuery;
   predicate: NSPredicate;
-  format: NSString;
 begin
+  if tagNames.count = 0 then
+    Exit;
+
+  // release in initalGatherComplete()
   query:= NSMetadataQuery.new;
-  queryHandler:= TMacOSQueryHandler.new;
+  // release in initalGatherComplete()
+  queryHandler:= TMacOSQueryHandler.alloc.initWithName( toString() );
   queryHandler._query:= query;
   queryHandler._handler:= handler;
   NSNotificationCenter.defaultCenter.addObserver_selector_name_object(
-    QueryHandler,
+    queryHandler,
     objcselector('initalGatherComplete:'),
     NSMetadataQueryDidFinishGatheringNotification,
     query );
 
-  format:= NSString.stringWithFormat( NSSTR('kMDItemUserTags == ''%@'''), tagName );
-  predicate:= NSPredicate.predicateWithFormat( format );
+  predicate:= NSPredicate.predicateWithFormat_argumentArray( formatString(), tagNames );
   query.setPredicate( predicate );
   query.startQuery;
+end;
+
+class procedure uDarwinFinderModelUtil.searchFilesForTagName(
+  const tagName: NSString; const handler: TMacOSSearchResultHandler);
+var
+  tagNames: NSArray;
+begin
+  tagNames:= NSArray.arrayWithObject( tagName );
+  uDarwinFinderModelUtil.searchFilesForTagNames( tagNames, handler );
 end;
 
 class function uDarwinFinderModelUtil.getAllTags: NSDictionary;
@@ -338,6 +402,8 @@ begin
     if tagName.length = 0 then
       continue;
     tag:= TFinderTags.getTagOfName( tagName );
+    if tag = nil then
+      continue;
     tags.addObject( tag );
   end;
 
@@ -374,7 +440,7 @@ var
   plistProperties: id;
 begin
   Result:= nil;
-  path:= NSHomeDirectory.stringByAppendingString( NSSTR(OLD_FINDER_TAGS_FILE_PATH) );
+  path:= NSHomeDirectory.stringByAppendingString( NSSTR(FINDER_TAGS_FILE_PATH_11minus) );
 
   plistData:= NSData.dataWithContentsOfFile( path );
   if plistData = nil then
@@ -400,7 +466,11 @@ begin
     connection:= TSQLite3Connection.Create( nil );
     transaction:= TSQLTransaction.Create( connection );
     connection.Transaction:= transaction;
-    databasePath:= NSHomeDirectory.UTF8String + NEW_FINDER_TAGS_DATABASE_PATH;
+    if NSAppKitVersionNumber >= NSAppKitVersionNumber14_0 then
+      databasePath:= FINDER_TAGS_DATABASE_PATH_14plus
+    else
+      databasePath:= FINDER_TAGS_DATABASE_PATH_12to13;
+    databasePath:= NSHomeDirectory.UTF8String + databasePath;
     connection.DatabaseName:= databasePath;
 
     query:= TSQLQuery.Create( nil );
