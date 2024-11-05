@@ -1,4 +1,5 @@
-name: 0-build-snapshot-lin.yml
+name: 0-build-snapshot-lin
+# 0-build-snapshot-lin.yml
 # 2024-11-05 16:00
 
 on:
@@ -201,9 +202,10 @@ jobs:
 
     - name: Build packages
       shell: bash
-      directory: './install'
       run: |
+        pushd ./install;
         bash ./create_packages.sh;
+        popd;
 
     - name: move back Archive src
       run: |
