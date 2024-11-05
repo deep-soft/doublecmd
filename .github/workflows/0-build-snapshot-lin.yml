@@ -207,7 +207,8 @@ jobs:
       shell: bash
       run: |
         pushd ./install;
-        sudo bash ./create_packages.sh -D -R -P;
+        bash ./create_packages.sh -P -D;
+        # bash ./create_packages.sh -D -R -P;
         popd;
 
     - name: move back Archive src
