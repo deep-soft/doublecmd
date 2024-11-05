@@ -1,5 +1,5 @@
-name: 0-build-snapshot-lin
-# 2024-11-05 07:50
+name: 0-build-snapshot-lin.yml
+# 2024-11-05 15:40
 
 on:
 # if: ${{ inputs.setup-fpc.deep-soft }}
@@ -154,10 +154,10 @@ jobs:
         mv ${{ env.ZIP_RELEASE_ARCHIVE }} ../
         ls -l ../${{ env.ZIP_RELEASE_ARCHIVE }}
 
-    - name: Get Lazarus source
-      uses: deep-soft/checkout@v4
-      with:
-        repository: 'fpc/Lazarus'
+#    - name: Get Lazarus source
+#      uses: deep-soft/checkout@v4
+#      with:
+#        repository: 'fpc/Lazarus'
 
     - name: Set version to Install Free Pascal
       shell: bash
@@ -195,8 +195,9 @@ jobs:
 
     - name: Build packages
       shell: bash
+      directory: './install'
       run: |
-        bash ./install/create_packages.sh;
+        bash ./create_packages.sh;
 
     - name: move back Archive src
       run: |
@@ -223,6 +224,7 @@ jobs:
         tag_name: ${{ env.TAG_NAME }}
         files: |
           ./doublecmd-release/*.*
+          ./linux/release/*.*
 
     - name: Prepare to deploy to snapshot server
       if: ${{ inputs.deploy_snapshot }}
