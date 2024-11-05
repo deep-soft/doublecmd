@@ -207,7 +207,7 @@ jobs:
       shell: bash
       run: |
         pushd ./install;
-        bash ./create_packages.sh -P -D;
+        bash ./create_packages.sh -P;
         # bash ./create_packages.sh -D -R -P;
         popd;
 
@@ -225,6 +225,7 @@ jobs:
         files: |
           ./doublecmd-release/*.*
           ./linux/release/*.*
+          ./install/linux/release/*.*
           ${{ env.ZIP_RELEASE_ARCHIVE }}
           ${{ env.SHA_SUMS }}
 
@@ -237,6 +238,7 @@ jobs:
         files: |
           ./doublecmd-release/*.*
           ./linux/release/*.*
+          ./install/linux/release/*.*
 
     - name: Prepare to deploy to snapshot server
       if: ${{ inputs.deploy_snapshot }}
