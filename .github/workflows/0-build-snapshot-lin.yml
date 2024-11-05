@@ -1,6 +1,6 @@
 name: 0-build-snapshot-lin
 # 0-build-snapshot-lin.yml
-# 2024-11-05 16:10
+# 2024-11-05 16:15
 
 on:
 # if: ${{ inputs.setup-fpc.deep-soft }}
@@ -52,8 +52,8 @@ jobs:
       shell: bash
       run: |
        sudo apt update
-       sudo apt -y upgrade
-       sudo apt -y install libdbus-1-dev/ libunrar5 mplayer p7zip-full
+#       sudo apt -y upgrade
+       sudo apt -y install libdbus-1-dev libunrar5 mplayer p7zip-full
 
     - name: show public IP
       shell: bash
