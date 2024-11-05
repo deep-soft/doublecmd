@@ -1,16 +1,12 @@
 name: 0-build-snapshot-lin
 # 0-build-snapshot-lin.yml
-# 2024-11-05 16:15
+# 2024-11-05 16:30
 
 on:
 # if: ${{ inputs.setup-fpc.deep-soft }}
 # if: ${{ inputs.setup-fpc.alexx2000 }}
   workflow_dispatch:
     inputs:
-      archive_all:
-        description: archive_all
-        type: boolean
-        default: false
       deploy_snapshot:
         description: deploy_snapshot
         type: boolean
@@ -20,6 +16,11 @@ on:
         type: boolean
         default: false
         required: true
+      ZIP_ALL:
+        description: ZIP ALL
+        type: boolean
+        required: true
+        default: false
       LAZARUS_VERSION:
         description: LAZARUS_VERSION (default stable, try 3.0RC2)
         default: 'stable'
@@ -52,12 +53,12 @@ jobs:
       # sudo apt -y upgrade
       run: |
        sudo apt update;
-       sudo apt -y install libdbus-1-dev libunrar5 mplayer p7zip-full;
+       sudo apt -y install libdbus-1-dev libunrar5 mplayer p7zip-full checkinstall;
 
     - name: show public IP
       shell: bash
       run: |
-        public_ip=$(curl ipinfo.io/ip)
+        public_ip=$(curl -sL ipinfo.io/ip)
         echo "IP[$public_ip]"
 
     - name: Checkout source
@@ -204,7 +205,7 @@ jobs:
       shell: bash
       run: |
         pushd ./install;
-        bash ./create_packages.sh;
+        bash ./create_packages.sh -D -R -P;
         popd;
 
     - name: move back Archive src
@@ -261,3 +262,28 @@ jobs:
       run: |
         echo "Version: ${{ env.DC_VER }}";
         echo "Revision: ${{ env.DC_REVISION }}";
+
+# Archive - ZIP_ALL begin
+    - name: Archive - ZIP_ALL
+      if: ${{ inputs.ZIP_ALL }}
+      uses: deep-soft/zip-release@v2.1
+      with:
+        type: 'zip'
+        filename: '${{ env.TAG_NAME }}-${{ env.DC_VER }}-${{ env.DC_REVISION }}-ALL.zip'
+        directory: ${{ github.workspace }}
+        path: '.'
+        env_variable: ZIP_ALL
+        # archive name is ${{ env.ZIP_RELEASE_ARCHIVE }}
+
+    - name: Publish - ZIP_ALL
+      if: ${{ inputs.ZIP_ALL }}
+      continue-on-error: true
+      uses: deep-soft/action-gh-release@v2.1
+      with:
+        draft: ${{ env.DRAFT }}
+        tag_name: ${{ env.TAG_NAME }}-ALL
+        files: |
+          ${{ env.ZIP_ALL }}
+          ${{ env.INFO_FILE }}
+# Archive - ZIP_ALL end
+
