@@ -1,4 +1,4 @@
-name: 0-build-snapshot-lin.yml
+name: 0-build-snapshot-lin
 # 2024-11-05 07:50
 
 on:
