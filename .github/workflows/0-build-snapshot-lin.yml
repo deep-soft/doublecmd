@@ -47,13 +47,12 @@ jobs:
   build-lin:
     runs-on: ubuntu-20.04
     steps:
-
     - name: install additional files
       shell: bash
+      # sudo apt -y upgrade
       run: |
-       sudo apt update
-#       sudo apt -y upgrade
-       sudo apt -y install libdbus-1-dev libunrar5 mplayer p7zip-full
+       sudo apt update;
+       sudo apt -y install libdbus-1-dev libunrar5 mplayer p7zip-full;
 
     - name: show public IP
       shell: bash
