@@ -1,5 +1,5 @@
 name: 0-build-snapshot-lin.yml
-# 2024-11-05 15:40
+# 2024-11-05 16:00
 
 on:
 # if: ${{ inputs.setup-fpc.deep-soft }}
@@ -46,6 +46,12 @@ jobs:
   build-lin:
     runs-on: ubuntu-20.04
     steps:
+
+    - name: install additional files
+      shell: bash
+      run: |
+       sudo apt update
+       sudo apt -y install libdbus-1 libffmpegthumbnailer libunrar5 mplayer p7zip-full
 
     - name: show public IP
       shell: bash
@@ -188,22 +194,21 @@ jobs:
 #        sudo cp tools/install/macosx/environmentoptions.xml /etc/lazarus/environmentoptions.xml;
 #        sudo sed -i -e "s|_PPCARCH_|fpc|g; s|/Developer/lazarus|/usr/local/share/lazarus|g" /etc/lazarus/environmentoptions.xml;
 
-    - name: Checkout source
-      uses: deep-soft/checkout@v4
-      with:
-        fetch-depth: 0
+#    - name: Checkout source
+#      uses: deep-soft/checkout@v4
+#      with:
+#        fetch-depth: 0
 
     - name: Build packages
       shell: bash
+      directory: './install'
       run: |
-        pushd ./install;
         bash ./create_packages.sh;
-        popd
 
     - name: move back Archive src
       run: |
-        mv ../${{ env.ZIP_RELEASE_ARCHIVE }} ./;
-        ls -l ${{ env.ZIP_RELEASE_ARCHIVE }};
+        mv ../${{ env.ZIP_RELEASE_ARCHIVE }} ./
+        ls -l ${{ env.ZIP_RELEASE_ARCHIVE }}
 
     - name: Publish Release
       continue-on-error: true
