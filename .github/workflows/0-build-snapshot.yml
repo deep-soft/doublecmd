@@ -1,5 +1,5 @@
 name: 0-build-snapshot
-# 2023-12-26 16:30
+# 2024-11-13 15:40
 
 on:
   workflow_dispatch:
@@ -31,10 +31,13 @@ env:
 #  cancel-in-progress: true
 
 jobs:
-  build-mac:
-    uses: ./.github/workflows/0-build-snapshot-mac.yml
-    secrets: inherit
-
   build-win:
     uses: ./.github/workflows/0-build-snapshot-win.yml
     secrets: inherit
+  build-mac:
+    uses: ./.github/workflows/0-build-snapshot-mac.yml
+    secrets: inherit
+  build-lin:
+    uses: ./.github/workflows/0-build-snapshot-lin.yml
+    secrets: inherit
+
