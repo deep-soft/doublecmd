@@ -35,7 +35,7 @@ on:
 #      - master
 
 env:
-  TAG_NAME: "doublecmd"
+  TAG_NAME: "doublecmd-mac"
   TAG_REF:  "0000000"
 
 #concurrency:
