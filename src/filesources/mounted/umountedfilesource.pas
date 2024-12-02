@@ -6,8 +6,9 @@ interface
 
 uses
   Classes, SysUtils, Generics.Collections,
-  uFile, uFileSource, uFileSourceProperty, uFileSystemFileSource,
-  uFileSourceOperation, uFileSourceOperationTypes,
+  uFile, uFileSource, uFileSourceManager,
+  uLocalFileSource, uFileSystemFileSource, uFileSystemMoveOperation,
+  uFileSourceProperty, uFileSourceOperation, uFileSourceOperationTypes,
   uDCUtils;
 
 type
@@ -36,7 +37,7 @@ type
 
   { TMountedFileSource }
 
-  TMountedFileSource = class(TFileSource, IMountedFileSource)
+  TMountedFileSource = class(TLocalFileSource, IMountedFileSource)
   private
     _mountPoints: TMountPoints;
   public
@@ -45,15 +46,26 @@ type
     procedure mount( const path: String; const point: String );
     procedure mount( const path: String );
     function getDefaultPointForPath( const path: String ): String; virtual;
+    function getRealPath( const path: String ): String; virtual;
   public
     class function CreateFile(const APath: String): TFile; override;
+    function GetProcessor: TFileSourceProcessor; override;
     function GetRootDir(sPath : String): String; override;
     function GetProperties: TFileSourceProperties; override;
     function GetOperationsTypes: TFileSourceOperationTypes; override;
     function CreateListOperation(TargetPath: String): TFileSourceOperation; override;
+    function CreateCopyOperation(var SourceFiles: TFiles; TargetPath: String
+      ): TFileSourceOperation; override;
+    function CreateCopyInOperation(SourceFileSource: IFileSource;
+      var SourceFiles: TFiles; TargetPath: String): TFileSourceOperation;
+      override;
     function CreateCopyOutOperation(TargetFileSource: IFileSource;
       var SourceFiles: TFiles; TargetPath: String): TFileSourceOperation;
       override;
+    function CreateMoveOperation(var SourceFiles: TFiles; TargetPath: String
+      ): TFileSourceOperation; override;
+    function CreateDeleteOperation(var FilesToDelete: TFiles
+      ): TFileSourceOperation; override;
     function GetLocalName(var aFile: TFile): Boolean; override;
 
   public
@@ -64,6 +76,17 @@ implementation
 
 uses
   uMountedListOperation;
+
+type
+
+  { TMountedFileSourceProcessor }
+
+  TMountedFileSourceProcessor = class( TDefaultFileSourceProcessor )
+    procedure consultBeforeOperate( var params: TFileSourceConsultParams ); override;
+  end;
+
+var
+  mountedFileSourceProcessor: TMountedFileSourceProcessor;
 
 { TMountPoint }
 
@@ -79,6 +102,7 @@ constructor TMountedFileSource.Create;
 begin
   inherited Create;
   _mountPoints:= TMountPoints.Create;
+  FOperationsClasses[fsoMove]:= TFileSystemMoveOperation.GetOperationClass;
 end;
 
 destructor TMountedFileSource.Destroy;
@@ -117,9 +141,28 @@ begin
   Result:= String.Empty;
 end;
 
+function TMountedFileSource.getRealPath( const path: String ): String;
+var
+  mountPoint: TMountPoint;
+  logicPath: String;
+begin
+  logicPath:= Path.Substring( self.GetRootDir.Length - 1 );
+  for mountPoint in _mountPoints do begin
+    if logicPath.StartsWith(mountPoint.point) then begin
+      Result:= mountPoint.path + logicPath.Substring(mountPoint.point.Length);
+      Exit;
+    end;
+  end;
+end;
+
 class function TMountedFileSource.CreateFile(const APath: String): TFile;
 begin
   Result:= TFileSystemFileSource.CreateFile( APath );
+end;
+
+function TMountedFileSource.GetProcessor: TFileSourceProcessor;
+begin
+  Result:= mountedFileSourceProcessor;
 end;
 
 function TMountedFileSource.GetRootDir(sPath: String): String;
@@ -160,6 +203,29 @@ begin
   Result:= TMountedListOperation.Create( self, TargetPath );
 end;
 
+function TMountedFileSource.CreateCopyOperation(var SourceFiles: TFiles;
+  TargetPath: String): TFileSourceOperation;
+var
+  fs: TFileSystemFileSource;
+  realPath: String;
+begin
+  fs:= TFileSystemFileSource.create;
+  realPath:= getRealPath( TargetPath );
+  Result:= fs.CreateCopyOperation( SourceFiles, RealPath );
+end;
+
+function TMountedFileSource.CreateCopyInOperation(
+  SourceFileSource: IFileSource; var SourceFiles: TFiles; TargetPath: String
+  ): TFileSourceOperation;
+var
+  fs: TFileSystemFileSource;
+  realPath: String;
+begin
+  fs:= TFileSystemFileSource.create;
+  realPath:= getRealPath( TargetPath );
+  Result:= fs.CreateCopyInOperation( SourceFileSource, SourceFiles, RealPath );
+end;
+
 function TMountedFileSource.CreateCopyOutOperation(
   TargetFileSource: IFileSource; var SourceFiles: TFiles; TargetPath: String
   ): TFileSourceOperation;
@@ -170,10 +236,54 @@ begin
   Result:= fs.CreateCopyOutOperation( TargetFileSource, SourceFiles, TargetPath );
 end;
 
+function TMountedFileSource.CreateMoveOperation(var SourceFiles: TFiles;
+  TargetPath: String): TFileSourceOperation;
+var
+  fs: TFileSystemFileSource;
+begin
+  fs:= TFileSystemFileSource.create;
+  Result:= fs.CreateMoveOperation( SourceFiles, TargetPath );
+end;
+
+function TMountedFileSource.CreateDeleteOperation(var FilesToDelete: TFiles
+  ): TFileSourceOperation;
+var
+  fs: TFileSystemFileSource;
+begin
+  fs:= TFileSystemFileSource.create;
+  Result:= fs.CreateDeleteOperation( FilesToDelete );
+end;
+
 function TMountedFileSource.GetLocalName(var aFile: TFile): Boolean;
 begin
   Result:= True;
 end;
+
+{ TMountedFileSourceProcessor }
+
+procedure TMountedFileSourceProcessor.consultBeforeOperate( var params: TFileSourceConsultParams );
+  procedure process;
+  var
+    mountedFS: TMountedFileSource;
+  begin
+    if params.operationType <> fsoMove then
+      Exit;
+    if params.currentFS <> params.targetFS then
+      Exit;
+
+    mountedFS:= params.currentFS as TMountedFileSource;
+    params.targetPath:= mountedFS.getRealPath(params.targetPath);
+  end;
+begin
+  process;
+  Inherited;
+end;
+
+initialization
+  mountedFileSourceProcessor:= TMountedFileSourceProcessor.Create;
+
+finalization
+  FreeAndNil( mountedFileSourceProcessor );
 
 end.
 
