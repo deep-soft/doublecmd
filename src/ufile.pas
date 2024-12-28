@@ -25,9 +25,6 @@ type
     FVariantProperties: TFileVariantProperties;
     FSupportedProperties: TFilePropertiesTypes;
 
-    procedure SplitIntoNameAndExtension(const FileName: string;
-                                        var aFileNameOnly: string;
-                                        var aExtension: string);
     procedure UpdateNameAndExtension(const FileName: string);
 
   protected
@@ -119,6 +116,10 @@ type
     }
     function IsNameValid: Boolean;
 
+    class procedure SplitIntoNameAndExtension(const FileName: string;
+                                        var aFileNameOnly: string;
+                                        var aExtension: string);
+
     {en
        This list only contains pointers to TFileProperty objects.
        Never free element from this list!
@@ -197,8 +198,6 @@ type
     // These functions should probably be moved from here and should not be methods.
     function IsDirectory: Boolean;
     function IsSpecial: Boolean;
-    function IsSysFile: Boolean;
-    function IsHidden: Boolean;
     function IsLink: Boolean;
     property IsLinkToDirectory: Boolean read GetIsLinkToDirectory write SetIsLinkToDirectory;
     function IsExecutable: Boolean;   // for ShellExecute
@@ -832,38 +831,7 @@ begin
     Result := False;
 end;
 
-function TFile.IsSysFile: Boolean;
-begin
-{$IF DEFINED(MSWINDOWS)}
-  if fpAttributes in SupportedProperties then
-    Result := TFileAttributesProperty(Properties[fpAttributes]).IsSysFile
-  else
-    Result := False;
-{$ELSEIF DEFINED(DARWIN)}
-  if (Length(Name) > 1) and (Name[1] = '.') and (Name <> '..') then exit(true);
-  if Name='Icon'#$0D then exit(true);
-  exit(false);
-{$ELSE}
-  // Files beginning with '.' are treated as system/hidden files on Unix.
-  Result := (Length(Name) > 1) and (Name[1] = '.') and (Name <> '..');
-{$ENDIF}
-end;
-
-function TFile.IsHidden: Boolean;
-begin
-  if not (fpAttributes in SupportedProperties) then
-    Result := False
-  else begin
-    if Properties[fpAttributes] is TNtfsFileAttributesProperty then
-      Result := TNtfsFileAttributesProperty(Properties[fpAttributes]).IsHidden
-    else begin
-      // Files beginning with '.' are treated as system/hidden files on Unix.
-      Result := (Length(Name) > 1) and (Name[1] = '.') and (Name <> '..');
-    end;
-  end;
-end;
-
-procedure TFile.SplitIntoNameAndExtension(const FileName: string;
+class procedure TFile.SplitIntoNameAndExtension(const FileName: string;
                                           var aFileNameOnly: string;
                                           var aExtension: string);
 var

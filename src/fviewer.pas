@@ -2194,6 +2194,7 @@ begin
     pmStatusBar.Items.Add(miEncoding);
     pmStatusBar.Items.Add(miImage);
   end;
+  actExitViewer.Enabled:= not bQuickView;
 
   HMViewer := HotMan.Register(Self, HotkeysCategory);
   HMViewer.RegisterActionList(actionList);
@@ -3190,6 +3191,7 @@ begin
 
     if FFindDialog.cbRegExp.Checked then
     begin
+      FRegExp.ModifierI:= not FFindDialog.cbCaseSens.Checked;
       FRegExp.Expression:= sSearchTextU;
       bTextFound:= FRegExp.Exec(FLastSearchPos + FLastMatchLength + 1);
       if bTextFound then
@@ -3960,7 +3962,7 @@ end;
 
 procedure TfrmViewer.cm_ExitViewer(const Params: array of string);
 begin
-  Close;
+  if not bQuickView then Close;
 end;
 
 procedure TfrmViewer.cm_Print(const Params: array of string);

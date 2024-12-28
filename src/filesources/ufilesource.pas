@@ -21,7 +21,6 @@ type
   TFileSourceConsultResult = ( fscrSuccess, fscrNotImplemented, fscrNotSupported );
 
   TFileSourceConsultParams = Record
-    consultResult: TFileSourceConsultResult;
     handled: Boolean;
 
     operationType: TFileSourceOperationType;
@@ -33,11 +32,17 @@ type
 
     currentFS: IFileSource;
     partnerFS: IFileSource;
+
+    consultResult: TFileSourceConsultResult;
+    resultOperationType: TFileSourceOperationType;
     resultFS: IFileSource;
+    resultTargetPath: String;
+    operationTemp: Boolean;
   end;
 
   TFileSourceProcessor = class
-    procedure consultBeforeOperate( var params: TFileSourceConsultParams ); virtual; abstract;
+    procedure consultOperation( var params: TFileSourceConsultParams ); virtual; abstract;
+    procedure confirmOperation( var params: TFileSourceConsultParams ); virtual; abstract;
   end;
 
   TFileSourceField = record
@@ -116,6 +121,10 @@ type
     function CreateSetFilePropertyOperation(var theTargetFiles: TFiles;
                                             var theNewProperties: TFileProperties): TFileSourceOperation;
     function GetOperationClass(OperationType: TFileSourceOperationType): TFileSourceOperationClass;
+
+    function IsSystemFile(aFile: TFile): Boolean;
+    function IsHiddenFile(aFile: TFile): Boolean;
+    function GetDisplayFileName(aFile: TFile): String; virtual;
 
     function IsPathAtRoot(Path: String): Boolean;
     function GetParentDir(sPath : String): String;
@@ -302,6 +311,11 @@ type
        Returns @true if the given path is the root path of the file source,
        @false otherwise.
     }
+
+    function IsSystemFile(aFile: TFile): Boolean; virtual;
+    function IsHiddenFile(aFile: TFile): Boolean; virtual;
+    function GetDisplayFileName(aFile: TFile): String; virtual;
+
     function IsPathAtRoot(Path: String): Boolean; virtual;
 
     function GetParentDir(sPath : String): String; virtual;
@@ -400,6 +414,9 @@ var
 implementation
 
 uses
+  {$IF DEFINED(MSWINDOWS)}
+  uMyWindows,
+  {$ENDIF}
   uDebug, uFileSourceManager, uFileSourceListOperation, uLng;
 
 { TFileSource }
@@ -781,6 +798,39 @@ end;
 class function TFileSource.IsSupportedPath(const Path: String): Boolean;
 begin
   Result:= True;
+end;
+
+function TFileSource.IsSystemFile(aFile: TFile): Boolean;
+begin
+{$IF DEFINED(MSWINDOWS)}
+  Result := mbWinIsSystemFile(aFile);
+{$ELSEIF DEFINED(DARWIN)}
+  if (Length(aFile.Name) > 1) and (aFile.Name[1] = '.') and (aFile.Name <> '..') then exit(true);
+  if aFile.Name='Icon'#$0D then exit(true);
+  exit(false);
+{$ELSE}
+  // Files beginning with '.' are treated as system/hidden files on Unix.
+  Result := (Length(aFile.Name) > 1) and (aFile.Name[1] = '.') and (aFile.Name <> '..');
+{$ENDIF}
+end;
+
+function TFileSource.IsHiddenFile(aFile: TFile): Boolean;
+begin
+  if not (fpAttributes in aFile.SupportedProperties) then
+    Result := False
+  else begin
+    if aFile.Properties[fpAttributes] is TNtfsFileAttributesProperty then
+      Result := TNtfsFileAttributesProperty(aFile.Properties[fpAttributes]).IsHidden
+    else begin
+      // Files beginning with '.' are treated as system/hidden files on Unix.
+      Result := (Length(aFile.Name) > 1) and (aFile.Name[1] = '.') and (aFile.Name <> '..');
+    end;
+  end;
+end;
+
+function TFileSource.GetDisplayFileName(aFile: TFile): String;
+begin
+  Result:= EmptyStr;
 end;
 
 function TFileSource.GetConnection(Operation: TFileSourceOperation): TFileSourceConnection;

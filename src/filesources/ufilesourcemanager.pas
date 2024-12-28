@@ -6,8 +6,8 @@ interface
 
 uses
   Classes, SysUtils,
-  uFileSource, uFileSourceOperationTypes,
-  uDebug;
+  uFileSource, uFileSourceOperationTypes, uFileSourceUtil,
+  uDebug, DCStrUtils;
 
 type
   { TFileSourceManager }
@@ -24,13 +24,21 @@ type
     destructor Destroy; override;
 
     function Find(FileSourceClass: TClass; Address: String; CaseSensitive: Boolean = True): IFileSource;
-    procedure consultBeforeOperate( var params: TFileSourceConsultParams );
+
+    procedure consultOperation( var params: TFileSourceConsultParams );
+    procedure confirmOperation( var params: TFileSourceConsultParams );
   end;
 
   { TDefaultFileSourceProcessor }
 
   TDefaultFileSourceProcessor = class( TFileSourceProcessor )
-    procedure consultBeforeOperate( var params: TFileSourceConsultParams ); override;
+  private
+    procedure consultCopyOperation( var params: TFileSourceConsultParams );
+    procedure confirmCopyOperation( var params: TFileSourceConsultParams );
+    procedure consultMoveOperation( var params: TFileSourceConsultParams );
+  public
+    procedure consultOperation( var params: TFileSourceConsultParams ); override;
+    procedure confirmOperation( var params: TFileSourceConsultParams ); override;
   end;
 
 var
@@ -106,12 +114,14 @@ begin
   Result := nil;
 end;
 
-procedure TFileSourceManager.consultBeforeOperate( var params: TFileSourceConsultParams);
+procedure TFileSourceManager.consultOperation( var params: TFileSourceConsultParams);
 var
   fs: IFileSource;
   processor: TFileSourceProcessor;
 begin
   params.consultResult:= fscrSuccess;
+  params.resultOperationType:= params.operationType;
+  params.resultTargetPath:= params.targetPath;
   params.handled:= False;
 
   fs:= params.sourceFS;
@@ -119,9 +129,9 @@ begin
   params.partnerFS:= params.targetFS;
   processor:= fs.GetProcessor;
   if processor <> nil then
-    processor.consultBeforeOperate( params );
+    processor.consultOperation( params );
 
-  if (params.consultResult<>fscrSuccess) or params.handled then
+  if params.handled then
     Exit;
 
   if params.targetFS = nil then
@@ -132,19 +142,82 @@ begin
   params.partnerFS:= params.sourceFS;
   processor:= fs.GetProcessor;
   if processor <> nil then
-    processor.consultBeforeOperate( params );
+    processor.consultOperation( params );
+end;
+
+procedure TFileSourceManager.confirmOperation(var params: TFileSourceConsultParams);
+var
+  fs: IFileSource;
+  processor: TFileSourceProcessor;
+begin
+  params.resultTargetPath:= params.targetPath;
+  params.handled:= False;
+
+  fs:= params.sourceFS;
+  params.currentFS:= fs;
+  params.partnerFS:= params.targetFS;
+  processor:= fs.GetProcessor;
+  if processor <> nil then
+    processor.confirmOperation( params );
+
+  if params.handled then
+    Exit;
+
+  if params.targetFS = nil then
+    Exit;
+
+  fs:= params.targetFS;
+  params.currentFS:= fs;
+  params.partnerFS:= params.sourceFS;
+  processor:= fs.GetProcessor;
+  if processor <> nil then
+    processor.confirmOperation( params );
 end;
 
 { TDefaultFileSourceProcessor }
 
-procedure TDefaultFileSourceProcessor.consultBeforeOperate( var params: TFileSourceConsultParams );
+procedure TDefaultFileSourceProcessor.consultCopyOperation( var params: TFileSourceConsultParams );
 var
   sourceFS: IFileSource;
   targetFS: IFileSource;
 begin
-  if params.operationType <> fsoMove then
+  if params.currentFS <> params.sourceFS then
     Exit;
 
+  sourceFS:= params.sourceFS;
+  targetFS:= params.targetFS;
+
+  // If same file source and address
+  if isCompatibleFileSourceForCopyOperation( sourceFS, targetFS ) then begin
+    params.resultFS:= params.sourceFS;
+  end else if (fsoCopyOut in sourceFS.GetOperationsTypes) and (fsoCopyIn in targetFS.GetOperationsTypes) then begin
+    params.resultOperationType:= fsoCopyOut;
+    params.operationTemp:= True;
+    params.resultFS:= params.sourceFS;
+  end else begin
+    params.consultResult:= fscrNotSupported;
+  end;
+end;
+
+procedure TDefaultFileSourceProcessor.confirmCopyOperation( var params: TFileSourceConsultParams );
+begin
+  if params.currentFS <> params.sourceFS then
+    Exit;
+
+  if NOT StrBegins(params.targetPath, '..') then
+    Exit;
+
+  params.resultOperationType:= fsoCopy;
+  params.operationTemp:= False;
+  params.resultFS:= params.sourceFS;
+  params.handled:= True;
+end;
+
+procedure TDefaultFileSourceProcessor.consultMoveOperation( var params: TFileSourceConsultParams);
+var
+  sourceFS: IFileSource;
+  targetFS: IFileSource;
+begin
   if params.currentFS <> params.sourceFS then
     Exit;
 
@@ -167,6 +240,24 @@ begin
   else
   begin
     params.consultResult:= fscrNotSupported;
+  end;
+end;
+
+procedure TDefaultFileSourceProcessor.consultOperation( var params: TFileSourceConsultParams );
+begin
+  case params.operationType of
+    fsoCopy:
+      self.consultCopyOperation( params );
+    fsoMove:
+      self.consultMoveOperation( params );
+  end;
+end;
+
+procedure TDefaultFileSourceProcessor.confirmOperation( var params: TFileSourceConsultParams );
+begin
+  case params.operationType of
+    fsoCopy:
+      self.confirmCopyOperation( params );
   end;
 end;
 
