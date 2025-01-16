@@ -10,7 +10,7 @@ uses
   uFileSourceOperationTypes,
   uFileSourceProperty,
   uFileProperty,
-  uFile;
+  uFile, uDisplayFile;
 
 type
 
@@ -45,6 +45,32 @@ type
     procedure confirmOperation( var params: TFileSourceConsultParams ); virtual; abstract;
   end;
 
+  TFileSourceUIParams = record
+    sender: TObject;
+    fs: IFileSource;
+    displayFile: TDisplayFile;
+
+    col: Integer;
+    row: Integer;
+    drawingRect: TRect;
+
+    case Byte of
+      0: (
+           iconRect: TRect;
+           focused: Boolean
+         );
+      1: (
+           shift: TShiftState;
+           x: Integer;
+           y: Integer
+         );
+  end;
+
+  TFileSourceUIHandler = class
+    procedure draw( var params: TFileSourceUIParams ); virtual; abstract;
+    procedure click( var  params: TFileSourceUIParams ); virtual; abstract;
+  end;
+
   TFileSourceField = record
     Content: String;
     Header: String;
@@ -67,6 +93,7 @@ type
     ['{B7F0C4C8-59F6-4A35-A54C-E8242F4AD809}']
 
     function GetProcessor: TFileSourceProcessor;
+    function GetUIHandler: TFileSourceUIHandler;
 
     function Equals(aFileSource: IFileSource): Boolean;
     function IsInterface(InterfaceGuid: TGuid): Boolean;
@@ -246,6 +273,7 @@ type
     destructor Destroy; override;
 
     function GetProcessor: TFileSourceProcessor; virtual;
+    function GetUIHandler: TFileSourceUIHandler; virtual;
 
     function Equals(aFileSource: IFileSource): Boolean; overload;
     function IsInterface(InterfaceGuid: TGuid): Boolean;
@@ -414,9 +442,6 @@ var
 implementation
 
 uses
-  {$IF DEFINED(MSWINDOWS)}
-  uMyWindows,
-  {$ENDIF}
   uDebug, uFileSourceManager, uFileSourceListOperation, uLng;
 
 { TFileSource }
@@ -498,6 +523,11 @@ end;
 function TFileSource.GetProcessor: TFileSourceProcessor;
 begin
   Result:= defaultFileSourceProcessor;
+end;
+
+function TFileSource.GetUIHandler: TFileSourceUIHandler;
+begin
+  Result:= nil;
 end;
 
 function TFileSource.Equals(aFileSource: IFileSource): Boolean;
@@ -803,7 +833,10 @@ end;
 function TFileSource.IsSystemFile(aFile: TFile): Boolean;
 begin
 {$IF DEFINED(MSWINDOWS)}
-  Result := mbWinIsSystemFile(aFile);
+  if fpAttributes in aFile.SupportedProperties then
+    Result := TFileAttributesProperty(aFile.Properties[fpAttributes]).IsSysFile
+  else
+    Result := False;
 {$ELSEIF DEFINED(DARWIN)}
   if (Length(aFile.Name) > 1) and (aFile.Name[1] = '.') and (aFile.Name <> '..') then exit(true);
   if aFile.Name='Icon'#$0D then exit(true);

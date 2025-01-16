@@ -3717,7 +3717,7 @@ begin
         end;
 
         GetDestinationPathAndMask(SourceFiles, SourceFileSource,
-                                  params.resultFS, params.resultTargetPath,
+                                  params.targetFS, params.resultTargetPath,
                                   BaseDir, TargetPath, sDstMaskTemp);
         params.resultTargetPath:= TargetPath;
 
@@ -3739,7 +3739,8 @@ begin
     else begin
       FileSourceManager.confirmOperation( params );
       GetDestinationPathAndMask(SourceFiles, TargetFileSource, params.resultTargetPath,
-                                SourceFiles.Path, params.resultTargetPath, sDstMaskTemp);
+                                SourceFiles.Path, TargetPath, sDstMaskTemp);
+      params.resultTargetPath:= TargetPath;
     end;
 
     // Copy via temp directory
@@ -3803,7 +3804,7 @@ begin
     if params.operationTemp and Result and ((QueueIdentifier <> ModalQueueId) or FModalOperationResult) then
     begin
       // CopyIn from temp filesystem
-      Operation := params.resultFS.CreateCopyInOperation(
+      Operation := params.targetFS.CreateCopyInOperation(
                      TargetFileSource,
                      TargetFiles,
                      params.targetPath) as TFileSourceCopyOperation;
@@ -3912,7 +3913,8 @@ begin
     else begin
       FileSourceManager.confirmOperation( params );
       GetDestinationPathAndMask(SourceFiles, TargetFileSource, params.resultTargetPath,
-                                SourceFiles.Path, params.resultTargetPath, sDstMaskTemp);
+                                SourceFiles.Path, TargetPath, sDstMaskTemp);
+      params.resultTargetPath:= TargetPath;
     end;
 
     if bMove then
@@ -4251,11 +4253,14 @@ begin
 
     VK_TAB:
       begin
-        // Select opposite panel.
-        case PanelSelected of
-          fpLeft: SetActiveFrame(fpRight);
-          fpRight: SetActiveFrame(fpLeft);
-        else SetActiveFrame(fpLeft);
+        if (QuickViewPanel = nil) then
+        begin
+          // Select opposite panel.
+          case PanelSelected of
+            fpLeft: SetActiveFrame(fpRight);
+            fpRight: SetActiveFrame(fpLeft);
+            else     SetActiveFrame(fpLeft);
+          end;
         end;
         Key := 0;
       end;

@@ -4,7 +4,7 @@
    Fast pixmap memory manager and loader
 
    Copyright (C) 2004 Radek Cervinka (radek.cervinka@centrum.cz)
-   Copyright (C) 2006-2023 Alexander Koblov (alexx2000@mail.ru)
+   Copyright (C) 2006-2025 Alexander Koblov (alexx2000@mail.ru)
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -35,6 +35,14 @@ interface
   without alpha channel under GTK2, so bitmaps looks ugly.
   If this problem will be fixed then GTK2 specific code could be dropped.
 }
+{$IF DEFINED(LCLGTK2) AND DEFINED(UNIX) AND NOT (DEFINED(DARWIN) OR DEFINED(HAIKU))}
+  {$DEFINE GTK2_FIX}
+{$ENDIF}
+
+// Use freedesktop.org specifications
+{$IF DEFINED(UNIX) AND NOT (DEFINED(DARWIN) OR DEFINED(HAIKU))}
+  {$DEFINE XDG}
+{$ENDIF}
 
 uses
   Classes, SysUtils, Graphics, syncobjs, uFileSorting, DCStringHashListUtf8,
@@ -50,7 +58,7 @@ uses
     , CocoaUtils, uMyDarwin
     {$ELSEIF NOT DEFINED(HAIKU)}
     , Math, Contnrs, uGio, uXdg
-      {$IFDEF LCLGTK2}
+      {$IFDEF GTK2_FIX}
       , gtk2
       {$ELSE}
       , uUnixIconTheme
@@ -125,7 +133,7 @@ type
        Maps file extension to MIME icon name(s).
     }
     FExtToMimeIconName: TFPDataHashTable;
-    {$IFDEF LCLGTK2}
+    {$IFDEF GTK2_FIX}
     FIconTheme: PGtkIconTheme;
     {$ELSE}
     FIconTheme: TIconTheme;
@@ -169,6 +177,10 @@ type
     }
     function CheckAddThemePixmap(const AIconName: String; AIconSize: Integer = 0) : PtrInt;
     {en
+       Loads an icon from default theme (DCTheme) and adds it to storage.
+    }
+    function AddDefaultThemePixmap(const AIconName: String; AIconSize: Integer = 0) : PtrInt;
+    {en
        Loads an icon from the theme
     }
     function LoadThemeIcon(AIconTheme: TIconTheme; const AIconName: String; AIconSize: Integer): TBitmap;
@@ -206,6 +218,8 @@ type
     function GetSystemExecutableIcon: PtrInt; inline;
   {$ENDIF}
   {$IF DEFINED(UNIX) AND NOT (DEFINED(DARWIN) OR DEFINED(HAIKU))}
+    function GetSystemFolderIcon: PtrInt;
+    function GetSystemArchiveIcon: PtrInt;
     {en
        Loads MIME icons names and creates a mapping: file extension -> MIME icon name.
        Doesn't need to be synchronized as long as it's only called from Load().
@@ -358,13 +372,13 @@ uses
   GraphType, LCLIntf, LCLType, LCLProc, Forms, uGlobsPaths, WcxPlugin,
   DCStrUtils, uDCUtils, uFileSystemFileSource, uReSample, uDebug,
   IntfGraphics, DCOSUtils, DCClassesUtf8, LazUTF8, uGraphics, uHash, uSysFolders
-  {$IFDEF LCLGTK2}
+  {$IFDEF GTK2_FIX}
     , uPixMapGtk, gdk2pixbuf, gdk2, glib2
   {$ENDIF}
   {$IFDEF MSWINDOWS}
     , ActiveX, CommCtrl, ShellAPI, Windows, DCFileAttributes, uBitmap, uGdiPlus,
       DCConvertEncoding, uShlObjAdditional, uShellFolder,
-      uShellFileSourceUtil, uMyWindows
+      uShellFileSourceUtil
   {$ELSE}
     , StrUtils, Types, DCBasicTypes
   {$ENDIF}
@@ -437,7 +451,7 @@ end;
 { TPixMapManager.LoadBitmapFromFile }
 function TPixMapManager.LoadBitmapFromFile(AIconFileName: String; out ABitmap: Graphics.TBitmap): Boolean;
 var
-  {$IFDEF LCLGTK2}
+  {$IFDEF GTK2_FIX}
   pbPicture : PGdkPixbuf;
   {$ELSE}
   Picture: TPicture;
@@ -445,7 +459,7 @@ var
 begin
   Result:= False;
 
-  {$IFDEF LCLGTK2}
+  {$IFDEF GTK2_FIX}
   pbPicture := gdk_pixbuf_new_from_file(PChar(AIconFileName), nil);
   if pbPicture <> nil then
   begin
@@ -635,7 +649,7 @@ end;
 function TPixMapManager.CheckAddPixmap(AIconName: String; AIconSize : Integer): PtrInt;
 var
   fileIndex: PtrInt;
-  {$IFDEF LCLGTK2}
+  {$IFDEF GTK2_FIX}
   pbPicture : PGdkPixbuf;
   {$ELSE}
   bmpBitmap: Graphics.TBitmap;
@@ -657,7 +671,7 @@ begin
         fileIndex := FPixmapsFileNames.Find(AIconName);
         if fileIndex < 0 then
           begin
-        {$IFDEF LCLGTK2}
+        {$IFDEF GTK2_FIX}
             if not mbFileExists(AIconName) then
               begin
                 DCDebug(Format('Warning: pixmap [%s] not exists!', [AIconName]));
@@ -712,7 +726,7 @@ var
   DirList: array of string;
 begin
 {$IF DEFINED(UNIX) AND NOT (DEFINED(DARWIN) OR DEFINED(HAIKU))}
-  {$IFDEF LCLGTK2}
+  {$IFDEF GTK2_FIX}
   // get current gtk theme
   FIconTheme:= gtk_icon_theme_get_for_screen(gdk_screen_get_default);
   { // load custom theme
@@ -737,7 +751,7 @@ end;
 procedure TPixMapManager.DestroyIconTheme;
 begin
 {$IF DEFINED(UNIX) AND NOT (DEFINED(DARWIN) OR DEFINED(HAIKU))}
-  {$IFDEF LCLGTK2}
+  {$IFDEF GTK2_FIX}
   FIconTheme:= nil;
   {$ELSE}
   if Assigned(FIconTheme) then
@@ -783,7 +797,7 @@ begin
     finally
       ABitmap.Free;
     end;
-{$IF DEFINED(LCLGTK2)}
+{$IF DEFINED(GTK2_FIX)}
     Result := FPixmapList.Add(ImageToPixBuf(Target));
     AIcon.Free;
 {$ELSE}
@@ -1015,6 +1029,27 @@ begin
     end;
 end;
 
+function TPixMapManager.GetSystemFolderIcon: PtrInt;
+var
+  AIconName: String;
+begin
+  AIconName:= GioMimeGetIcon('inode/directory');
+  if Length(AIconName) = 0 then
+    Result:= -1
+  else begin
+    Result:= CheckAddThemePixmap(AIconName);
+  end;
+  if (Result < 0) and (AIconName <> 'folder') then
+  begin
+    Result:= CheckAddThemePixmap('folder');
+  end;
+end;
+
+function TPixMapManager.GetSystemArchiveIcon: PtrInt;
+begin
+  Result:= CheckAddThemePixmap('package-x-generic');
+end;
+
 function TPixMapManager.GetIconByDesktopFile(sFileName: String; iDefaultIcon: PtrInt): PtrInt;
 var
   I: PtrInt;
@@ -1155,7 +1190,7 @@ end;
 function TPixMapManager.CheckAddThemePixmapLocked(AIconName: String; AIconSize: Integer): PtrInt;
 var
   fileIndex: PtrInt;
-{$IFDEF LCLGTK2}
+{$IFDEF GTK2_FIX}
   pbPicture: PGdkPixbuf = nil;
   sIconFileName: String;
 {$ELSE}
@@ -1167,7 +1202,7 @@ begin
   fileIndex := FThemePixmapsFileNames.Find(AIconName);
   if fileIndex < 0 then
     begin
-    {$IF DEFINED(LCLGTK2) AND DEFINED(UNIX) AND NOT DEFINED(DARWIN)}
+    {$IF DEFINED(GTK2_FIX) AND DEFINED(UNIX) AND NOT DEFINED(DARWIN)}
       if gShowIcons > sim_standart then
         begin
           pbPicture:= gtk_icon_theme_load_icon(FIconTheme, Pgchar(AIconName),
@@ -1204,6 +1239,30 @@ begin
     Result := PtrInt(FThemePixmapsFileNames.List[fileIndex]^.Data);
 end;
 
+function TPixMapManager.AddDefaultThemePixmap(const AIconName: String;
+  AIconSize: Integer): PtrInt;
+var
+  bmpBitmap: Pointer;
+{$IF DEFINED(GTK2_FIX)}
+  sIconFileName: String;
+{$ENDIF}
+begin
+  if AIconSize = 0 then AIconSize := gIconsSize;
+{$IF DEFINED(GTK2_FIX)}
+  sIconFileName := FDCIconTheme.FindIcon(AIconName, AIconSize);
+  if Length(sIconFileName) = 0 then Exit(-1);
+  bmpBitmap := gdk_pixbuf_new_from_file_at_size(PChar(sIconFileName), AIconSize, AIconSize, nil);
+{$ELSE}
+  bmpBitmap := LoadThemeIcon(FDCIconTheme, AIconName, AIconSize);
+{$ENDIF}
+  if (bmpBitmap = nil) then
+    Result := -1
+  else begin
+    Result := FPixmapList.Add(bmpBitmap); // add to list
+    FThemePixmapsFileNames.Add(AIconName, Pointer(Result));
+  end;
+end;
+
 function TPixMapManager.LoadThemeIcon(AIconTheme: TIconTheme; const AIconName: String; AIconSize: Integer): Graphics.TBitmap;
 var
   FileName: String;
@@ -1222,7 +1281,7 @@ begin
 end;
 
 function TPixMapManager.LoadIconThemeBitmapLocked(AIconName: String; AIconSize: Integer): Graphics.TBitmap;
-{$IFDEF LCLGTK2}
+{$IFDEF GTK2_FIX}
 var
   pbPicture: PGdkPixbuf = nil;
 {$ENDIF}
@@ -1234,7 +1293,7 @@ begin
   // Try to load icon from system theme
   if gShowIcons > sim_standart then
   begin
-  {$IFDEF LCLGTK2}
+  {$IFDEF GTK2_FIX}
     pbPicture:= gtk_icon_theme_load_icon(FIconTheme, Pgchar(PChar(AIconName)),
                                          AIconSize, GTK_ICON_LOOKUP_USE_BUILTIN, nil);
     if pbPicture <> nil then
@@ -1309,7 +1368,7 @@ begin
     if Result >= 0 then
       AResult:= FPixmapsFileNames.List[Result]^.Data
     else begin
-{$IF DEFINED(LCLGTK2)}
+{$IF DEFINED(GTK2_FIX)}
       AResult := gdk_pixbuf_new_from_file_at_size(PChar(AFileName), gIconsSize, gIconsSize, nil);
       if (AResult = nil) then Exit(ADefaultIcon);
       Result := FPixmapList.Add(AResult);
@@ -1604,7 +1663,7 @@ begin
   begin
     for I := 0 to FPixmapList.Count - 1 do
       if Assigned(FPixmapList.Items[I]) then
-  {$IFDEF LCLGTK2}
+  {$IFDEF GTK2_FIX}
         g_object_unref(PGdkPixbuf(FPixmapList.Items[I]));
   {$ELSE}
         Graphics.TBitmap(FPixmapList.Items[I]).Free;
@@ -1666,11 +1725,11 @@ begin
   // (via LoadPixMapManager in doublecmd.lpr).
 
   // Load icon themes.
-  {$IF DEFINED(UNIX) AND NOT (DEFINED(DARWIN) OR DEFINED(HAIKU))}
+  {$IF DEFINED(XDG)}
   if gShowIcons > sim_standart then
     begin
       LoadMimeIconNames; // For use with GetMimeIcon
-  {$IFNDEF LCLGTK2}
+  {$IFNDEF GTK2_FIX}
       FIconTheme.Load; // Load system icon theme.
   {$ENDIF}
     end;
@@ -1721,23 +1780,23 @@ begin
   if FiShortcutIconID = -1 then
     FiShortcutIconID := CheckAddThemePixmap('text-html');
   {$ENDIF}
-  {$IF DEFINED(MSWINDOWS) or DEFINED(DARWIN)}
+  {$IF NOT DEFINED(HAIKU)}
   FiDirIconID := -1;
   if (gShowIcons > sim_standart) and (not (cimFolder in gCustomIcons)) then
     FiDirIconID := GetSystemFolderIcon;
   if FiDirIconID = -1 then
   {$ENDIF}
-  FiDirIconID:= CheckAddThemePixmap('folder');
+  FiDirIconID:= AddDefaultThemePixmap('folder');
   FiDirLinkBrokenIconID:= AddSpecial(FiDirIconID, FiEmblemUnreadableID);
   FiLinkBrokenIconID:= AddSpecial(FiDefaultIconID, FiEmblemUnreadableID);
   FiUpDirIconID:= CheckAddThemePixmap('go-up');
-  {$IFDEF MSWINDOWS}
+  {$IF DEFINED(MSWINDOWS) OR DEFINED(XDG)}
   FiArcIconID := -1;
   if (gShowIcons > sim_standart) and (not (cimArchive in gCustomIcons)) then
     FiArcIconID := GetSystemArchiveIcon;
   if FiArcIconID = -1 then
   {$ENDIF}
-  FiArcIconID := CheckAddThemePixmap('package-x-generic');
+  FiArcIconID := AddDefaultThemePixmap('package-x-generic');
   {$IFDEF MSWINDOWS}
   FiExeIconID := -1;
   if gShowIcons > sim_standart then
@@ -1862,7 +1921,7 @@ begin
 
   if PixmapFromList then
   begin
-{$IFDEF LCLGTK2}
+{$IFDEF GTK2_FIX}
     Result:= PixBufToBitmap(PGdkPixbuf(PPixmap));
 {$ELSE}
     // Make a new copy.
@@ -1926,7 +1985,7 @@ var
   hicn: HICON;
   cx, cy: Integer;
 {$ENDIF}
-{$IFDEF LCLGTK2}
+{$IFDEF GTK2_FIX}
   pbPicture : PGdkPixbuf;
   iPixbufWidth : Integer;
   iPixbufHeight : Integer;
@@ -1950,7 +2009,7 @@ begin
 
   if PixmapFromList then
   begin
-  {$IFDEF LCLGTK2}
+  {$IFDEF GTK2_FIX}
     pbPicture := PGdkPixbuf(PPixmap);
     iPixbufWidth :=  gdk_pixbuf_get_width(pbPicture);
     iPixbufHeight :=  gdk_pixbuf_get_height(pbPicture);
@@ -2068,6 +2127,7 @@ var
   dwFileAttributes: DWORD;
   uFlags: UINT;
 const
+  FILE_ATTRIBUTE_ICON = FILE_ATTRIBUTE_READONLY or FILE_ATTRIBUTE_SYSTEM;
   FILE_ATTRIBUTE_SHELL = FILE_ATTRIBUTE_DEVICE or FILE_ATTRIBUTE_VIRTUAL;
 {$ENDIF}
 begin
@@ -2128,7 +2188,7 @@ begin
       if (IconsMode = sim_standart) or
          // Directory has special icon only if it has "read only" or "system" attributes
          // and contains desktop.ini file
-         (not (DirectAccess and (mbWinIsSystemFile(aFile) or FileIsReadOnly(Attributes)) and mbFileExists(FullPath + '\desktop.ini'))) or
+         (not (DirectAccess and ((Attributes and FILE_ATTRIBUTE_ICON) <> 0) and mbFileExists(FullPath + '\desktop.ini'))) or
          (ScreenInfo.ColorDepth < 16) then
       {$ELSEIF DEFINED(UNIX) AND NOT (DEFINED(DARWIN) OR DEFINED(HAIKU))}
       if (IconsMode = sim_all_and_exe) and (DirectAccess) then
@@ -2658,4 +2718,3 @@ finalization
   end;
 
 end.
-

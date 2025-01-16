@@ -1539,7 +1539,7 @@ var
   AFile: TDisplayFile;
   FileSourceDirectAccess: Boolean;
   ColumnsSet: TPanelColumnsClass;
-  onDrawCellFocused: Boolean;
+  params: TFileSourceUIParams;
 
   //------------------------------------------------------
   // begin subprocedures
@@ -1564,8 +1564,8 @@ var
   procedure DrawIconCell;
   //------------------------------------------------------
   var
-    Y: Integer;
     IconID: PtrInt;
+    targetWidth: Integer;
   begin
     if (gShowIcons <> sim_none) then
     begin
@@ -1575,20 +1575,23 @@ var
         IconID := PixMapManager.GetDefaultIcon(AFile.FSFile);
 
       // center icon vertically
-      Y := aRect.Top + (aRect.Height - gIconsSize) div 2;
+      params.iconRect.Left:= aRect.Left + CELL_PADDING;
+      params.iconRect.Top:= aRect.Top + (aRect.Height - gIconsSize) div 2;
+      params.iconRect.Width:= gIconsSize;
+      params.iconRect.Height:= gIconsSize;
 
       if gShowHiddenDimmed and ColumnsView.FileSource.isHiddenFile(AFile.FSFile) then
         PixMapManager.DrawBitmapAlpha(IconID,
                                       Canvas,
-                                      aRect.Left + CELL_PADDING,
-                                      Y
+                                      params.iconRect.Left,
+                                      params.iconRect.Top
                                      )
       else
         // Draw icon for a file
         PixMapManager.DrawBitmap(IconID,
                                  Canvas,
-                                 aRect.Left + CELL_PADDING,
-                                 Y
+                                 params.iconRect.Left,
+                                 params.iconRect.Top
                                 );
 
       // Draw overlay icon for a file if needed
@@ -1597,8 +1600,8 @@ var
         PixMapManager.DrawBitmapOverlay(AFile,
                                         FileSourceDirectAccess,
                                         Canvas,
-                                        aRect.Left + CELL_PADDING,
-                                        Y
+                                        params.iconRect.Left,
+                                        params.iconRect.Top
                                         );
       end;
 
@@ -1608,9 +1611,9 @@ var
 
     if gCutTextToColWidth then
     begin
-      Y:= (aRect.Width) - 2*CELL_PADDING;
-      if (gShowIcons <> sim_none) then Y:= Y - gIconsSize - 2;
-      s:= FitFileName(s, Canvas, AFile.FSFile, Y);
+      targetWidth:= (aRect.Width) - 2*CELL_PADDING;
+      if (gShowIcons <> sim_none) then targetWidth:= targetWidth - gIconsSize - 2;
+      s:= FitFileName(s, Canvas, AFile.FSFile, targetWidth);
     end;
 
     if (gShowIcons <> sim_none) then
@@ -1957,6 +1960,25 @@ var
     aCol := CCell.Col;
     aRect := CCell.Rect;
   end;
+
+  procedure callFileSourceDrawCell;
+  var
+    handler: TFileSourceUIHandler;
+  begin
+    handler:= ColumnsView.FileSource.GetUIHandler;
+    if handler = nil then
+      Exit;
+
+    params.drawingRect:= aRect;
+    handler.draw( params );
+  end;
+
+  procedure callOnDrawCell;
+  begin
+    if Assigned(OnDrawCell) and not(CsDesigning in ComponentState) then
+      OnDrawCell(Self.ColumnsView,aCol,aRow,params.drawingRect,params.focused,AFile);
+  end;
+
   //------------------------------------------------------
   //end of subprocedures
   //------------------------------------------------------
@@ -1978,6 +2000,13 @@ begin
     AFile := ColumnsView.FFiles[ARow - FixedRows]; // substract fixed rows (header)
     FileSourceDirectAccess := fspDirectAccess in ColumnsView.FileSource.Properties;
 
+    params:= Default( TFileSourceUIParams );
+    params.sender:= Self.ColumnsView;
+    params.fs:= Self.ColumnsView.FileSource;
+    params.col:= aCol;
+    params.row:= aRow;
+    params.displayFile:= aFile;
+
     if AFile.DisplayStrings.Count = 0 then
       ColumnsView.MakeColumnsStrings(AFile, ColumnsSet);
 
@@ -1995,10 +2024,9 @@ begin
         DrawOtherCell;
     end;
 
-    if Assigned(OnDrawCell) and not(CsDesigning in ComponentState) then begin
-      onDrawCellFocused:= (gdSelected in aState) and ColumnsView.Active;
-      OnDrawCell(Self.ColumnsView,aCol,aRow,aRect,onDrawCellFocused,AFile);
-    end;
+    params.focused:= (gdSelected in aState) and ColumnsView.Active;
+    callFileSourceDrawCell;
+    callOnDrawCell;
 
     DrawCellGrid(aCol,aRow,aRect,aState);
     DrawLines;
@@ -2033,6 +2061,34 @@ var
   MI: TMenuItem;
   FileSystem: String;
   Background: Boolean;
+
+  procedure handleMBLeft;
+  var
+    handler: TFileSourceUIHandler;
+    params: TFileSourceUIParams;
+  begin
+    params:= Default( TFileSourceUIParams );
+    params.sender:= self.ColumnsView;
+    params.fs:= self.ColumnsView.FileSource;
+
+    handler:= params.fs.GetUIHandler;
+    if handler = nil then
+      Exit;
+
+    params.shift:= Shift;
+    params.x:= X;
+    params.y:= Y;
+    MouseToCell( X, Y, params.col, params.row );
+    if NOT self.IsRowIndexValid(params.row) then
+      Exit;
+
+    ColRowToOffset(True, True, params.col, params.drawingRect.Left, params.drawingRect.Right );
+    ColRowToOffset(False, True, params.row, params.drawingRect.Top, params.drawingRect.Bottom );
+
+    params.displayFile:= ColumnsView.FFiles[params.row - FixedRows];
+    handler.click( params );
+  end;
+
 begin
   if ColumnsView.IsLoadingFileList then Exit;
 {$IFDEF LCLGTK2}
@@ -2052,7 +2108,10 @@ begin
 
   if ColumnsView.Demo then Exit;
 
-  if Button = mbRight then
+  if Button = mbLeft then
+  begin
+    handleMBLeft;
+  end else if Button = mbRight then
     begin
       { If right click on header }
       if (Y >= 0) and (Y < GetHeaderHeight) then
