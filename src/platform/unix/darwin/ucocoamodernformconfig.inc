@@ -435,6 +435,18 @@ const
   );
 
 
+  cloudItemConfig: TCocoaConfigToolBarItem = (
+    identifier: 'MainForm.Cloud';
+    priority: NSToolbarItemVisibilityPriorityStandard;
+    navigational: False;
+    iconName: 'cloud';
+    title: rsMFSTBIiCloudDriverTitle;
+    tips: rsMFSTBIiCloudDriverTips;
+    bordered: True;
+    onAction: @cloudAction;
+  );
+
+
   showBriefItemConfig: TCocoaConfigToolBarItem = (
     identifier: 'MainForm.ShowMode.Brief';
     iconName: 'rectangle.split.3x1';
@@ -655,17 +667,6 @@ const
     onAction: @editAction;
   );
 
-  cloudItemConfig: TCocoaConfigToolBarItem = (
-    identifier: 'MainForm.Cloud';
-    priority: NSToolbarItemVisibilityPriorityStandard;
-    navigational: False;
-    iconName: 'cloud';
-    title: 'iCloud Driver';
-    tips: 'iCloud Driver';
-    bordered: True;
-    onAction: @cloudAction;
-  );
-
   mainFormConfig: TCocoaConfigForm = (
     name: 'frmMain';
     className: '';
@@ -691,11 +692,16 @@ const
         'MainForm.HorzSplit',
         'MainForm.SwapPanels',
 
+        'MainForm.Cloud',
+        'NSToolbarFlexibleSpaceItem',
+
         'MainForm.ShowMode',
         'NSToolbarFlexibleSpaceItem',
+
         'MainForm.Share',
         'MainForm.AirDrop',
         'NSToolbarFlexibleSpaceItem',
+
         'MainForm.QuickLook',
         'MainForm.Tag',
         'MainForm.Go',
@@ -713,6 +719,7 @@ const
         'MainForm.HorzSplit',
         'MainForm.SwapPanels',
 
+        'MainForm.Cloud',
         'MainForm.ShowMode',
         'MainForm.Share',
         'MainForm.AirDrop',
@@ -730,9 +737,7 @@ const
         'MainForm.Refresh',
         'MainForm.Compare',
         'MainForm.Sync',
-        'MainForm.Edit',
-
-        'MainForm.Cloud'
+        'MainForm.Edit'
       );
       itemCreator: nil;      // default item Creator
     );

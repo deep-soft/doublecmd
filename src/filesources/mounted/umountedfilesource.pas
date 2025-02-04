@@ -6,8 +6,8 @@ interface
 
 uses
   Classes, SysUtils, Generics.Collections,
-  uFileSource, uFileSourceManager,
-  uFileSystemFileSource, uFileSystemMoveOperation,
+  uFile, uFileSource, uFileSourceManager,
+  uFileSystemFileSource, uWcxArchiveFileSource,
   uFileSourceOperation, uFileSourceOperationTypes,
   uDCUtils, DCStrUtils;
 
@@ -27,10 +27,12 @@ type
   strict private
     _path: String;
     _point: String;
+    _name: String;
   public
     constructor Create( const path: String; const point: String );
     property path: String read _path;
     property point: String read _point;
+    property name: String read _name;
   end;
 
   TMountPoints = specialize TList<TMountPoint>;
@@ -40,13 +42,13 @@ type
   TMountedFileSource = class(TFileSystemFileSource, IMountedFileSource)
   private
     _mountPoints: TMountPoints;
-    _currentPath: String;
   public
     constructor Create; override;
     destructor Destroy; override;
     procedure mount( const path: String; const point: String );
     procedure mount( const path: String );
     function getDefaultPointForPath( const path: String ): String; virtual;
+    function getMountPointFromPath(const realPath: String): TMountPoint;
   protected
     function SetCurrentWorkingDirectory(NewDir: String): Boolean; override;
     function GetCurrentWorkingDirectory: String; override;
@@ -54,11 +56,13 @@ type
     function GetProcessor: TFileSourceProcessor; override;
     function GetRealPath(const APath: String): String; override;
     function GetVirtualPath(const APath: String): String; override;
+    function GetFileName(aFile: TFile): String; override;
 
     function GetParentDir(sPath : String): String; override;
     function GetRootDir(sPath : String): String; override;
     function IsPathAtRoot(Path: String): Boolean; override;
     function CreateListOperation(TargetPath: String): TFileSourceOperation; override;
+    function CreateCreateDirectoryOperation(BasePath: String; DirectoryPath: String): TFileSourceOperation; override;
   public
     property mountPoints: TMountPoints read _mountPoints;
   end;
@@ -74,8 +78,12 @@ type
 
   TMountedFileSourceProcessor = class( TFileSystemFileSourceProcessor )
   private
+    procedure consultCopyOperation(var params: TFileSourceConsultParams);
+    procedure consultMoveOperation(var params: TFileSourceConsultParams);
     procedure resolveRealPath( var params: TFileSourceConsultParams );
+    procedure calcTargetPath( var params: TFileSourceConsultParams );
   public
+    procedure consultOperation(var params: TFileSourceConsultParams); override;
     procedure confirmOperation( var params: TFileSourceConsultParams ); override;
   end;
 
@@ -88,6 +96,7 @@ constructor TMountPoint.Create(const path: String; const point: String);
 begin
   _path:= path;
   _point:= point;
+  _name:= ExcludeLeadingPathDelimiter(ExcludeTrailingPathDelimiter( _point ));
 end;
 
 { TMountedFileSource }
@@ -96,7 +105,6 @@ constructor TMountedFileSource.Create;
 begin
   inherited Create;
   _mountPoints:= TMountPoints.Create;
-  _currentPath:= self.GetRootDir;
 end;
 
 destructor TMountedFileSource.Destroy;
@@ -135,15 +143,29 @@ begin
   Result:= String.Empty;
 end;
 
+function TMountedFileSource.getMountPointFromPath(const realPath: String): TMountPoint;
+var
+  mountPoint: TMountPoint;
+  path: String;
+begin
+  Result:= nil;
+  path:= IncludeTrailingPathDelimiter( realPath );
+  for mountPoint in _mountPoints do begin
+    if path.Equals(mountPoint.path) then begin
+      Result:= mountPoint;
+      Exit;
+    end;
+  end;
+end;
+
 function TMountedFileSource.SetCurrentWorkingDirectory(NewDir: String): Boolean;
 begin
-  _currentPath:= NewDir;
   Result:= True;
 end;
 
 function TMountedFileSource.GetCurrentWorkingDirectory: String;
 begin
-  Result:= _currentPath;
+  Result:= '';
 end;
 
 function TMountedFileSource.GetProcessor: TFileSourceProcessor;
@@ -156,6 +178,7 @@ var
   mountPoint: TMountPoint;
   logicPath: String;
 begin
+  Result:= EmptyStr;
   logicPath:= APath.Substring( self.GetRootDir.Length - 1 );
   for mountPoint in _mountPoints do begin
     if logicPath.StartsWith(mountPoint.point) then begin
@@ -170,6 +193,7 @@ var
   mountPoint: TMountPoint;
   logicPath: String;
 begin
+  Result:= EmptyStr;
   logicPath:= IncludeTrailingPathDelimiter( APath );
   for mountPoint in _mountPoints do begin
     if logicPath.StartsWith(mountPoint.path) then begin
@@ -179,6 +203,17 @@ begin
       Exit;
     end;
   end;
+end;
+
+function TMountedFileSource.GetFileName(aFile: TFile): String;
+var
+  mountPoint: TMountPoint;
+begin
+  mountPoint:= self.getMountPointFromPath( aFile.FullPath );
+  if mountPoint <> nil then
+    Result:= mountPoint.name
+  else
+    Result:= inherited;
 end;
 
 function TMountedFileSource.GetParentDir(sPath : String): String;
@@ -201,16 +236,101 @@ begin
   Result:= TMountedListOperation.Create( self, TargetPath );
 end;
 
+function TMountedFileSource.CreateCreateDirectoryOperation(BasePath: String; DirectoryPath: String): TFileSourceOperation;
+var
+  realPath: String;
+begin
+  realPath:= self.GetRealPath( BasePath );
+  Result:= inherited CreateCreateDirectoryOperation(realPath, DirectoryPath);
+end;
+
 { TMountedFileSourceProcessor }
 
 procedure TMountedFileSourceProcessor.resolveRealPath( var params: TFileSourceConsultParams);
 var
   mountedFS: TMountedFileSource;
+  pathType: TPathType;
+  targetPath: String;
+
+  function calcBasePath: String;
+  var
+    realPath: String;
+    mountPoint: TMountPoint;
+  begin
+    realPath:= params.files[0].FullPath;
+    mountPoint:= mountedFS.getMountPointFromPath( realPath );
+    if mountPoint <> nil then
+      Result:= mountPoint.path
+    else
+      Result:= GetParentDir( realPath );
+  end;
+
 begin
-  if ((params.currentFS=params.sourceFS) and StrBegins(params.targetPath,'..')) or
-     ((params.currentFS<>params.sourceFS) and NOT StrBegins(params.targetPath,'..')) then begin
-    mountedFS:= params.currentFS as TMountedFileSource;
-    params.resultTargetPath:= mountedFS.getRealPath( params.targetPath );
+  mountedFS:= params.currentFS as TMountedFileSource;
+  targetPath:= params.targetPath;
+  pathType:= GetPathType( targetPath );
+
+  if ((params.currentFS=params.sourceFS) and (pathType<>ptAbsolute)) or
+     ((params.currentFS<>params.sourceFS) and (pathType=ptAbsolute)) then begin
+    if pathType <> ptAbsolute then begin
+      targetPath:= params.files.Path + targetPath;
+      targetPath:= ExpandAbsolutePath( targetPath );
+    end;
+    params.resultTargetPath:= mountedFS.getRealPath( targetPath );
+  end;
+
+  if params.currentFS = params.sourceFS then
+    params.files.Path:= calcBasePath;
+end;
+
+procedure TMountedFileSourceProcessor.calcTargetPath(var params: TFileSourceConsultParams);
+var
+  mountedFS: TMountedFileSource;
+  mountPoint: TMountPoint;
+  realPath: String;
+begin
+  if params.currentFS <> params.sourceFS then
+    Exit;
+  if NOT params.partnerFS.IsClass(TWcxArchiveFileSource) then
+    Exit;
+
+  mountedFS:= params.currentFS as TMountedFileSource;
+  realPath:= params.files[0].FullPath;
+  mountPoint:= mountedFS.getMountPointFromPath( realPath );
+  if mountPoint = nil then
+    Exit;
+
+  params.targetPath:= IncludeTrailingPathDelimiter(params.targetPath) + mountPoint.name + PathDelim;
+end;
+
+procedure TMountedFileSourceProcessor.consultCopyOperation(var params: TFileSourceConsultParams);
+begin
+  inherited consultOperation( params );
+  self.calcTargetPath( params );
+end;
+
+procedure TMountedFileSourceProcessor.consultMoveOperation(var params: TFileSourceConsultParams);
+begin
+  params.consultResult:= fscrNotSupported;
+  params.handled:= True;
+  if params.currentFS = params.sourceFS then
+    Exit;
+  if params.sourceFS.GetClass.ClassType <> TFileSystemFileSource then
+    Exit;
+
+  params.consultResult:= fscrSuccess;
+end;
+
+procedure TMountedFileSourceProcessor.consultOperation(
+  var params: TFileSourceConsultParams);
+begin
+  case params.operationType of
+    fsoCopy:
+      consultCopyOperation( params );
+    fsoMove:
+      consultMoveOperation( params );
+    else
+      inherited consultOperation( params );
   end;
 end;
 
