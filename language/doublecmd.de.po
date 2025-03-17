@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Double Commander 1.1.0 alpha\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-11-15 11:15+0300\n"
-"PO-Revision-Date: 2025-01-30 15:15+0100\n"
+"PO-Revision-Date: 2025-03-05 19:34+0100\n"
 "Last-Translator:  ㋡  <braass@mail.de>\n"
 "Language-Team: Deutsch <braass@mail.de>\n"
 "Language: de\n"
@@ -5362,11 +5362,6 @@ msgstr "&Hintergrund"
 msgid "Reset"
 msgstr "Zurücksetzen"
 
-#: tfrmoptionseditorcolors.btnsavemask.hint
-msgctxt "tfrmoptionseditorcolors.btnsavemask.hint"
-msgid "Save"
-msgstr "Speichern"
-
 #: tfrmoptionseditorcolors.bvlattributesection.caption
 msgid "Element Attributes"
 msgstr "Attribut des Elements"
@@ -6347,11 +6342,6 @@ msgctxt "TFRMOPTIONSFILETYPESCOLORS.BTNADDCATEGORY.CAPTION"
 msgid "A&dd"
 msgstr "&Hinzufügen"
 
-#: tfrmoptionsfiletypescolors.btnapplycategory.caption
-msgctxt "TFRMOPTIONSFILETYPESCOLORS.BTNAPPLYCATEGORY.CAPTION"
-msgid "A&pply"
-msgstr "Anwenden"
-
 #: tfrmoptionsfiletypescolors.btndeletecategory.caption
 msgctxt "TFRMOPTIONSFILETYPESCOLORS.BTNDELETECATEGORY.CAPTION"
 msgid "D&elete"
@@ -6512,6 +6502,16 @@ msgstr "Parameter"
 #: tfrmoptionshotkeys.stghotkeys.columns[2].title.caption
 msgid "Controls"
 msgstr "Kontrollelemente"
+
+#: tfrmoptionsicloud.appslistview.columns[0].caption
+msgctxt "tfrmoptionsicloud.appslistview.columns[0].caption"
+msgid "Applications"
+msgstr "Anwendungen (Apps)"
+
+#: tfrmoptionsicloud.appslistview.columns[1].caption
+msgctxt "tfrmoptionsicloud.appslistview.columns[1].caption"
+msgid "Count of Contents"
+msgstr "Anzahl der Inhalte"
 
 #: tfrmoptionsicons.cbiconsexclude.caption
 msgctxt "TFRMOPTIONSICONS.CBICONSEXCLUDE.CAPTION"
@@ -7140,8 +7140,10 @@ msgid "File name"
 msgstr "Dateiname"
 
 #: tfrmoptionspluginswfx.lblplugindescription.caption
+#, fuzzy
+#| msgid "Fi&le system plugins allow access to disks inaccessible by operating system or to external devices like Palm/PocketPC."
 msgctxt "tfrmoptionspluginswfx.lblplugindescription.caption"
-msgid "Fi&le system plugins allow access to disks inaccessible by operating system or to external devices like Palm/PocketPC."
+msgid "Fi&le system plugins allow access to disks inaccessible by operating system or to external devices like smartphones."
 msgstr "Dateisystem-P&lugins erlauben auf Dateisysteme oder externe Laufwerke zuzugreifen, auf die das Betriebssystem nicht zugreifen kann (z.B. Palm oder Pocket-PCs)."
 
 #: tfrmoptionspluginswfx.stgplugins.columns[0].title.caption
@@ -10292,6 +10294,22 @@ msgctxt "ulng.rseditgotolinetitle"
 msgid "Goto Line"
 msgstr "Gehe zu Zeile"
 
+#: ulng.rsedithintcursorpos
+msgid "Cursor Position"
+msgstr "Position des Cursors"
+
+#: ulng.rsedithintinsertmode
+msgid "Insert Mode"
+msgstr "Einfügen-Modus"
+
+#: ulng.rsedithintmodified
+msgid "Modified"
+msgstr "Geändert"
+
+#: ulng.rsedithintselectionmode
+msgid "Selection Mode"
+msgstr "Auswahl-Modus"
+
 #: ulng.rseditnewfile
 msgid "new.txt"
 msgstr "Neu.txt"
@@ -10321,6 +10339,26 @@ msgstr "&Vorwärts"
 msgctxt "ulng.rseditsearchreplace"
 msgid "Replace"
 msgstr "Ersetzen"
+
+#: ulng.rseditstatinsertmodeins
+msgid "INS"
+msgstr "EINFÜGEN"
+
+#: ulng.rseditstatinsertmodeovr
+msgid "OVR"
+msgstr "ÜBERSCHREIBEN"
+
+#: ulng.rseditstatselmodecol
+msgid "COL"
+msgstr "SPALTEN"
+
+#: ulng.rseditstatselmodeline
+msgid "LINE"
+msgstr "ZEILEN"
+
+#: ulng.rseditstatselmodenorm
+msgid "NORM"
+msgstr "NORM"
 
 #: ulng.rseditwithexternaleditor
 msgid "with external editor"
@@ -10736,6 +10774,14 @@ msgstr "Keine Kombination mit [Eingabetaste]"
 msgid "By command name;By shortcut key (grouped);By shortcut key (one per row)"
 msgstr "Nach Befehlsname;Nach Tastaturkürzel (gruppiert);Nach Tastaturkürzel (einer pro Zeile)"
 
+#: ulng.rsiclouddrivercopyseedfileconfirmdlgmessage
+msgid "It is recommended to download the files first. Otherwise, what is copied is not the content of the files, but the corresponding placeholder files, which will result in hidden files with the .iCloud extension."
+msgstr "Die Dateien sollten zuerst heruntergeladen werden. Andernfalls wird nicht der Inhalt der Dateien kopiert, sondern nur die jeweiligen Platzhalter-Dateien, was dann versteckte Dateien mit der Erweiterung ».iCloud« ergibt."
+
+#: ulng.rsiclouddrivercopyseedfileconfirmdlgtitle
+msgid "The operation may contain files that were not downloaded, continue anyway?"
+msgstr "Der Vorgang könnte Dateien enthalten, die noch nicht heruntergeladen wurden, trotzdem fortfahren?"
+
 #: ulng.rsimporttoolbarproblem
 msgid "Cannot find reference to default bar file"
 msgstr "Kann Referenz für Standard-Leisten-Datei nicht finden"
@@ -10764,6 +10810,11 @@ msgstr "B"
 #: ulng.rslistoffindfileswindows
 msgid "List of \"Find files\" windows"
 msgstr "Liste der 'Dateisuche'-Fenster"
+
+#: ulng.rsmacosassignfindertagstomultiitems
+#, object-pascal-format
+msgid "Assign tags to %d items"
+msgstr "Tags %d Elementen zuordnen"
 
 #: ulng.rsmarkminus
 msgid "Unselect mask"
@@ -11105,6 +11156,24 @@ msgstr "Aushängen"
 msgctxt "ulng.rsmnuview"
 msgid "View"
 msgstr "Betrachten"
+
+#: ulng.rsmountedfilesourcecopymultifilestowcxdlgmessage
+msgid ""
+"Some virtual filesystem contain specific directory structures. When copying from it to a compressed archive, only one directory can be selected at a time, unless the actual locations of the selected directories are all located under the same parent directory.\n"
+"\n"
+"For example, for iCloud Drive, when copying directory from the root to a compressed archive, maybe only one directory should be selected.\n"
+"\n"
+"It is recommended that you follow your usual practice and try to select only one directory when you receive this prompt."
+msgstr ""
+"Etliche virtuelle Dateisysteme enthalten spezielle Verzeichnisstrukturen. Wenn daraus in ein komprimiertes Archiv kopiert wird, kann jeweils nur ein Verzeichnis ausgewählt werden, es sei denn, die Speicherorte der ausgewählten Verzeichnisse befinden sich alle unter demselben übergeordneten Verzeichnis.\n"
+"\n"
+"Bei iCloud Drive sollte z.B. beim Kopieren von Verzeichnissen aus dem Stammverzeichnis in ein komprimiertes Archiv möglichst nur ein Verzeichnis ausgewählt werden.\n"
+"\n"
+"Versuchen Sie bei diesem Vorgang gewöhnlich nur ein Verzeichnis auszuwählen, weil Sie sonst diese Meldung erhalten."
+
+#: ulng.rsmountedfilesourcecopymultifilestowcxdlgtitle
+msgid "The operation is not supported"
+msgstr "Der Vorgang wird nicht unterstützt"
 
 #: ulng.rsmsgaccount
 msgid "Account:"
@@ -13338,6 +13407,26 @@ msgstr ""
 msgctxt "ulng.rsoptionseditorplugins"
 msgid "Plugins"
 msgstr "Plugins"
+
+#: ulng.rsoptionseditorpluginsdsx
+msgid "Search plugins"
+msgstr ""
+
+#: ulng.rsoptionseditorpluginswcx
+msgid "Packer plugins"
+msgstr ""
+
+#: ulng.rsoptionseditorpluginswdx
+msgid "Content plugins"
+msgstr ""
+
+#: ulng.rsoptionseditorpluginswfx
+msgid "File system plugins"
+msgstr ""
+
+#: ulng.rsoptionseditorpluginswlx
+msgid "Viewer plugins"
+msgstr ""
 
 #: ulng.rsoptionseditorquicksearch
 msgid "Quick search/filter"

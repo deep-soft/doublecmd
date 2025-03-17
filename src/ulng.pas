@@ -500,8 +500,17 @@ resourcestring
   rsViewPaintToolsList = 'Pen;Rect;Ellipse';
 
   // Editor
+  rsEditStatSelModeCol = 'COL';
+  rsEditStatSelModeLine = 'LINE';
+  rsEditStatSelModeNorm = 'NORM';
+  rsEditStatInsertModeIns = 'INS';
+  rsEditStatInsertModeOvr = 'OVR';
   rsEditGotoLineTitle = 'Goto Line';
   rsEditGotoLineQuery = 'Goto line:';
+  rsEditHintModified = 'Modified';
+  rsEditHintCursorPos = 'Cursor Position';
+  rsEditHintInsertMode = 'Insert Mode';
+  rsEditHintSelectionMode = 'Selection Mode';
   rsEditAboutText = 'Internal Editor of Double Commander.';
   // Editor Highlighters
   rsSynLangPlainText = 'Plain text';
@@ -793,6 +802,11 @@ resourcestring
   rsOptionsEditorMiscellaneous = 'Miscellaneous';
   rsOptionsEditorMouse = 'Mouse';
   rsOptionsEditorPlugins = 'Plugins';
+  rsOptionsEditorPluginsDsx = 'Search plugins';
+  rsOptionsEditorPluginsWcx = 'Packer plugins';
+  rsOptionsEditorPluginsWlx = 'Viewer plugins';
+  rsOptionsEditorPluginsWdx = 'Content plugins';
+  rsOptionsEditorPluginsWfx = 'File system plugins';
   rsOptionsEditorQuickSearch = 'Quick search/filter';
   rsOptionsEditorTerminal = 'Terminal';
   rsOptionsEditorToolbar = 'Toolbar';
@@ -1056,6 +1070,14 @@ resourcestring
 
   rsMFSTBIEditTitle = 'Edit';
   rsMFSTBIEditTips = 'Edit...';
+
+  rsMountedFileSourceCopyMultiFilesToWcxDlgTitle = 'The operation is not supported';
+  rsMountedFileSourceCopyMultiFilesToWcxDlgMessage = 'Some virtual filesystem contain specific directory structures. When copying from it to a compressed archive, only one directory can be selected at a time, unless the actual locations of the selected directories are all located under the same parent directory.'#13#13'For example, for iCloud Drive, when copying directory from the root to a compressed archive, maybe only one directory should be selected.'#13#13'It is recommended that you follow your usual practice and try to select only one directory when you receive this prompt.';
+
+  // macOS
+  rsiCloudDriverCopySeedFileConfirmDlgTitle = 'The operation may contain files that were not downloaded, continue anyway?';
+  rsiCloudDriverCopySeedFileConfirmDlgMessage = 'It is recommended to download the files first. Otherwise, what is copied is not the content of the files, but the corresponding placeholder files, which will result in hidden files with the .iCloud extension.';
+  rsMacOSAssignFinderTagsToMultiItems = 'Assign tags to %d items';
 
   //Columns Menu
   rsMenuConfigureCustomColumns= 'Configure custom columns';

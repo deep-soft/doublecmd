@@ -6,10 +6,11 @@ interface
 
 uses
   Classes, SysUtils, Generics.Collections,
+  Dialogs,
   uFile, uFileSource, uFileSourceManager,
   uFileSystemFileSource, uWcxArchiveFileSource,
-  uFileSourceOperation, uFileSourceOperationTypes,
-  uDCUtils, DCStrUtils;
+  uFileSourceProperty, uFileSourceOperation, uFileSourceOperationTypes,
+  uLng, uDCUtils, DCStrUtils;
 
 type
   { IMountedFileSource }
@@ -58,6 +59,7 @@ type
     function GetVirtualPath(const APath: String): String; override;
     function GetFileName(aFile: TFile): String; override;
 
+    function GetProperties: TFileSourceProperties; override;
     function GetParentDir(sPath : String): String; override;
     function GetRootDir(sPath : String): String; override;
     function IsPathAtRoot(Path: String): Boolean; override;
@@ -67,17 +69,11 @@ type
     property mountPoints: TMountPoints read _mountPoints;
   end;
 
-implementation
-
-uses
-  uMountedListOperation;
-
-type
-
   { TMountedFileSourceProcessor }
 
   TMountedFileSourceProcessor = class( TFileSystemFileSourceProcessor )
   private
+    procedure detectIfSupportOperation(var params: TFileSourceConsultParams);
     procedure consultCopyOperation(var params: TFileSourceConsultParams);
     procedure consultMoveOperation(var params: TFileSourceConsultParams);
     procedure resolveRealPath( var params: TFileSourceConsultParams );
@@ -86,6 +82,11 @@ type
     procedure consultOperation(var params: TFileSourceConsultParams); override;
     procedure confirmOperation( var params: TFileSourceConsultParams ); override;
   end;
+
+implementation
+
+uses
+  uMountedListOperation;
 
 var
   mountedFileSourceProcessor: TMountedFileSourceProcessor;
@@ -216,6 +217,12 @@ begin
     Result:= inherited;
 end;
 
+function TMountedFileSource.GetProperties: TFileSourceProperties;
+begin
+  Result:= inherited GetProperties;
+  Result:= Result + [fspMounted];
+end;
+
 function TMountedFileSource.GetParentDir(sPath : String): String;
 begin
   Result := DCStrUtils.GetParentDir(sPath);
@@ -270,8 +277,8 @@ begin
   targetPath:= params.targetPath;
   pathType:= GetPathType( targetPath );
 
-  if ((params.currentFS=params.sourceFS) and (pathType<>ptAbsolute)) or
-     ((params.currentFS<>params.sourceFS) and (pathType=ptAbsolute)) then begin
+  if ((params.phase=TFileSourceConsultPhase.source) and (pathType<>ptAbsolute)) or
+     ((params.phase=TFileSourceConsultPhase.target) and (pathType=ptAbsolute)) then begin
     if pathType <> ptAbsolute then begin
       targetPath:= params.files.Path + targetPath;
       targetPath:= ExpandAbsolutePath( targetPath );
@@ -279,7 +286,7 @@ begin
     params.resultTargetPath:= mountedFS.getRealPath( targetPath );
   end;
 
-  if params.currentFS = params.sourceFS then
+  if params.phase=TFileSourceConsultPhase.source then
     params.files.Path:= calcBasePath;
 end;
 
@@ -289,7 +296,7 @@ var
   mountPoint: TMountPoint;
   realPath: String;
 begin
-  if params.currentFS <> params.sourceFS then
+  if params.phase<>TFileSourceConsultPhase.source then
     Exit;
   if NOT params.partnerFS.IsClass(TWcxArchiveFileSource) then
     Exit;
@@ -303,8 +310,46 @@ begin
   params.targetPath:= IncludeTrailingPathDelimiter(params.targetPath) + mountPoint.name + PathDelim;
 end;
 
+procedure TMountedFileSourceProcessor.detectIfSupportOperation(
+  var params: TFileSourceConsultParams);
+var
+  files: TFiles;
+  i: Integer;
+  path: String;
+begin
+  if params.phase<>TFileSourceConsultPhase.source then
+    Exit;
+  if NOT params.partnerFS.IsClass(TWcxArchiveFileSource) then
+    Exit;
+
+  files:= params.files;
+  if files.Count = 1 then
+    Exit;
+
+  path:= files[0].Path;
+  for i:=1 to files.Count-1 do begin
+    if files[i].Path = path then
+      continue;
+
+    MessageDlg(
+      rsMountedFileSourceCopyMultiFilesToWcxDlgTitle,
+      rsMountedFileSourceCopyMultiFilesToWcxDlgMessage,
+      mtInformation,
+      [mbOK],
+      0 );
+
+    params.consultResult:= fscrCancel;
+    params.handled:= True;
+    Exit;
+  end;
+end;
+
 procedure TMountedFileSourceProcessor.consultCopyOperation(var params: TFileSourceConsultParams);
 begin
+  detectIfSupportOperation( params );
+  if params.handled then
+    Exit;
+
   inherited consultOperation( params );
   self.calcTargetPath( params );
 end;
@@ -313,7 +358,7 @@ procedure TMountedFileSourceProcessor.consultMoveOperation(var params: TFileSour
 begin
   params.consultResult:= fscrNotSupported;
   params.handled:= True;
-  if params.currentFS = params.sourceFS then
+  if params.phase=TFileSourceConsultPhase.source then
     Exit;
   if params.sourceFS.GetClass.ClassType <> TFileSystemFileSource then
     Exit;

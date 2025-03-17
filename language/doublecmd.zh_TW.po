@@ -3926,9 +3926,10 @@ msgid "Oth&er..."
 msgstr "其他..."
 
 #: tfrmoptionsarchivers.btnarchiverrelativer.hint
+#, fuzzy
 msgctxt "tfrmoptionsarchivers.btnarchiverrelativer.hint"
 msgid "Some functions to select appropriate path"
-msgstr ""
+msgstr "選擇合適路徑的功能"
 
 #: tfrmoptionsarchivers.btnarchiverrename.caption
 msgctxt "tfrmoptionsarchivers.btnarchiverrename.caption"
@@ -5099,9 +5100,10 @@ msgid "&Miscellaneous..."
 msgstr ""
 
 #: tfrmoptionsdirectoryhotlist.btnrelativepath.hint
+#, fuzzy
 msgctxt "tfrmoptionsdirectoryhotlist.btnrelativepath.hint"
 msgid "Some functions to select appropriate path"
-msgstr ""
+msgstr "選擇合適路徑的功能"
 
 #: tfrmoptionsdirectoryhotlist.btnrelativetarget.hint
 msgctxt "tfrmoptionsdirectoryhotlist.btnrelativetarget.hint"
@@ -5451,11 +5453,6 @@ msgstr "背景色彩 (&K)"
 #: tfrmoptionseditorcolors.btnresetmask.hint
 msgid "Reset"
 msgstr ""
-
-#: tfrmoptionseditorcolors.btnsavemask.hint
-msgctxt "tfrmoptionseditorcolors.btnsavemask.hint"
-msgid "Save"
-msgstr "儲存"
 
 #: tfrmoptionseditorcolors.bvlattributesection.caption
 msgid "Element Attributes"
@@ -5830,9 +5827,10 @@ msgid "Variable reminder helper"
 msgstr ""
 
 #: tfrmoptionsfileassoc.btnrelativecommand.hint
+#, fuzzy
 msgctxt "tfrmoptionsfileassoc.btnrelativecommand.hint"
 msgid "Some functions to select appropriate path"
-msgstr ""
+msgstr "選擇合適路徑的功能"
 
 #: tfrmoptionsfileassoc.btnremoveact.caption
 msgctxt "tfrmoptionsfileassoc.btnremoveact.caption"
@@ -5855,9 +5853,10 @@ msgid "R&ename"
 msgstr "重新命名 (&E)"
 
 #: tfrmoptionsfileassoc.btnstartpathpathhelper.hint
+#, fuzzy
 msgctxt "tfrmoptionsfileassoc.btnstartpathpathhelper.hint"
 msgid "Some functions to select appropriate path"
-msgstr ""
+msgstr "選擇合適路徑的功能"
 
 #: tfrmoptionsfileassoc.btnstartpathvarhelper.hint
 msgctxt "tfrmoptionsfileassoc.btnstartpathvarhelper.hint"
@@ -6479,11 +6478,6 @@ msgctxt "TFRMOPTIONSFILETYPESCOLORS.BTNADDCATEGORY.CAPTION"
 msgid "A&dd"
 msgstr "新增 (&D)"
 
-#: tfrmoptionsfiletypescolors.btnapplycategory.caption
-msgctxt "TFRMOPTIONSFILETYPESCOLORS.BTNAPPLYCATEGORY.CAPTION"
-msgid "A&pply"
-msgstr "套用 (&P)"
-
 #: tfrmoptionsfiletypescolors.btndeletecategory.caption
 msgctxt "TFRMOPTIONSFILETYPESCOLORS.BTNDELETECATEGORY.CAPTION"
 msgid "D&elete"
@@ -6652,6 +6646,16 @@ msgstr "參數"
 msgid "Controls"
 msgstr ""
 
+#: tfrmoptionsicloud.appslistview.columns[0].caption
+msgctxt "tfrmoptionsicloud.appslistview.columns[0].caption"
+msgid "Applications"
+msgstr "應用程式"
+
+#: tfrmoptionsicloud.appslistview.columns[1].caption
+msgctxt "tfrmoptionsicloud.appslistview.columns[1].caption"
+msgid "Count of Contents"
+msgstr "包含的檔案數量"
+
 #: tfrmoptionsicons.cbiconsexclude.caption
 msgctxt "TFRMOPTIONSICONS.CBICONSEXCLUDE.CAPTION"
 msgid "For the following &paths and their subdirectories:"
@@ -6668,7 +6672,7 @@ msgstr "16x16"
 
 #: tfrmoptionsicons.cbiconsonbuttons.caption
 msgid "Show icons on buttons"
-msgstr ""
+msgstr "在按鈕上顯示圖示"
 
 #: tfrmoptionsicons.cbiconsshowoverlay.caption
 msgctxt "TFRMOPTIONSICONS.CBICONSSHOWOVERLAY.CAPTION"
@@ -6677,7 +6681,7 @@ msgstr "顯示覆蓋圖示,例如捷徑 (&V)"
 
 #: tfrmoptionsicons.chkshowhiddendimmed.caption
 msgid "&Dimmed hidden files (slower)"
-msgstr ""
+msgstr "隱藏檔案變暗（較慢）"
 
 #: tfrmoptionsicons.gbdisablespecialicons.caption
 msgid "Disable special icons"
@@ -6690,11 +6694,11 @@ msgstr "圖示大小"
 
 #: tfrmoptionsicons.gbicontheme.caption
 msgid "Icon theme"
-msgstr ""
+msgstr "圖示主題"
 
 #: tfrmoptionsicons.gbshowicons.caption
 msgid "Show icons"
-msgstr ""
+msgstr "顯示圖示"
 
 #: tfrmoptionsicons.gbshowiconsmode.caption
 msgctxt "TFRMOPTIONSICONS.GBSHOWICONSMODE.CAPTION"
@@ -6703,11 +6707,11 @@ msgstr "顯示圖示在檔案名稱左邊"
 
 #: tfrmoptionsicons.lbldiskpanel.caption
 msgid "Disk panel:"
-msgstr ""
+msgstr "磁碟面板:"
 
 #: tfrmoptionsicons.lblfilepanel.caption
 msgid "File panel:"
-msgstr ""
+msgstr "檔案面板:"
 
 #: tfrmoptionsicons.rbiconsshowall.caption
 msgctxt "TFRMOPTIONSICONS.RBICONSSHOWALL.CAPTION"
@@ -6742,7 +6746,7 @@ msgstr "加入已選取項目的完整路徑名稱 (&F)"
 #: tfrmoptionsignorelist.btnrelativesavein.hint
 msgctxt "tfrmoptionsignorelist.btnrelativesavein.hint"
 msgid "Some functions to select appropriate path"
-msgstr ""
+msgstr "選擇合適路徑的功能"
 
 #: tfrmoptionsignorelist.chkignoreenable.caption
 msgctxt "TFRMOPTIONSIGNORELIST.CHKIGNOREENABLE.CAPTION"
@@ -6884,9 +6888,10 @@ msgid " Screen layout "
 msgstr " 畫面佈置 "
 
 #: tfrmoptionslog.btnrelativelogfile.hint
+#, fuzzy
 msgctxt "tfrmoptionslog.btnrelativelogfile.hint"
 msgid "Some functions to select appropriate path"
-msgstr ""
+msgstr "選擇合適路徑的功能"
 
 #: tfrmoptionslog.btnviewlogfile.hint
 msgctxt "tfrmoptionslog.btnviewlogfile.hint"
@@ -6975,19 +6980,22 @@ msgid ">>"
 msgstr ">>"
 
 #: tfrmoptionsmisc.btnrelativeoutputpathfortoolbar.hint
+#, fuzzy
 msgctxt "tfrmoptionsmisc.btnrelativeoutputpathfortoolbar.hint"
 msgid "Some functions to select appropriate path"
-msgstr ""
+msgstr "選擇合適路徑的功能"
 
 #: tfrmoptionsmisc.btnrelativetcconfigfile.hint
+#, fuzzy
 msgctxt "tfrmoptionsmisc.btnrelativetcconfigfile.hint"
 msgid "Some functions to select appropriate path"
-msgstr ""
+msgstr "選擇合適路徑的功能"
 
 #: tfrmoptionsmisc.btnrelativetcexecutablefile.hint
+#, fuzzy
 msgctxt "tfrmoptionsmisc.btnrelativetcexecutablefile.hint"
 msgid "Some functions to select appropriate path"
-msgstr ""
+msgstr "選擇合適路徑的功能"
 
 #: tfrmoptionsmisc.btnthumbcompactcache.caption
 msgid "&Remove thumbnails for no longer existing files"
@@ -7132,9 +7140,10 @@ msgid "Single click (opens folders, double click for files)"
 msgstr ""
 
 #: tfrmoptionsmultirename.btnmulrenlogfilenamerelative.hint
+#, fuzzy
 msgctxt "tfrmoptionsmultirename.btnmulrenlogfilenamerelative.hint"
 msgid "Some functions to select appropriate path"
-msgstr ""
+msgstr "選擇合適路徑的功能"
 
 #: tfrmoptionsmultirename.btnmulrenlogfilenameview.hint
 msgctxt "tfrmoptionsmultirename.btnmulrenlogfilenameview.hint"
@@ -7328,8 +7337,10 @@ msgid "File name"
 msgstr "檔案名稱"
 
 #: tfrmoptionspluginswfx.lblplugindescription.caption
+#, fuzzy
+#| msgid "Fi&le system plugins allow access to disks inaccessible by operating system or to external devices like Palm/PocketPC."
 msgctxt "tfrmoptionspluginswfx.lblplugindescription.caption"
-msgid "Fi&le system plugins allow access to disks inaccessible by operating system or to external devices like Palm/PocketPC."
+msgid "Fi&le system plugins allow access to disks inaccessible by operating system or to external devices like smartphones."
 msgstr "檔案系統插件可允許存取一些作業系統上罕見的檔案系統, 或是像 Palm/PocketPC 等外部裝置"
 
 #: tfrmoptionspluginswfx.stgplugins.columns[0].title.caption
@@ -8107,9 +8118,10 @@ msgid "Way to set paths when adding elements for icons, commands and starting pa
 msgstr ""
 
 #: tfrmoptionstoolbase.btnrelativetoolpath.hint
+#, fuzzy
 msgctxt "tfrmoptionstoolbase.btnrelativetoolpath.hint"
 msgid "Some functions to select appropriate path"
-msgstr ""
+msgstr "選擇合適路徑的功能"
 
 #: tfrmoptionstoolbase.cbtoolskeepterminalopen.caption
 msgctxt "TFRMOPTIONSTOOLBASE.CBTOOLSKEEPTERMINALOPEN.CAPTION"
@@ -8943,9 +8955,10 @@ msgid "Drag and drop elements to sort them"
 msgstr ""
 
 #: tfrmsplitter.btnrelativeftchoice.hint
+#, fuzzy
 msgctxt "tfrmsplitter.btnrelativeftchoice.hint"
 msgid "Some functions to select appropriate path"
-msgstr ""
+msgstr "選擇合適路徑的功能"
 
 #: tfrmsplitter.caption
 msgctxt "TFRMSPLITTER.CAPTION"
@@ -9062,15 +9075,11 @@ msgid "Use &relative path when possible"
 msgstr ""
 
 #: tfrmsymlink.lblexistingfile.caption
-#, fuzzy
-#| msgid "Destination that the link will point to"
 msgctxt "TFRMSYMLINK.LBLEXISTINGFILE.CAPTION"
 msgid "&Destination that the link will point to"
 msgstr "連結目標 (&D)"
 
 #: tfrmsymlink.lbllinktocreate.caption
-#, fuzzy
-#| msgid "Link name"
 msgctxt "TFRMSYMLINK.LBLLINKTOCREATE.CAPTION"
 msgid "&Link name"
 msgstr "連結名稱 (&L)"
@@ -9130,7 +9139,6 @@ msgid "Compare"
 msgstr "比較"
 
 #: tfrmsyncdirsdlg.btnsearchtemplate.hint
-#, fuzzy
 msgctxt "tfrmsyncdirsdlg.btnsearchtemplate.hint"
 msgid "Template..."
 msgstr "範本..."
@@ -9145,8 +9153,6 @@ msgid "Synchronize directories"
 msgstr "同步資料夾"
 
 #: tfrmsyncdirsdlg.cbextfilter.text
-#, fuzzy
-#| msgid "*.*"
 msgctxt "tfrmsyncdirsdlg.cbextfilter.text"
 msgid "*"
 msgstr "*.*"
@@ -9176,19 +9182,16 @@ msgid "Show:"
 msgstr ""
 
 #: tfrmsyncdirsdlg.headerdg.columns[0].title.caption
-#, fuzzy
 msgctxt "tfrmsyncdirsdlg.headerdg.columns[0].title.caption"
 msgid "Name"
 msgstr "名稱"
 
 #: tfrmsyncdirsdlg.headerdg.columns[1].title.caption
-#, fuzzy
 msgctxt "tfrmsyncdirsdlg.headerdg.columns[1].title.caption"
 msgid "Size"
 msgstr "大小"
 
 #: tfrmsyncdirsdlg.headerdg.columns[2].title.caption
-#, fuzzy
 msgctxt "tfrmsyncdirsdlg.headerdg.columns[2].title.caption"
 msgid "Date"
 msgstr "日期"
@@ -9198,19 +9201,16 @@ msgid "<=>"
 msgstr ""
 
 #: tfrmsyncdirsdlg.headerdg.columns[4].title.caption
-#, fuzzy
 msgctxt "tfrmsyncdirsdlg.headerdg.columns[4].title.caption"
 msgid "Date"
 msgstr "日期"
 
 #: tfrmsyncdirsdlg.headerdg.columns[5].title.caption
-#, fuzzy
 msgctxt "tfrmsyncdirsdlg.headerdg.columns[5].title.caption"
 msgid "Size"
 msgstr "大小"
 
 #: tfrmsyncdirsdlg.headerdg.columns[6].title.caption
-#, fuzzy
 msgctxt "tfrmsyncdirsdlg.headerdg.columns[6].title.caption"
 msgid "Name"
 msgstr "名稱"
@@ -9329,51 +9329,41 @@ msgid "Configuration of Tree View Menu Colors"
 msgstr "樹形檢視選單顏色配置"
 
 #: tfrmtweakplugin.btnadd.caption
-#, fuzzy
-#| msgid "Add new"
 msgid "A&dd new"
-msgstr "增加"
+msgstr "增加 (&D)"
 
 #: tfrmtweakplugin.btncancel.caption
-#, fuzzy
-#| msgid "Cancel"
 msgctxt "TFRMTWEAKPLUGIN.BTNCANCEL.CAPTION"
 msgid "&Cancel"
 msgstr "取消 (&C)"
 
 #: tfrmtweakplugin.btnchange.caption
-#, fuzzy
-#| msgid "Change"
 msgid "C&hange"
 msgstr "變更 (&H)"
 
 #: tfrmtweakplugin.btndefault.caption
-#, fuzzy
-#| msgid "Default"
 msgctxt "tfrmtweakplugin.btndefault.caption"
 msgid "De&fault"
 msgstr "預設值 (&F)"
 
 #: tfrmtweakplugin.btnok.caption
-#, fuzzy
-#| msgid "OK"
 msgctxt "TFRMTWEAKPLUGIN.BTNOK.CAPTION"
 msgid "&OK"
 msgstr "確定 (&O)"
 
 #: tfrmtweakplugin.btnrelativeplugin1.hint
+#, fuzzy
 msgctxt "tfrmtweakplugin.btnrelativeplugin1.hint"
 msgid "Some functions to select appropriate path"
-msgstr ""
+msgstr "選擇合適路徑的功能"
 
 #: tfrmtweakplugin.btnrelativeplugin2.hint
+#, fuzzy
 msgctxt "tfrmtweakplugin.btnrelativeplugin2.hint"
 msgid "Some functions to select appropriate path"
-msgstr ""
+msgstr "選擇合適路徑的功能"
 
 #: tfrmtweakplugin.btnremove.caption
-#, fuzzy
-#| msgid "Remove"
 msgctxt "TFRMTWEAKPLUGIN.BTNREMOVE.CAPTION"
 msgid "&Remove"
 msgstr "移除 (&R)"
@@ -9384,75 +9374,51 @@ msgid "Tweak plugin"
 msgstr "調整插件"
 
 #: tfrmtweakplugin.cbpk_caps_by_content.caption
-#, fuzzy
-#| msgid "Detect archive type by content"
 msgid "De&tect archive type by content"
 msgstr "依內容檢測壓縮類型 (&T)"
 
 #: tfrmtweakplugin.cbpk_caps_delete.caption
-#, fuzzy
-#| msgid "Can delete files"
 msgid "Can de&lete files"
 msgstr "可以刪除檔案 (&L)"
 
 #: tfrmtweakplugin.cbpk_caps_encrypt.caption
-#, fuzzy
-#| msgid "Supports encryption"
 msgid "Supports e&ncryption"
 msgstr "支持加密 (&N)"
 
 #: tfrmtweakplugin.cbpk_caps_hide.caption
-#, fuzzy
-#| msgid "Show as normal files (hide packer icon)"
 msgid "Sho&w as normal files (hide packer icon)"
 msgstr "顯示為普通檔案 (隱藏壓縮器圖示) (&W)"
 
 #: tfrmtweakplugin.cbpk_caps_mempack.caption
-#, fuzzy
-#| msgid "Supports packing in memory"
 msgid "Supports pac&king in memory"
 msgstr "支持在記憶體進行壓縮 (&K)"
 
 #: tfrmtweakplugin.cbpk_caps_modify.caption
-#, fuzzy
-#| msgid "Can modify existing archives"
 msgid "Can &modify existing archives"
 msgstr "可以修改已存在的壓縮檔 (&M)"
 
 #: tfrmtweakplugin.cbpk_caps_multiple.caption
-#, fuzzy
-#| msgid "Archive can contain multiple files"
 msgid "&Archive can contain multiple files"
 msgstr "壓縮檔可包含複數檔案 (&A)"
 
 #: tfrmtweakplugin.cbpk_caps_new.caption
-#, fuzzy
-#| msgid "Can create new archives"
 msgid "Can create new archi&ves"
 msgstr "可以建立新壓縮檔 (&V)"
 
 #: tfrmtweakplugin.cbpk_caps_options.caption
-#, fuzzy
-#| msgid "Supports the options dialogbox"
 msgid "S&upports the options dialogbox"
 msgstr "支持選項對話盒 (&U)"
 
 #: tfrmtweakplugin.cbpk_caps_searchtext.caption
-#, fuzzy
-#| msgid "Allow searching for text in archives"
 msgid "Allow searchin&g for text in archives"
-msgstr "允許在壓縮檔搜尋文字 (&G)"
+msgstr "允許在壓縮檔搜尋文字"
 
 #: tfrmtweakplugin.lbldescription.caption
-#, fuzzy
-#| msgid "Description:"
 msgctxt "TFRMTWEAKPLUGIN.LBLDESCRIPTION.CAPTION"
 msgid "&Description:"
 msgstr "描述 (&D):"
 
 #: tfrmtweakplugin.lbldetectstr.caption
-#, fuzzy
-#| msgid "Detect string:"
 msgid "D&etect string:"
 msgstr "檢測字串 (&E):"
 
@@ -9466,8 +9432,6 @@ msgid "Flags:"
 msgstr "旗標:"
 
 #: tfrmtweakplugin.lblname.caption
-#, fuzzy
-#| msgid "Name:"
 msgctxt "TFRMTWEAKPLUGIN.LBLNAME.CAPTION"
 msgid "&Name:"
 msgstr "名稱 (&N):"
@@ -9510,7 +9474,6 @@ msgid "Copy File"
 msgstr "複製檔案"
 
 #: tfrmviewer.actcopytoclipboard.caption
-#, fuzzy
 msgctxt "tfrmviewer.actcopytoclipboard.caption"
 msgid "Copy To Clipboard"
 msgstr "複製到剪貼簿"
@@ -9530,19 +9493,16 @@ msgid "Delete File"
 msgstr "刪除檔案"
 
 #: tfrmviewer.actexitviewer.caption
-#, fuzzy
 msgctxt "tfrmviewer.actexitviewer.caption"
 msgid "E&xit"
 msgstr "離開 (&X)"
 
 #: tfrmviewer.actfind.caption
-#, fuzzy
 msgctxt "tfrmviewer.actfind.caption"
 msgid "Find"
 msgstr "尋找"
 
 #: tfrmviewer.actfindnext.caption
-#, fuzzy
 msgctxt "tfrmviewer.actfindnext.caption"
 msgid "Find next"
 msgstr "找下一個"
@@ -9553,19 +9513,16 @@ msgid "Find previous"
 msgstr "找上一個"
 
 #: tfrmviewer.actfullscreen.caption
-#, fuzzy
 msgctxt "tfrmviewer.actfullscreen.caption"
 msgid "Full Screen"
 msgstr "全螢幕"
 
 #: tfrmviewer.actgotoline.caption
-#, fuzzy
 msgctxt "tfrmviewer.actgotoline.caption"
 msgid "Goto Line..."
 msgstr "跳轉到指定行..."
 
 #: tfrmviewer.actgotoline.hint
-#, fuzzy
 msgctxt "tfrmviewer.actgotoline.hint"
 msgid "Goto Line"
 msgstr "跳轉到指定行"
@@ -9598,7 +9555,6 @@ msgid "Mirror Horizontally"
 msgstr ""
 
 #: tfrmviewer.actmirrorhorz.hint
-#, fuzzy
 msgctxt "tfrmviewer.actmirrorhorz.hint"
 msgid "Mirror"
 msgstr "水平翻轉"
@@ -9618,7 +9574,6 @@ msgid "Move File"
 msgstr "移動檔案"
 
 #: tfrmviewer.actpreview.caption
-#, fuzzy
 msgctxt "tfrmviewer.actpreview.caption"
 msgid "Preview"
 msgstr "預覽"
@@ -9641,49 +9596,36 @@ msgid "Reload current file"
 msgstr "重新載入目前檔案"
 
 #: tfrmviewer.actrotate180.caption
-#, fuzzy
-#| msgid "Rotate 180"
 msgctxt "TFRMVIEWER.ACTROTATE180.CAPTION"
 msgid "+ 180"
-msgstr "旋轉180度"
+msgstr ""
 
 #: tfrmviewer.actrotate180.hint
-#, fuzzy
-#| msgid "Rotate 180"
 msgctxt "TFRMVIEWER.ACTROTATE180.HINT"
 msgid "Rotate 180 degrees"
 msgstr "旋轉180度"
 
 #: tfrmviewer.actrotate270.caption
-#, fuzzy
-#| msgid "Rotate 270"
 msgctxt "TFRMVIEWER.ACTROTATE270.CAPTION"
 msgid "- 90"
-msgstr "旋轉270度"
+msgstr ""
 
 #: tfrmviewer.actrotate270.hint
-#, fuzzy
-#| msgid "Rotate 270"
 msgctxt "TFRMVIEWER.ACTROTATE270.HINT"
 msgid "Rotate -90 degrees"
-msgstr "旋轉270度"
+msgstr "旋轉-90度"
 
 #: tfrmviewer.actrotate90.caption
-#, fuzzy
-#| msgid "Rotate 90"
 msgctxt "TFRMVIEWER.ACTROTATE90.CAPTION"
 msgid "+ 90"
-msgstr "旋轉90度"
+msgstr ""
 
 #: tfrmviewer.actrotate90.hint
-#, fuzzy
-#| msgid "Rotate 90"
 msgctxt "TFRMVIEWER.ACTROTATE90.HINT"
 msgid "Rotate +90 degrees"
 msgstr "旋轉90度"
 
 #: tfrmviewer.actsave.caption
-#, fuzzy
 msgctxt "tfrmviewer.actsave.caption"
 msgid "Save"
 msgstr "儲存"
@@ -9698,7 +9640,6 @@ msgid "Save File As..."
 msgstr "另存新檔..."
 
 #: tfrmviewer.actscreenshot.caption
-#, fuzzy
 msgctxt "tfrmviewer.actscreenshot.caption"
 msgid "Screenshot"
 msgstr "截圖"
@@ -9712,72 +9653,64 @@ msgid "Delay 5 sec"
 msgstr ""
 
 #: tfrmviewer.actselectall.caption
-#, fuzzy
 msgctxt "tfrmviewer.actselectall.caption"
 msgid "Select All"
 msgstr "全選"
 
 #: tfrmviewer.actshowasbin.caption
-#, fuzzy
 msgctxt "tfrmviewer.actshowasbin.caption"
 msgid "Show as &Bin"
 msgstr "顯示為二進制 (&B)"
 
 #: tfrmviewer.actshowasbook.caption
-#, fuzzy
 msgctxt "tfrmviewer.actshowasbook.caption"
 msgid "Show as B&ook"
 msgstr "顯示為閱讀模式 (&O)"
 
 #: tfrmviewer.actshowasdec.caption
 msgid "Show as &Dec"
-msgstr ""
+msgstr "顯示為十進制 (&D)"
 
 #: tfrmviewer.actshowashex.caption
-#, fuzzy
 msgctxt "tfrmviewer.actshowashex.caption"
 msgid "Show as &Hex"
 msgstr "顯示為十六進制 (&H)"
 
 #: tfrmviewer.actshowastext.caption
-#, fuzzy
 msgctxt "tfrmviewer.actshowastext.caption"
 msgid "Show as &Text"
 msgstr "顯示為文字 (&T)"
 
 #: tfrmviewer.actshowaswraptext.caption
-#, fuzzy
 msgctxt "tfrmviewer.actshowaswraptext.caption"
 msgid "Show as &Wrap text"
 msgstr "顯示為自動換行文字 (&W)"
 
 #: tfrmviewer.actshowcaret.caption
 msgid "Show text c&ursor"
-msgstr ""
+msgstr "顯示文字遊標 (&U)"
 
 #: tfrmviewer.actshowcode.caption
 msgid "Code"
-msgstr ""
+msgstr "程式碼"
 
 #: tfrmviewer.actshowgraphics.caption
-#, fuzzy
 msgctxt "tfrmviewer.actshowgraphics.caption"
 msgid "Graphics"
 msgstr "圖像"
 
 #: tfrmviewer.actshowoffice.caption
 msgid "Office XML (text only)"
-msgstr ""
+msgstr "Office XML (僅文本)"
 
 #: tfrmviewer.actshowplugins.caption
-#, fuzzy
 msgctxt "tfrmviewer.actshowplugins.caption"
 msgid "Plugins"
 msgstr "插件"
 
 #: tfrmviewer.actshowtransparency.caption
 msgid "Show transparenc&y"
-msgstr ""
+msgstr "顯示透明度 (&Y)"
 
 #: tfrmviewer.actstretchimage.caption
 msgctxt "TFRMVIEWER.ACTSTRETCHIMAGE.CAPTION"
@@ -10660,6 +10593,22 @@ msgctxt "ulng.rseditgotolinetitle"
 msgid "Goto Line"
 msgstr "跳轉到指定行"
 
+#: ulng.rsedithintcursorpos
+msgid "Cursor Position"
+msgstr "遊標位置"
+
+#: ulng.rsedithintinsertmode
+msgid "Insert Mode"
+msgstr "插入模式"
+
+#: ulng.rsedithintmodified
+msgid "Modified"
+msgstr "已修改"
+
+#: ulng.rsedithintselectionmode
+msgid "Selection Mode"
+msgstr "選擇方式"
+
 #: ulng.rseditnewfile
 msgid "new.txt"
 msgstr "new.txt"
@@ -10690,13 +10639,33 @@ msgctxt "ulng.rseditsearchreplace"
 msgid "Replace"
 msgstr "取代"
 
+#: ulng.rseditstatinsertmodeins
+msgid "INS"
+msgstr "插入"
+
+#: ulng.rseditstatinsertmodeovr
+msgid "OVR"
+msgstr "覆蓋"
+
+#: ulng.rseditstatselmodecol
+msgid "COL"
+msgstr "欄"
+
+#: ulng.rseditstatselmodeline
+msgid "LINE"
+msgstr "行"
+
+#: ulng.rseditstatselmodenorm
+msgid "NORM"
+msgstr "常規"
+
 #: ulng.rseditwithexternaleditor
 msgid "with external editor"
-msgstr ""
+msgstr "使用外部編輯器"
 
 #: ulng.rseditwithinternaleditor
 msgid "with internal editor"
-msgstr ""
+msgstr "使用內部編輯器"
 
 #: ulng.rsexecuteviashell
 msgctxt "ulng.rsexecuteviashell"
@@ -11103,6 +11072,14 @@ msgstr ""
 msgid "By command name;By shortcut key (grouped);By shortcut key (one per row)"
 msgstr ""
 
+#: ulng.rsiclouddrivercopyseedfileconfirmdlgmessage
+msgid "It is recommended to download the files first. Otherwise, what is copied is not the content of the files, but the corresponding placeholder files, which will result in hidden files with the .iCloud extension."
+msgstr "建議先完成档案下載後再操作。否則，複製的不是档案本身的內容，而是對應的佔位符档案，這只會複製以.iCloud為擴展名的隱藏档案。"
+
+#: ulng.rsiclouddrivercopyseedfileconfirmdlgtitle
+msgid "The operation may contain files that were not downloaded, continue anyway?"
+msgstr "操作可能包含未下載的档案，仍然繼續嗎？"
+
 #: ulng.rsimporttoolbarproblem
 msgid "Cannot find reference to default bar file"
 msgstr ""
@@ -11131,6 +11108,11 @@ msgstr ""
 #: ulng.rslistoffindfileswindows
 msgid "List of \"Find files\" windows"
 msgstr ""
+
+#: ulng.rsmacosassignfindertagstomultiitems
+#, object-pascal-format
+msgid "Assign tags to %d items"
+msgstr "將標籤分配給%d個項目"
 
 #: ulng.rsmarkminus
 msgid "Unselect mask"
@@ -11473,6 +11455,24 @@ msgstr "卸載"
 msgctxt "ulng.rsmnuview"
 msgid "View"
 msgstr "檢視"
+
+#: ulng.rsmountedfilesourcecopymultifilestowcxdlgmessage
+msgid ""
+"Some virtual filesystem contain specific directory structures. When copying from it to a compressed archive, only one directory can be selected at a time, unless the actual locations of the selected directories are all located under the same parent directory.\n"
+"\n"
+"For example, for iCloud Drive, when copying directory from the root to a compressed archive, maybe only one directory should be selected.\n"
+"\n"
+"It is recommended that you follow your usual practice and try to select only one directory when you receive this prompt."
+msgstr ""
+"某些虛擬档案系統，內部包含異構的目錄結構。從中複製到壓縮檔案時，一次只能選中一個目錄。除非選中的目錄對應的實際位置，都位於相同的父目錄下。\n"
+"\n"
+"例如對於iCloud雲盤，在根目錄下複製目錄到壓縮檔案時，就有可能一次只能選中一個目錄。\n"
+"\n"
+"建議先按照您的習慣操作，在收到這個提示時，才嘗試一次只選中一個目錄。"
+
+#: ulng.rsmountedfilesourcecopymultifilestowcxdlgtitle
+msgid "The operation is not supported"
+msgstr "不支持該操作"
 
 #: ulng.rsmsgaccount
 msgid "Account:"
@@ -13707,6 +13707,26 @@ msgstr ""
 msgctxt "ulng.rsoptionseditorplugins"
 msgid "Plugins"
 msgstr "插件"
+
+#: ulng.rsoptionseditorpluginsdsx
+msgid "Search plugins"
+msgstr ""
+
+#: ulng.rsoptionseditorpluginswcx
+msgid "Packer plugins"
+msgstr ""
+
+#: ulng.rsoptionseditorpluginswdx
+msgid "Content plugins"
+msgstr ""
+
+#: ulng.rsoptionseditorpluginswfx
+msgid "File system plugins"
+msgstr ""
+
+#: ulng.rsoptionseditorpluginswlx
+msgid "Viewer plugins"
+msgstr ""
 
 #: ulng.rsoptionseditorquicksearch
 msgctxt "ulng.rsoptionseditorquicksearch"

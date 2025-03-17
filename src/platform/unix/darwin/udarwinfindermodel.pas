@@ -7,7 +7,7 @@ interface
 
 uses
   Classes, SysUtils, LCLType,
-  sqldb, SQLite3Conn,
+  sqldb, SQLite3Conn, syncobjs,
   uDebug,
   MacOSAll, CocoaAll, CocoaConst, Cocoa_Extra;
 
@@ -38,8 +38,11 @@ type
 
   TFinderTags = class
   private class var
+    _lockObject: TCriticalSection;
     _tags: NSDictionary;
   public
+    class constructor Create;
+
     class function tags: NSDictionary;
     class procedure update;
     class function getTagOfName( tagName: NSString ): TFinderTag;
@@ -50,6 +53,8 @@ type
   TFinderTagNSColors = Array of NSColor;
 
   TMacOSSearchResultHandler = procedure ( const searchName: String; const files: TStringArray ) of object;
+
+  TFinderFavoriteTagMenuItemState = ( selectionAll, selectionNone, selectionMixed );
 
   { uDarwinFinderModelUtil }
 
@@ -70,10 +75,15 @@ type
     class function getFavoriteTagNames: NSArray;
     class function getSidebarTagNames: NSArray;
   public
+    class function getTagStateForFiles( const tagName: NSString ; const urls: NSArray ):
+      TFinderFavoriteTagMenuItemState;
     class function getTagNamesOfFile( const url: NSURL ): NSArray;
+    class function getTagNamesOfFiles( const urls: NSArray ): NSArray;
     class procedure setTagNamesOfFile( const url: NSURL; const tagNames: NSArray );
     class procedure addTagForFile( const url: NSURL; const tagName: NSString );
+    class procedure addTagForFiles( const urls: NSArray; const tagName: NSString );
     class procedure removeTagForFile( const url: NSURL; const tagName: NSString );
+    class procedure removeTagForFiles( const urls: NSArray; const tagName: NSString );
   public
     class procedure searchFilesForTagName( const tagName: NSString; const handler: TMacOSSearchResultHandler );
     class procedure searchFilesForTagNames( const tagNames: NSArray; const handler: TMacOSSearchResultHandler );
@@ -138,6 +148,11 @@ end;
 
 { TFinderTags }
 
+class constructor TFinderTags.Create;
+begin
+  _lockObject:= TCriticalSection.Create;
+end;
+
 class function TFinderTags.tags: NSDictionary;
 begin
   Result:= _tags;
@@ -159,11 +174,18 @@ end;
 class function TFinderTags.getTagOfName( tagName: NSString ): TFinderTag;
 begin
   Result:= nil;
-  if _tags = nil then
-    self.update;
-  if _tags = nil then
-    Exit;
-  Result:= _tags.objectForKey( tagName );
+
+  _lockObject.Acquire;
+  try
+    if _tags = nil then
+      self.update;
+
+    if _tags = nil then
+      Exit;
+    Result:= _tags.objectForKey( tagName );
+  finally
+    _lockObject.Release;
+  end;
 end;
 
 { TMacOSQueryHandler }
@@ -237,6 +259,20 @@ begin
     Result:= tagNames;
 end;
 
+class function uDarwinFinderModelUtil.getTagNamesOfFiles(const urls: NSArray
+  ): NSArray;
+var
+  url: NSURL;
+  tagNames: NSMutableOrderedSet;
+begin
+  tagNames:= NSMutableOrderedSet.new;
+  for url in urls do begin
+    tagNames.addObjectsFromArray( getTagNamesOfFile(url) );
+  end;
+  Result:= NSArray.arrayWithArray( tagNames.array_ );
+  tagNames.release;
+end;
+
 class procedure uDarwinFinderModelUtil.setTagNamesOfFile(const url: NSURL;
   const tagNames: NSArray);
 begin
@@ -250,9 +286,21 @@ var
   newTagNames: NSMutableArray;
 begin
   tagNames:= uDarwinFinderModelUtil.getTagNamesOfFile( url );
+  if tagNames.containsObject(tagName) then
+    Exit;
   newTagNames:= NSMutableArray.arrayWithArray( tagNames );
   newTagNames.addObject( tagName );
   uDarwinFinderModelUtil.setTagNamesOfFile( url, newTagNames );
+end;
+
+class procedure uDarwinFinderModelUtil.addTagForFiles(const urls: NSArray;
+  const tagName: NSString);
+var
+  url: NSURL;
+begin
+  for url in urls do begin
+    addTagForFile( url, tagName );
+  end;
 end;
 
 class procedure uDarwinFinderModelUtil.removeTagForFile(const url: NSURL;
@@ -265,6 +313,16 @@ begin
   newTagNames:= NSMutableArray.arrayWithArray( tagNames );
   newTagNames.removeObject( tagName );
   uDarwinFinderModelUtil.setTagNamesOfFile( url, newTagNames );
+end;
+
+class procedure uDarwinFinderModelUtil.removeTagForFiles(const urls: NSArray;
+  const tagName: NSString);
+var
+  url: NSURL;
+begin
+  for url in urls do begin
+    removeTagForFile( url, tagName );
+  end;
 end;
 
 class procedure uDarwinFinderModelUtil.searchFilesForTagNames(
@@ -387,6 +445,27 @@ begin
       tagNames.addObject( tag.name );
   end;
   Result:= tagNames;
+end;
+
+class function uDarwinFinderModelUtil.getTagStateForFiles(
+  const tagName: NSString ; const urls: NSArray ): TFinderFavoriteTagMenuItemState;
+var
+  tagNames: NSArray;
+  url: NSURL;
+  matchCount: Integer;
+begin
+  matchCount:= 0;
+  for url in urls do begin
+    tagNames:= getTagNamesOfFile( url );
+    if tagNames.containsObject(tagName) then
+      matchCount:= matchCount + 1;
+  end;
+  if matchCount = 0 then
+    Result:= selectionNone
+  else if matchCount = urls.count then
+    Result:= selectionAll
+  else
+    Result:= selectionMixed;
 end;
 
 class function uDarwinFinderModelUtil.getFavoriteTags: NSArray;

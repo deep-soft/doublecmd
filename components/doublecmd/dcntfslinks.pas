@@ -4,7 +4,7 @@
     This unit contains functions to work with hard and symbolic links
     on the NTFS file system.
 
-    Copyright (C) 2012-2017 Alexander Koblov (alexx2000@mail.ru)
+    Copyright (C) 2012-2025 Alexander Koblov (alexx2000@mail.ru)
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -17,8 +17,7 @@
     Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    License along with this library. If not, see <https://www.gnu.org/licenses/>.
 }
 
 unit DCNtfsLinks;
@@ -40,6 +39,8 @@ const
   FSCTL_SET_REPARSE_POINT      = $000900A4;
   FSCTL_GET_REPARSE_POINT      = $000900A8;
   FSCTL_DELETE_REPARSE_POINT   = $000900AC;
+  // WSL and Cygwin symbolic link
+  IO_REPARSE_TAG_LX_SYMLINK    = $A000001D;
 
 const
   REPARSE_DATA_HEADER_SIZE = 8;
@@ -68,6 +69,11 @@ type
     PathBuffer: array[0..0] of WCHAR;
   end;
 
+  TLxSymlinkReparseBuffer = record
+    FileType: DWORD;
+    PathBuffer: array[0..0] of AnsiChar;
+  end;
+
   TGenericReparseBuffer = record
     DataBuffer: array[0..0] of UCHAR;
   end;
@@ -79,7 +85,8 @@ type
     case Integer of
     0: (SymbolicLinkReparseBuffer: TSymbolicLinkReparseBuffer);
     1: (MountPointReparseBuffer: TMountPointReparseBuffer);
-    2: (GenericReparseBuffer: TGenericReparseBuffer);
+    2: (LxSymlinkReparseBuffer: TLxSymlinkReparseBuffer);
+    3: (GenericReparseBuffer: TGenericReparseBuffer);
   end;
   TReparseDataBuffer = REPARSE_DATA_BUFFER;
   PReparseDataBuffer = ^REPARSE_DATA_BUFFER;
@@ -95,7 +102,7 @@ type
    @param(ALinkName The name of the symbolic link)
    @returns(The function returns @true if successful, @false otherwise)
 }
-function CreateSymLink(const ATargetName, ALinkName: UnicodeString): Boolean;
+function CreateSymLink(const ATargetName, ALinkName: UnicodeString; Attr: UInt32): Boolean;
 {en
    Established a hard link beetwen an existing file and new file. This function
    is only supported on the NTFS file system, and only for files, not directories.
@@ -305,7 +312,7 @@ begin
   end;
 end;
 
-function CreateSymLink(const ATargetName, ALinkName: UnicodeString): Boolean;
+function CreateSymLink(const ATargetName, ALinkName: UnicodeString; Attr: UInt32): Boolean;
 var
   dwAttributes: DWORD;
   lpFilePart: LPWSTR = nil;
@@ -324,7 +331,11 @@ begin
       AFullPathName:= ATargetName;
     end;
   end;
-  dwAttributes:= Windows.GetFileAttributesW(PWideChar(AFullPathName));
+  if (Attr <> FILE_DOES_NOT_EXIST) then
+    dwAttributes:= Attr
+  else begin
+    dwAttributes:= Windows.GetFileAttributesW(PWideChar(AFullPathName));
+  end;
   if dwAttributes = FILE_DOES_NOT_EXIST then Exit;
   if HasNewApi = False then
   begin
@@ -348,9 +359,10 @@ end;
 
 function ReadSymLink(const aSymlinkFileName: UnicodeString; out aTargetFileName: UnicodeString): Boolean;
 var
+  L: Integer;
   hDevice: THandle;
   dwFileAttributes: DWORD;
-  caOutBuffer: array[0..4095] of Byte;
+  caOutBuffer: array[0..MaxSmallint] of Byte;
   lpOutBuffer: TReparseDataBuffer absolute caOutBuffer;
   pwcTargetFileName: PWideChar;
   lpBytesReturned: DWORD = 0;
@@ -397,6 +409,13 @@ begin
           pwcTargetFileName:= pwcTargetFileName + SubstituteNameOffset div SizeOf(WideChar);
           SetLength(aTargetFileName, SubstituteNameLength div SizeOf(WideChar));
           CopyMemory(PWideChar(aTargetFileName), pwcTargetFileName, SubstituteNameLength);
+        end;
+      IO_REPARSE_TAG_LX_SYMLINK:
+        with lpOutBuffer.LxSymlinkReparseBuffer do
+        begin
+          L:= lpOutBuffer.ReparseDataLength - SizeOf(FileType);
+          SetLength(aTargetFileName, L + 1);
+          SetLength(aTargetFileName, MultiByteToWideChar(CP_UTF8, 0, @PathBuffer[0], L, PWideChar(aTargetFileName), L + 1));
         end;
       end;
       if Pos(wsNetworkFileNamePrefix, aTargetFileName) = 1 then

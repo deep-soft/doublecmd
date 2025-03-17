@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Double Commander 1.2.0 alpha\n"
-"POT-Creation-Date: 2025-01-28 17:23+0300\n"
-"PO-Revision-Date: 2025-01-28 21:32+0300\n"
+"POT-Creation-Date: 2025-03-12 13:47+0300\n"
+"PO-Revision-Date: 2025-03-12 17:40+0300\n"
 "Last-Translator: Alexander Koblov <alexx2000@mail.ru>\n"
 "Language-Team: \n"
 "Language: ru\n"
@@ -5460,11 +5460,6 @@ msgstr "Фо&н"
 msgid "Reset"
 msgstr "Сбросить"
 
-#: tfrmoptionseditorcolors.btnsavemask.hint
-msgctxt "tfrmoptionseditorcolors.btnsavemask.hint"
-msgid "Save"
-msgstr "Сохранить"
-
 #: tfrmoptionseditorcolors.bvlattributesection.caption
 msgid "Element Attributes"
 msgstr "Атрибуты элементов"
@@ -6488,11 +6483,6 @@ msgctxt "TFRMOPTIONSFILETYPESCOLORS.BTNADDCATEGORY.CAPTION"
 msgid "A&dd"
 msgstr "&Добавить"
 
-#: tfrmoptionsfiletypescolors.btnapplycategory.caption
-msgctxt "TFRMOPTIONSFILETYPESCOLORS.BTNAPPLYCATEGORY.CAPTION"
-msgid "A&pply"
-msgstr "П&рименить"
-
 #: tfrmoptionsfiletypescolors.btndeletecategory.caption
 msgctxt "TFRMOPTIONSFILETYPESCOLORS.BTNDELETECATEGORY.CAPTION"
 msgid "D&elete"
@@ -6660,6 +6650,16 @@ msgstr "Параметры"
 #: tfrmoptionshotkeys.stghotkeys.columns[2].title.caption
 msgid "Controls"
 msgstr "Элементы интерфейса"
+
+#: tfrmoptionsicloud.appslistview.columns[0].caption
+msgctxt "tfrmoptionsicloud.appslistview.columns[0].caption"
+msgid "Applications"
+msgstr "Приложения"
+
+#: tfrmoptionsicloud.appslistview.columns[1].caption
+msgctxt "tfrmoptionsicloud.appslistview.columns[1].caption"
+msgid "Count of Contents"
+msgstr "Количество содержимого"
 
 #: tfrmoptionsicons.cbiconsexclude.caption
 msgctxt "TFRMOPTIONSICONS.CBICONSEXCLUDE.CAPTION"
@@ -7333,8 +7333,8 @@ msgstr "Имя файла"
 
 #: tfrmoptionspluginswfx.lblplugindescription.caption
 msgctxt "tfrmoptionspluginswfx.lblplugindescription.caption"
-msgid "Fi&le system plugins allow access to disks inaccessible by operating system or to external devices like Palm/PocketPC."
-msgstr "Позволя&ют обращаться к дискам, недоступным из ОС или к внешним устройствам, типа Palm/PocketPC, и т.д."
+msgid "Fi&le system plugins allow access to disks inaccessible by operating system or to external devices like smartphones."
+msgstr "Позволя&ют обращаться к дискам, недоступным из ОС или к внешним устройствам, типа смартфонов, и т.д."
 
 #: tfrmoptionspluginswfx.stgplugins.columns[0].title.caption
 msgctxt "tfrmoptionspluginswfx.stgplugins.columns[0].title.caption"
@@ -10549,6 +10549,22 @@ msgctxt "ulng.rseditgotolinetitle"
 msgid "Goto Line"
 msgstr "Переход к строке"
 
+#: ulng.rsedithintcursorpos
+msgid "Cursor Position"
+msgstr "Позиция курсора"
+
+#: ulng.rsedithintinsertmode
+msgid "Insert Mode"
+msgstr "Режим вставки"
+
+#: ulng.rsedithintmodified
+msgid "Modified"
+msgstr "Изменён"
+
+#: ulng.rsedithintselectionmode
+msgid "Selection Mode"
+msgstr "Режим выделения"
+
 #: ulng.rseditnewfile
 msgid "new.txt"
 msgstr "новый.txt"
@@ -10578,6 +10594,26 @@ msgstr "&Вперед"
 msgctxt "ulng.rseditsearchreplace"
 msgid "Replace"
 msgstr "Заменить"
+
+#: ulng.rseditstatinsertmodeins
+msgid "INS"
+msgstr "ВСТ"
+
+#: ulng.rseditstatinsertmodeovr
+msgid "OVR"
+msgstr "ЗАМ"
+
+#: ulng.rseditstatselmodecol
+msgid "COL"
+msgstr "СТЛБ"
+
+#: ulng.rseditstatselmodeline
+msgid "LINE"
+msgstr "СТРК"
+
+#: ulng.rseditstatselmodenorm
+msgid "NORM"
+msgstr "НОРМ"
 
 #: ulng.rseditwithexternaleditor
 msgid "with external editor"
@@ -10995,6 +11031,14 @@ msgstr "Не использовать \"Enter\""
 msgid "By command name;By shortcut key (grouped);By shortcut key (one per row)"
 msgstr "По имени команды;По горячим клавишам (группир.);По горячим клавишам (по одной)"
 
+#: ulng.rsiclouddrivercopyseedfileconfirmdlgmessage
+msgid "It is recommended to download the files first. Otherwise, what is copied is not the content of the files, but the corresponding placeholder files, which will result in hidden files with the .iCloud extension."
+msgstr "Рекомендуется сначала загрузить файлы. В противном случае будет скопировано не содержимое файлов, а соответствующие файлы-заполнители, что приведет к появлению скрытых файлов с расширением .iCloud."
+
+#: ulng.rsiclouddrivercopyseedfileconfirmdlgtitle
+msgid "The operation may contain files that were not downloaded, continue anyway?"
+msgstr "Операция может содержать файлы, которые не были загружены. Продолжить в любом случае?"
+
 #: ulng.rsimporttoolbarproblem
 msgid "Cannot find reference to default bar file"
 msgstr "Не удалось найти файл панели инструментов по умолчанию"
@@ -11023,6 +11067,11 @@ msgstr "Б"
 #: ulng.rslistoffindfileswindows
 msgid "List of \"Find files\" windows"
 msgstr "Список окон \"Поиск файлов\""
+
+#: ulng.rsmacosassignfindertagstomultiitems
+#, object-pascal-format
+msgid "Assign tags to %d items"
+msgstr "Добавить теги выделенному (%d)"
 
 #: ulng.rsmarkminus
 msgid "Unselect mask"
@@ -11364,6 +11413,24 @@ msgstr "Отмонтировать"
 msgctxt "ulng.rsmnuview"
 msgid "View"
 msgstr "Просмотреть"
+
+#: ulng.rsmountedfilesourcecopymultifilestowcxdlgmessage
+msgid ""
+"Some virtual filesystem contain specific directory structures. When copying from it to a compressed archive, only one directory can be selected at a time, unless the actual locations of the selected directories are all located under the same parent directory.\n"
+"\n"
+"For example, for iCloud Drive, when copying directory from the root to a compressed archive, maybe only one directory should be selected.\n"
+"\n"
+"It is recommended that you follow your usual practice and try to select only one directory when you receive this prompt."
+msgstr ""
+"Некоторые виртуальные файловые системы содержат специальные структуры каталогов. При копировании из них в сжатый архив может быть выделен только один каталог, если только реальное расположение выбранных каталогов не в одном и том же реальном родительском каталоге.\n"
+"\n"
+"Например, для диска iCloud при копировании в сжатый архив каталогов из корневого каталога, возможно, следует выбрать только один каталог.\n"
+"\n"
+"Рекомендуется выбирать только один каталог, иначе вы получите это сообщение."
+
+#: ulng.rsmountedfilesourcecopymultifilestowcxdlgtitle
+msgid "The operation is not supported"
+msgstr "Операция не поддерживается"
 
 #: ulng.rsmsgaccount
 msgid "Account:"
@@ -13616,6 +13683,26 @@ msgstr ""
 msgctxt "ulng.rsoptionseditorplugins"
 msgid "Plugins"
 msgstr "Плагины"
+
+#: ulng.rsoptionseditorpluginsdsx
+msgid "Search plugins"
+msgstr "Плагины поиска"
+
+#: ulng.rsoptionseditorpluginswcx
+msgid "Packer plugins"
+msgstr "Архиваторные плагины"
+
+#: ulng.rsoptionseditorpluginswdx
+msgid "Content plugins"
+msgstr "Информационные плагины"
+
+#: ulng.rsoptionseditorpluginswfx
+msgid "File system plugins"
+msgstr "Плагины файловой системы"
+
+#: ulng.rsoptionseditorpluginswlx
+msgid "Viewer plugins"
+msgstr "Плагины просмотрщика"
 
 #: ulng.rsoptionseditorquicksearch
 msgctxt "ulng.rsoptionseditorquicksearch"

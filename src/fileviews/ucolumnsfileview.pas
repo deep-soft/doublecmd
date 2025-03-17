@@ -18,6 +18,7 @@ uses
   DCXmlConfig,
   DCBasicTypes,
   uTypes,
+  uSmoothScrollingGrid,
   uFileViewWithGrid;
 
 type
@@ -28,7 +29,7 @@ type
 
   { TDrawGridEx }
 
-  TDrawGridEx = class(TDrawGrid)
+  TDrawGridEx = class(TSmoothScrollingGrid)
   private
     FMouseDownY: Integer;
     FLastMouseMoveTime: QWord;
@@ -482,19 +483,21 @@ end;
 
 procedure TColumnsFileView.ShowRenameFileEdit(var aFile: TFile);
 begin
-  if FFileNameColumn <> -1 then
+  if FFileNameColumn = -1 then
+    Exit;
+  if aFile.Name = EmptyStr then
+    Exit;;
+
+  if not edtRename.Visible then
   begin
-    if not edtRename.Visible then
-    begin
-      edtRename.Font.Name  := GetColumnsClass.GetColumnFontName(FFileNameColumn);
-      edtRename.Font.Size  := GetColumnsClass.GetColumnFontSize(FFileNameColumn);
-      edtRename.Font.Style := GetColumnsClass.GetColumnFontStyle(FFileNameColumn);
+    edtRename.Font.Name  := GetColumnsClass.GetColumnFontName(FFileNameColumn);
+    edtRename.Font.Size  := GetColumnsClass.GetColumnFontSize(FFileNameColumn);
+    edtRename.Font.Style := GetColumnsClass.GetColumnFontStyle(FFileNameColumn);
 
-      UpdateRenameFileEditPosition;
-    end;
-
-    inherited ShowRenameFileEdit(AFile);
+    UpdateRenameFileEditPosition;
   end;
+
+  inherited ShowRenameFileEdit(AFile);
 end;
 
 procedure TColumnsFileView.UpdateRenameFileEditPosition;
@@ -621,7 +624,7 @@ begin
              fpLink,              // For distinguishing directories (link to dir) and link icons
              fpModificationTime   // For selecting/coloring files (by SearchTemplate)
              {$IFDEF DARWIN}
-             ,fpMacOSFinderTag    // macOS finder tag
+             ,fpMacOSSpecific     // macOS
              {$ENDIF}
             ];
 
@@ -1969,7 +1972,6 @@ var
     if handler = nil then
       Exit;
 
-    params.drawingRect:= aRect;
     handler.draw( params );
   end;
 
@@ -2025,6 +2027,7 @@ begin
         DrawOtherCell;
     end;
 
+    params.drawingRect:= aRect;
     params.focused:= (gdSelected in aState) and ColumnsView.Active;
     callFileSourceDrawCell;
     callOnDrawCell;

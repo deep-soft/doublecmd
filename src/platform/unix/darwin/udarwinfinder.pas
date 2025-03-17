@@ -42,13 +42,13 @@ type
     _menuTagRoundImages: TFinderTagMenuRoundImages;
   public
     class procedure popoverFileTagsEditor(
-      const path: String; onClose: TFinderEditorCloseHandler;
+      const paths: TStringArray; onClose: TFinderEditorCloseHandler;
       const positioningView: NSView; const edge: NSRectEdge );
     class procedure popoverTagsSelector(
       const title: String; onClose: TFinderEditorCloseHandler;
       const positioningView: NSView; const edge: NSRectEdge );
 
-    class function attachFinderTagsMenu( const path: String;
+    class function attachFinderTagsMenu( const paths: TStringArray;
       const lclMenu: TPopupMenu; const menuIndex: Integer ): Boolean;
     class procedure attachSearchForTagsMenu( const lclMenu: TMenu );
   private
@@ -140,7 +140,7 @@ type
     _cancel: Boolean;
     _onClose: TFinderEditorCloseHandler;
   public
-    class function editorWithPath( const path: NSString ): id; message 'doublecmd_editorWithPath:';
+    class function editorWithPath( const urls: NSArray ): id; message 'doublecmd_editorWithPath:';
     class function selectorWithTitle( const titleString: NSString ): id; message 'doublecmd_editorWithTitle:';
     function init: id; override;
     procedure dealloc; override;
@@ -173,13 +173,13 @@ type
   private
     _finderTag: TFinderTag;
     _trackingArea: NSTrackingArea;
-    _using: Boolean;
+    _state: TFinderFavoriteTagMenuItemState;
     _hover: Boolean;
   public
     procedure setFinderTag( const finderTag: TFinderTag ); message 'doublecmd_setFinderTag:';
     function finderTag: TFinderTag; message 'doublecmd_finderTag';
-    procedure setUsing( const using: Boolean ); message 'doublecmd_setUsing:';
-    function using: Boolean; message 'doublecmd_using';
+    procedure setState( const state: TFinderFavoriteTagMenuItemState ); message 'doublecmd_setState:';
+    function state: TFinderFavoriteTagMenuItemState; message 'doublecmd_state';
   public
     procedure dealloc; override;
     procedure updateTrackingAreas; override;
@@ -199,12 +199,12 @@ type
     _lclMenu: TPopupMenu;
     _lclMateMenuItem: TMenuItem;
     _favoriteTags: NSArray;
-    _url: NSURL;
+    _urls: NSArray;
   public
     procedure setLclMenu( const lclMenu: TPopupMenu; const lclMateMenuItem: TMenuItem );
       message 'doublecmd_setLclMenu:lclMenu:';
-    procedure setPath( const path: NSString );
-      message 'doublecmd_setPath:';
+    procedure setUrls( const urls: NSArray );
+      message 'doublecmd_setUrls:';
     procedure setFavoriteTags( const favoriteTags: NSArray );
       message 'doublecmd_setFavoriteTags:';
   private
@@ -602,17 +602,23 @@ end;
 
 { TFinderTagsEditorPanel }
 
-class function TFinderTagsEditorPanel.editorWithPath( const path: NSString ): id;
+class function TFinderTagsEditorPanel.editorWithPath( const urls: NSArray ): id;
 var
   panel: TFinderTagsEditorPanel;
-  url: NSURL;
+  titleString: NSString;
+  formatString: String;
 begin
-  url:= NSURL.fileURLWithPath( path );
   // release in popoverDidClose()
   panel:= TFinderTagsEditorPanel.new;
   panel.loadView;
-  panel.setTitle( url.lastPathComponent );
-  panel.setTagNames( uDarwinFinderModelUtil.getTagNamesOfFile(url) );
+  if urls.count = 1 then begin
+    titleString:= NSURL( urls.objectAtIndex(0) ).lastPathComponent;
+  end else begin
+    formatString:= Format( rsMacOSAssignFinderTagsToMultiItems, [urls.count] );
+    titleString:= StrToNSString( formatString );
+  end;
+  panel.setTitle( titleString );
+  panel.setTagNames( uDarwinFinderModelUtil.getTagNamesOfFiles(urls) );
   Result:= panel;
 end;
 
@@ -866,12 +872,12 @@ end;
 { uDarwinFinderUtil }
 
 class procedure uDarwinFinderUtil.popoverFileTagsEditor(
-  const path: String; onClose: TFinderEditorCloseHandler;
+  const paths: TStringArray; onClose: TFinderEditorCloseHandler;
   const positioningView: NSView ; const edge: NSRectEdge );
 var
   panel: TFinderTagsEditorPanel;
 begin
-  panel:= TFinderTagsEditorPanel.editorWithPath( StrToNSString(path) );
+  panel:= TFinderTagsEditorPanel.editorWithPath( UrlArrayFromLCLToNS(paths) );
   panel._onClose:= onClose;
   panel.showPopover( positioningView, edge );
 end;
@@ -887,7 +893,7 @@ begin
   panel.showPopover( positioningView, edge );
 end;
 
-class function uDarwinFinderUtil.attachFinderTagsMenu( const path: String;
+class function uDarwinFinderUtil.attachFinderTagsMenu( const paths: TStringArray;
   const lclMenu: TPopupMenu; const menuIndex: Integer ): Boolean;
 var
   menuView: TFinderFavoriteTagsMenuView;
@@ -905,7 +911,7 @@ begin
       200,
       FINDER_FAVORITE_TAGS_MENU_ITEM_SIZE + FINDER_FAVORITE_TAGS_MENU_ITEM_SPACING*2 ) );
   menuView.setLclMenu( lclMenu, lclMenu.Items[menuIndex+1] );
-  menuView.setPath( StrToNSString(path) );
+  menuView.setUrls( UrlArrayFromLCLToNS(paths) );
   menuView.setFavoriteTags( favoriteTags );
 
   cocoaItem:= NSMenuItem( lclMenu.Items[menuIndex].Handle );
@@ -1026,14 +1032,14 @@ begin
   Result:= _finderTag;
 end;
 
-procedure TFinderFavoriteTagMenuItem.setUsing(const using: Boolean);
+procedure TFinderFavoriteTagMenuItem.setState(const state: TFinderFavoriteTagMenuItemState);
 begin
-  _using:= using;
+  _state:= state;
 end;
 
-function TFinderFavoriteTagMenuItem.using: Boolean;
+function TFinderFavoriteTagMenuItem.state: TFinderFavoriteTagMenuItemState;
 begin
-  Result:= _using;
+  Result:= _state;
 end;
 
 procedure TFinderFavoriteTagMenuItem.dealloc;
@@ -1087,7 +1093,7 @@ procedure TFinderFavoriteTagMenuItem.drawRect(dirtyRect: NSRect);
     stateRect:= NSMakeRect( 5, 6, FINDER_FAVORITE_TAGS_MENU_ITEM_SIZE, FINDER_FAVORITE_TAGS_MENU_ITEM_SIZE );
     stateFontSize:= 11;
     if _hover then begin
-      if _using then begin
+      if _state = selectionAll then begin
         stateString:= StrToNSString( 'x' );
         stateRect.origin.x:= stateRect.origin.x + 1;
         stateFontSize:= 14;
@@ -1096,7 +1102,7 @@ procedure TFinderFavoriteTagMenuItem.drawRect(dirtyRect: NSRect);
         stateFontSize:= 15;
       end;
     end else begin
-      if _using then
+      if _state <> selectionNone then
         stateString:= StrToNSString( '✓' )
       else
         stateString:= nil;
@@ -1156,9 +1162,10 @@ begin
   _lclMateMenuItem:= lclMateMenuItem;
 end;
 
-procedure TFinderFavoriteTagsMenuView.setPath(const path: NSString);
+procedure TFinderFavoriteTagsMenuView.setUrls(const urls: NSArray);
 begin
-  _url:= NSURL.alloc.initFileURLWithPath( path );
+  _urls:= urls;
+  _urls.retain;
 end;
 
 procedure TFinderFavoriteTagsMenuView.setFavoriteTags(const favoriteTags: NSArray
@@ -1167,21 +1174,16 @@ var
   finderTag: TFinderTag;
   itemControl: TFinderFavoriteTagMenuItem;
   itemRect: NSRect;
-  fileTagNames: NSArray;
 
   function createItemControl: TFinderFavoriteTagMenuItem;
-  var
-    using: Boolean;
   begin
-    using:= fileTagNames.containsObject( finderTag.name );
     Result:= TFinderFavoriteTagMenuItem.alloc.initWithFrame( itemRect );
     Result.setFinderTag( finderTag );
-    Result.setUsing( using );
+    Result.setState( uDarwinFinderModelUtil.getTagStateForFiles(finderTag.name, _urls) );
   end;
 
   procedure createSubviews;
   begin
-    fileTagNames:= uDarwinFinderModelUtil.getTagNamesOfFile( _url );
     itemRect:= NSMakeRect(
       16,
       FINDER_FAVORITE_TAGS_MENU_ITEM_SPACING,
@@ -1207,7 +1209,7 @@ var
 begin
   if tagMenuItem <> nil then begin
     mateCaption:= tagMenuItem.finderTag.name.UTF8String;
-    if tagMenuItem.using then
+    if tagMenuItem.state = selectionAll then
       mateCaption:= Format( rsMenuMacOSRemoveFinderTag, [mateCaption] )
     else
       mateCaption:= Format( rsMenuMacOSAddFinderTag, [mateCaption] );
@@ -1222,18 +1224,17 @@ var
   tagName: NSString;
 begin
   tagName:= tagMenuItem.finderTag.name;
-  Writeln( tagName.utf8string );
-  if tagMenuItem.using then
-    uDarwinFinderModelUtil.removeTagForFile( _url, tagName )
+  if tagMenuItem.state = selectionAll then
+    uDarwinFinderModelUtil.removeTagForFiles( _urls, tagName )
   else
-    uDarwinFinderModelUtil.addTagForFile( _url, tagName );
+    uDarwinFinderModelUtil.addTagForFiles( _urls, tagName );
   NSMenu(_lclMenu.Handle).cancelTracking;
 end;
 
 procedure TFinderFavoriteTagsMenuView.dealloc;
 begin
   Inherited;
-  _url.release;
+  _urls.release;
 end;
 
 initialization

@@ -5360,11 +5360,6 @@ msgstr "背景(&K)"
 msgid "Reset"
 msgstr "重置"
 
-#: tfrmoptionseditorcolors.btnsavemask.hint
-msgctxt "tfrmoptionseditorcolors.btnsavemask.hint"
-msgid "Save"
-msgstr "保存"
-
 #: tfrmoptionseditorcolors.bvlattributesection.caption
 msgid "Element Attributes"
 msgstr "元素属性"
@@ -6344,11 +6339,6 @@ msgctxt "TFRMOPTIONSFILETYPESCOLORS.BTNADDCATEGORY.CAPTION"
 msgid "A&dd"
 msgstr "添加(&D)"
 
-#: tfrmoptionsfiletypescolors.btnapplycategory.caption
-msgctxt "TFRMOPTIONSFILETYPESCOLORS.BTNAPPLYCATEGORY.CAPTION"
-msgid "A&pply"
-msgstr "应用(&P)"
-
 #: tfrmoptionsfiletypescolors.btndeletecategory.caption
 msgctxt "TFRMOPTIONSFILETYPESCOLORS.BTNDELETECATEGORY.CAPTION"
 msgid "D&elete"
@@ -6509,6 +6499,16 @@ msgstr "参数"
 #: tfrmoptionshotkeys.stghotkeys.columns[2].title.caption
 msgid "Controls"
 msgstr "控件"
+
+#: tfrmoptionsicloud.appslistview.columns[0].caption
+msgctxt "tfrmoptionsicloud.appslistview.columns[0].caption"
+msgid "Applications"
+msgstr "应用"
+
+#: tfrmoptionsicloud.appslistview.columns[1].caption
+msgctxt "tfrmoptionsicloud.appslistview.columns[1].caption"
+msgid "Count of Contents"
+msgstr "包含的文件数量"
 
 #: tfrmoptionsicons.cbiconsexclude.caption
 msgctxt "TFRMOPTIONSICONS.CBICONSEXCLUDE.CAPTION"
@@ -7137,8 +7137,10 @@ msgid "File name"
 msgstr "文件名"
 
 #: tfrmoptionspluginswfx.lblplugindescription.caption
+#, fuzzy
+#| msgid "Fi&le system plugins allow access to disks inaccessible by operating system or to external devices like Palm/PocketPC."
 msgctxt "tfrmoptionspluginswfx.lblplugindescription.caption"
-msgid "Fi&le system plugins allow access to disks inaccessible by operating system or to external devices like Palm/PocketPC."
+msgid "Fi&le system plugins allow access to disks inaccessible by operating system or to external devices like smartphones."
 msgstr "文件系统插件允许访问操作系统或 Palm/PocketPC 等外部设备中无法访问的磁盘。"
 
 #: tfrmoptionspluginswfx.stgplugins.columns[0].title.caption
@@ -10289,6 +10291,22 @@ msgctxt "ulng.rseditgotolinetitle"
 msgid "Goto Line"
 msgstr "跳转到行"
 
+#: ulng.rsedithintcursorpos
+msgid "Cursor Position"
+msgstr "光标位置"
+
+#: ulng.rsedithintinsertmode
+msgid "Insert Mode"
+msgstr "插入模式"
+
+#: ulng.rsedithintmodified
+msgid "Modified"
+msgstr "已修改"
+
+#: ulng.rsedithintselectionmode
+msgid "Selection Mode"
+msgstr "选择模式"
+
 #: ulng.rseditnewfile
 msgid "new.txt"
 msgstr "new.txt"
@@ -10318,6 +10336,26 @@ msgstr "前进(&F)"
 msgctxt "ulng.rseditsearchreplace"
 msgid "Replace"
 msgstr "替换"
+
+#: ulng.rseditstatinsertmodeins
+msgid "INS"
+msgstr "插入"
+
+#: ulng.rseditstatinsertmodeovr
+msgid "OVR"
+msgstr "覆盖"
+
+#: ulng.rseditstatselmodecol
+msgid "COL"
+msgstr "列"
+
+#: ulng.rseditstatselmodeline
+msgid "LINE"
+msgstr "行"
+
+#: ulng.rseditstatselmodenorm
+msgid "NORM"
+msgstr "常规"
 
 #: ulng.rseditwithexternaleditor
 msgid "with external editor"
@@ -10733,6 +10771,14 @@ msgstr "没有带回车键的快捷键"
 msgid "By command name;By shortcut key (grouped);By shortcut key (one per row)"
 msgstr "按命令名称;按快捷键（分组）;按快捷键（每行一个）"
 
+#: ulng.rsiclouddrivercopyseedfileconfirmdlgmessage
+msgid "It is recommended to download the files first. Otherwise, what is copied is not the content of the files, but the corresponding placeholder files, which will result in hidden files with the .iCloud extension."
+msgstr "建议先完成文件下载后再操作。否则，复制的不是文件本身的内容，而是对应的占位符文件，这只会复制以.iCloud为扩展名的隐藏文件。"
+
+#: ulng.rsiclouddrivercopyseedfileconfirmdlgtitle
+msgid "The operation may contain files that were not downloaded, continue anyway?"
+msgstr "操作可能包含未下载的文件，仍然继续吗？"
+
 #: ulng.rsimporttoolbarproblem
 msgid "Cannot find reference to default bar file"
 msgstr "无法找到引用默认工具栏的文件"
@@ -10761,6 +10807,11 @@ msgstr ""
 #: ulng.rslistoffindfileswindows
 msgid "List of \"Find files\" windows"
 msgstr "<查找文件> 窗口列表"
+
+#: ulng.rsmacosassignfindertagstomultiitems
+#, object-pascal-format
+msgid "Assign tags to %d items"
+msgstr "将标签分配给%d个项目"
 
 #: ulng.rsmarkminus
 msgid "Unselect mask"
@@ -11125,6 +11176,24 @@ msgstr "卸载"
 msgctxt "ulng.rsmnuview"
 msgid "View"
 msgstr "查看"
+
+#: ulng.rsmountedfilesourcecopymultifilestowcxdlgmessage
+msgid ""
+"Some virtual filesystem contain specific directory structures. When copying from it to a compressed archive, only one directory can be selected at a time, unless the actual locations of the selected directories are all located under the same parent directory.\n"
+"\n"
+"For example, for iCloud Drive, when copying directory from the root to a compressed archive, maybe only one directory should be selected.\n"
+"\n"
+"It is recommended that you follow your usual practice and try to select only one directory when you receive this prompt."
+msgstr ""
+"某些虚拟文件系统，内部包含异构的目录结构。从中复制到压缩档案时，一次只能选中一个目录。除非选中的目录对应的实际位置，都位于相同的父目录下。\n"
+"\n"
+"例如对于iCloud云盘，在根目录下复制目录到压缩档案时，就有可能一次只能选中一个目录。\n"
+"\n"
+"建议先按照您的习惯操作，在收到这个提示时，才尝试一次只选中一个目录。"
+
+#: ulng.rsmountedfilesourcecopymultifilestowcxdlgtitle
+msgid "The operation is not supported"
+msgstr "不支持该操作"
 
 #: ulng.rsmsgaccount
 msgid "Account:"
@@ -13355,6 +13424,26 @@ msgstr ""
 msgctxt "ulng.rsoptionseditorplugins"
 msgid "Plugins"
 msgstr "插件"
+
+#: ulng.rsoptionseditorpluginsdsx
+msgid "Search plugins"
+msgstr ""
+
+#: ulng.rsoptionseditorpluginswcx
+msgid "Packer plugins"
+msgstr ""
+
+#: ulng.rsoptionseditorpluginswdx
+msgid "Content plugins"
+msgstr ""
+
+#: ulng.rsoptionseditorpluginswfx
+msgid "File system plugins"
+msgstr ""
+
+#: ulng.rsoptionseditorpluginswlx
+msgid "Viewer plugins"
+msgstr ""
 
 #: ulng.rsoptionseditorquicksearch
 msgid "Quick search/filter"

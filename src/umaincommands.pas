@@ -3848,7 +3848,7 @@ var
   sParams: string = '';
   sStartPath: string = '';
   AElevate: TDuplicates = dupIgnore;
-  fs: TFileSystemFileSource;
+  fs: IFileSource;
 begin
   frmMain.ActiveFrame.ExecuteCommand('cm_EditNew', Params);
 
@@ -3857,7 +3857,7 @@ begin
   with frmMain do
   if ActiveFrame.FileSource.IsClass(TFileSystemFileSource) then
   begin
-    fs:= ActiveFrame.FileSource as TFileSystemFileSource;
+    fs:= ActiveFrame.FileSource;
     aFile := ActiveFrame.CloneActiveFile;
     if Assigned(aFile) then
     try
@@ -4032,7 +4032,7 @@ begin
   with frmMain do
   if not edtCommand.Focused then
   try
-    ProcessExtCommandFork(gRunTermCmd, gRunTermParams, ActiveFrame.CurrentPath);
+    ProcessExtCommandFork(gRunTermCmd, gRunTermParams, ActiveFrame.CurrentRealPath);
   except
     on e: EInvalidCommandLine do
       MessageDlg(rsToolErrorOpeningTerminal,
@@ -4415,7 +4415,7 @@ begin
               end;
 
               Operation := SourceFileSource.CreateMoveOperation(
-                             Files, ActiveFrame.CurrentPath);
+                             Files, ActiveFrame.CurrentRealPath);
             end
             else
             begin
@@ -4449,13 +4449,13 @@ begin
             begin
               Operation := SourceFileSource.CreateCopyOutOperation(
                              ActiveFrame.FileSource, Files,
-                             ActiveFrame.CurrentPath);
+                             ActiveFrame.CurrentRealPath);
             end
             else
             begin
               Operation := ActiveFrame.FileSource.CreateCopyInOperation(
                              SourceFileSource, Files,
-                             ActiveFrame.CurrentPath);
+                             ActiveFrame.CurrentRealPath);
             end;
           end;
 

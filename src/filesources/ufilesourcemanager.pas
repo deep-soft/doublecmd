@@ -5,7 +5,7 @@ unit uFileSourceManager;
 interface
 
 uses
-  Classes, SysUtils,
+  Classes, SysUtils, syncobjs,
   uFileSource, uFileSourceOperationTypes, uFileSourceUtil,
   uDebug, DCStrUtils;
 
@@ -13,6 +13,8 @@ type
   { TFileSourceManager }
 
   TFileSourceManager = class
+  private
+    _lockObject: TCriticalSection;
   private
     FFileSources: TFileSources;
   public
@@ -50,6 +52,7 @@ implementation
 
 constructor TFileSourceManager.Create;
 begin
+  _lockObject:= TCriticalSection.Create;;
   FFileSources := TFileSources.Create;
 end;
 
@@ -72,23 +75,34 @@ begin
   end;
 
   FreeAndNil(FFileSources);
+  FreeAndNil( _lockObject );
 
   inherited Destroy;
 end;
 
 procedure TFileSourceManager.Add(aFileSource: IFileSource);
 begin
-  if FFileSources.IndexOf(aFileSource) < 0 then
-  begin
-    FFileSources.Add(aFileSource);
-  end
-  else
-    DCDebug('Error: File source already exists in manager!');
+  _lockObject.Acquire;
+  try
+    if FFileSources.IndexOf(aFileSource) < 0 then
+    begin
+      FFileSources.Add(aFileSource);
+    end
+    else
+      DCDebug('Error: File source already exists in manager!');
+  finally
+    _lockObject.Release;
+  end;
 end;
 
 procedure TFileSourceManager.Remove(aFileSource: IFileSource);
 begin
-  FFileSources.Remove(aFileSource);
+  _lockObject.Acquire;
+  try
+    FFileSources.Remove(aFileSource);
+  finally
+    _lockObject.Release;
+  end;
 end;
 
 function TFileSourceManager.Find(FileSourceClass: TClass; Address: String;
@@ -96,21 +110,30 @@ function TFileSourceManager.Find(FileSourceClass: TClass; Address: String;
 var
   I: Integer;
   StrCmp: function(const S1, S2: String): Integer;
+  fs: IFileSource;
 begin
   if CaseSensitive then
     StrCmp:= @CompareStr
   else begin
     StrCmp:= @CompareText;
   end;
-  for I := 0 to FFileSources.Count - 1 do
-  begin
-    if (FFileSources[I].IsClass(FileSourceClass)) and
-       (StrCmp(FFileSources[I].CurrentAddress, Address) = 0) then
+
+  _lockObject.Acquire;
+  try
+    for I := 0 to FFileSources.Count - 1 do
     begin
-      Result := FFileSources[I];
-      Exit;
+      fs:= FFileSources[I];
+      if (fs.IsClass(FileSourceClass)) and
+         (StrCmp(fs.CurrentAddress, Address) = 0) then
+      begin
+        Result := fs;
+        Exit;
+      end;
     end;
+  finally
+    _lockObject.Release;
   end;
+
   Result := nil;
 end;
 
@@ -125,6 +148,7 @@ begin
   params.handled:= False;
 
   fs:= params.sourceFS;
+  params.phase:= TFileSourceConsultPhase.source;
   params.currentFS:= fs;
   params.partnerFS:= params.targetFS;
   processor:= fs.GetProcessor;
@@ -138,6 +162,7 @@ begin
     Exit;
 
   fs:= params.targetFS;
+  params.phase:= TFileSourceConsultPhase.target;
   params.currentFS:= fs;
   params.partnerFS:= params.sourceFS;
   processor:= fs.GetProcessor;
@@ -154,6 +179,7 @@ begin
   params.handled:= False;
 
   fs:= params.sourceFS;
+  params.phase:= TFileSourceConsultPhase.source;
   params.currentFS:= fs;
   params.partnerFS:= params.targetFS;
   processor:= fs.GetProcessor;
@@ -167,6 +193,7 @@ begin
     Exit;
 
   fs:= params.targetFS;
+  params.phase:= TFileSourceConsultPhase.target;
   params.currentFS:= fs;
   params.partnerFS:= params.sourceFS;
   processor:= fs.GetProcessor;
@@ -181,7 +208,7 @@ var
   sourceFS: IFileSource;
   targetFS: IFileSource;
 begin
-  if params.currentFS <> params.sourceFS then
+  if params.phase<>TFileSourceConsultPhase.source then
     Exit;
 
   sourceFS:= params.sourceFS;
@@ -201,7 +228,7 @@ end;
 
 procedure TDefaultFileSourceProcessor.confirmCopyOperation( var params: TFileSourceConsultParams );
 begin
-  if params.currentFS <> params.sourceFS then
+  if params.phase<>TFileSourceConsultPhase.source then
     Exit;
 
   if NOT StrBegins(params.targetPath, '..') then
@@ -218,7 +245,7 @@ var
   sourceFS: IFileSource;
   targetFS: IFileSource;
 begin
-  if params.currentFS <> params.sourceFS then
+  if params.phase<>TFileSourceConsultPhase.source then
     Exit;
 
   sourceFS:= params.sourceFS;

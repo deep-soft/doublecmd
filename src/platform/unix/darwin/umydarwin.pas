@@ -40,17 +40,10 @@ uses
   uLng,
   Cocoa_Extra, MacOSAll, CocoaAll, QuickLookUI,
   CocoaUtils, CocoaInt, CocoaPrivate, CocoaConst, CocoaMenus,
-  uDarwinFSWatch, uDarwinFinder, uDarwinFinderModel;
+  uDarwinFSWatch, uDarwinFinder, uDarwinFinderModel, uDarwinUtil;
 
 const
   FINDER_FAVORITE_TAGS_MENU_ITEM_CAPTION = #$EF#$BF#$BC'FinderFavoriteTags';
-
-// Darwin Util Function
-function StringToNSString(const S: String): NSString;
-function StringToCFStringRef(const S: String): CFStringRef;
-function NSArrayToList(const theArray:NSArray): TStringList;
-function ListToNSArray(const list:TStrings): NSArray;
-function ListToNSUrlArray(const list:TStrings): NSArray;
 
 procedure onMainMenuCreate( menu: NSMenu );
 
@@ -68,6 +61,8 @@ function GetFileDescription(const FileName: String): String;
 function MountNetworkDrive(const serverAddress: String): Boolean;
 
 function GetVolumeName(const Device: String): String;
+
+function ResolveAliasFile(const FileName: String): String;
 
 procedure openSystemSecurityPreferences_PrivacyAllFiles;
 
@@ -128,6 +123,8 @@ public
   procedure stop();
   constructor Create( const path:String; const callback:TDarwinFSWatchCallBack );
   destructor Destroy; override;
+public
+  property monitor: TDarwinFSWatcher read _monitor;
 end;
 
 // MacOS Service Integration
@@ -159,13 +156,13 @@ type
   private
     oldMenuPopupHandler: TNotifyEvent;
     serviceSubMenuCaption: String;
-    tagFilePath: String;
+    tagFilePaths: TStringArray;
     procedure attachSystemMenu( Sender: TObject );
     procedure attachServicesMenu( Sender: TObject );
     procedure attachFinderTagsMenu( Sender: TObject );
     procedure privilegeAction( Sender: TObject );
   public
-    procedure PopUp( const menu: TPopupMenu; const caption: String; const path: String );
+    procedure PopUp( const menu: TPopupMenu; const caption: String; const paths: TStringArray );
   end;
 
 procedure InitNSServiceProvider(
@@ -177,7 +174,7 @@ procedure performMacOSService( serviceName: String );
 
 procedure showQuickLookPanel;
 procedure showEditFinderTagsPanel( const Sender: id; const control: TWinControl );
-function getMacOSFinderTagFileProperty( const path: String ): TFileFinderTagProperty;
+function getMacOSSpecificFileProperty( const path: String ): TFileMacOSSpecificProperty;
 
 // MacOS Sharing
 procedure showMacOSSharingServiceMenu;
@@ -325,7 +322,7 @@ begin
   if menuIndex < 0 then
     Exit;
 
-  success:= uDarwinFinderUtil.attachFinderTagsMenu( self.tagFilePath, menu, menuIndex );
+  success:= uDarwinFinderUtil.attachFinderTagsMenu( self.tagFilePaths, menu, menuIndex );
   if success then
     Exit;
 
@@ -340,14 +337,14 @@ begin
 end;
 
 procedure TMacosServiceMenuHelper.PopUp( const menu: TPopupMenu;
-  const caption: String; const path: String );
+  const caption: String; const paths: TStringArray );
 begin
   // because the menu item handle will be destroyed in TPopupMenu.PopUp()
   // we can only call NSApplication.setServicesMenu() in OnMenuPopupHandler()
   oldMenuPopupHandler:= OnMenuPopupHandler;
   OnMenuPopupHandler:= attachSystemMenu;
   serviceSubMenuCaption:= caption;
-  tagFilePath:= path;
+  tagFilePaths:= paths;
   menu.PopUp();
 end;
 
@@ -356,16 +353,16 @@ end;
 procedure TDarwinFileViewDrawHelper.onDrawCell(Sender: TFileView; aCol, aRow: Integer;
   aRect: TRect; focused: Boolean; aFile: TDisplayFile);
 var
-  tagProperty: TFileFinderTagProperty;
+  macOSProperty: TFileMacOSSpecificProperty;
 begin
   if (Sender is TColumnsFileView) and (aCol<>0) then
     Exit;
 
-  tagProperty:= aFile.FSFile.FinderTagProperty;
-  if tagProperty = nil then
+  macOSProperty:= aFile.FSFile.MacOSSpecificProperty;
+  if macOSProperty = nil then
     Exit;
 
-  drawTagsAsDecoration( tagProperty.Colors, aRect, focused );
+  drawTagsAsDecoration( macOSProperty.FinderTagPrimaryColors, aRect, focused );
 end;
 
 procedure TDarwinFileViewDrawHelper.drawTagsAsDecoration(
@@ -550,77 +547,6 @@ begin
     NSPerformService( NSSTR(serviceName), pboard );
 end;
 
-function NSArrayToList(const theArray:NSArray): TStringList;
-var
-  i: Integer;
-  list : TStringList;
-begin
-  list := TStringList.Create;
-  for i := 0 to theArray.Count-1 do
-  begin
-    list.Add( NSStringToString( theArray.objectAtIndex(i) ) );
-  end;
-  Result := list;
-end;
-
-function ListToNSArray(const list:TStrings): NSArray;
-var
-  theArray: NSMutableArray;
-  item: String;
-begin
-  theArray := NSMutableArray.arrayWithCapacity( list.Count );
-  for item in list do begin
-    theArray.addObject( StringToNSString(item) );
-  end;
-  Result := theArray;
-end;
-
-function ListToNSUrlArray(const list:TStrings): NSArray;
-var
-  theArray: NSMutableArray;
-  item: String;
-  url: NSUrl;
-begin
-  theArray:= NSMutableArray.arrayWithCapacity( list.Count );
-  for item in list do begin
-    url:= NSUrl.fileURLWithPath( StringToNSString(item) );
-    theArray.addObject( url );
-  end;
-  Result:= theArray;
-end;
-
-function CFStringToStr(AString: CFStringRef): String;
-var
-  Str: Pointer;
-  StrSize: CFIndex;
-  StrRange: CFRange;
-begin
-  if AString = nil then
-  begin
-    Result:= EmptyStr;
-    Exit;
-  end;
-  // Try the quick way first
-  Str:= CFStringGetCStringPtr(AString, kCFStringEncodingUTF8);
-  if Str <> nil then
-    Result:= PAnsiChar(Str)
-  else begin
-    // if that doesn't work this will
-    StrRange.location:= 0;
-    StrRange.length:= CFStringGetLength(AString);
-
-    CFStringGetBytes(AString, StrRange, kCFStringEncodingUTF8,
-                     Ord('?'), False, nil, 0, StrSize{%H-});
-    SetLength(Result, StrSize);
-
-    if StrSize > 0 then
-    begin
-      CFStringGetBytes(AString, StrRange, kCFStringEncodingUTF8,
-                       Ord('?'), False, @Result[1], StrSize, StrSize);
-    end;
-  end;
-end;
-
 procedure FixMacFormatSettings;
 var
   S: String;
@@ -646,16 +572,6 @@ end;
 function getMacOSDefaultTerminal(): String;
 begin
   Result:= NSStringToString( NSWorkspace.sharedWorkspace.fullPathForApplication( NSStr('terminal') ) );
-end;
-
-function StringToNSString(const S: String): NSString;
-begin
-  Result:= NSString(NSString.stringWithUTF8String(PAnsiChar(S)));
-end;
-
-function StringToCFStringRef(const S: String): CFStringRef;
-begin
-  Result:= CFStringCreateWithCString(nil, PAnsiChar(S), kCFStringEncodingUTF8);
 end;
 
 function NSGetFolderPath(Folder: NSSearchPathDirectory): String;
@@ -717,6 +633,17 @@ begin
     end;
     CFRelease(ASession);
   end;
+end;
+
+function ResolveAliasFile(const FileName: String): String;
+var
+  ASource: NSURL;
+  ATarget: NSURL;
+begin
+  Result:= EmptyStr;
+  ASource:= NSURL.fileURLWithPath(StringToNSString(FileName));
+  ATarget:= NSURL(NSURL.URLByResolvingAliasFileAtURL_options_error(ASource, NSURLBookmarkResolutionWithoutUI, nil));
+  if Assigned(ATarget) then Result:= ATarget.fileSystemRepresentation;
 end;
 
 procedure openSystemSecurityPreferences_PrivacyAllFiles;
@@ -855,25 +782,63 @@ type
 
   TFinderTagsEditorPanelHandler = class
   private
-    _path: String;
+    _urls: NSArray;
+    _oldTagNames: NSArray;
   public
-    constructor Create( const path: String );
-    procedure onClose( const cancel: Boolean; const tagNames: NSArray );
+    constructor Create( const paths: TStringArray );
+    destructor Destroy; override;
+    procedure onClose( const cancel: Boolean; const newTagNames: NSArray );
   end;
 
-constructor TFinderTagsEditorPanelHandler.Create( const path: String );
+constructor TFinderTagsEditorPanelHandler.Create( const paths: TStringArray );
 begin
-  _path:= path;
+  _urls:= UrlArrayFromLCLToNS( paths );
+  _urls.retain;
+  _oldTagNames:= uDarwinFinderModelUtil.getTagNamesOfFiles( _urls );
+  _oldTagNames.retain;
 end;
 
-procedure TFinderTagsEditorPanelHandler.onClose( const cancel: Boolean; const tagNames: NSArray );
-var
-  url: NSURL;
+destructor TFinderTagsEditorPanelHandler.Destroy;
+begin
+  _oldTagNames.release;
+  _urls.release;
+end;
+
+procedure TFinderTagsEditorPanelHandler.onClose( const cancel: Boolean; const newTagNames: NSArray );
+
+  procedure processRemovedTags;
+  var
+    removedTagNames: NSMutableSet;
+    tagName: NSString;
+  begin
+    removedTagNames:= NSMutableSet.setWithArray( _oldTagNames );
+    removedTagNames.minusSet( NSSet.setWithArray(newTagNames) );
+    for tagName in removedTagNames do begin
+      uDarwinFinderModelUtil.removeTagForFiles( _urls, tagName );
+    end;
+  end;
+
+  procedure processAddedTags;
+  var
+    addedTagNames: NSMutableSet;
+    tagName: NSString;
+  begin
+    addedTagNames:= NSMutableSet.setWithArray( newTagNames );
+    addedTagNames.minusSet( NSSet.setWithArray(_oldTagNames) );
+    for tagName in addedTagNames do begin
+      uDarwinFinderModelUtil.addTagForFiles( _urls, tagName );
+    end;
+  end;
+
 begin
   if cancel then
     Exit;
-  url:= NSURL.fileURLWithPath( StrToNSString(_path) );
-  uDarwinFinderModelUtil.setTagNamesOfFile( url, tagNames );
+  if _urls.count = 1 then begin
+    uDarwinFinderModelUtil.setTagNamesOfFile( NSURL(_urls.objectAtIndex(0)), newTagNames );
+  end else begin
+    processRemovedTags;
+    processAddedTags;
+  end;
 end;
 
 procedure showEditFinderTagsPanel( const Sender: id; const control: TWinControl );
@@ -893,18 +858,17 @@ begin
   if (view=nil) or (view.window=nil) then
     view:= NSView( control.Handle );
 
-  handler:= TFinderTagsEditorPanelHandler.Create( filenames[0] );
-  uDarwinFinderUtil.popoverFileTagsEditor( filenames[0], handler.onClose, view , NSMaxYEdge );
+  handler:= TFinderTagsEditorPanelHandler.Create( filenames );
+  uDarwinFinderUtil.popoverFileTagsEditor( filenames, handler.onClose, view , NSMaxYEdge );
 end;
 
-function getMacOSFinderTagFileProperty( const path: String ): TFileFinderTagProperty;
+function getMacOSSpecificFileProperty( const path: String ): TFileMacOSSpecificProperty;
 var
   url: NSURL;
-  tagNames: NSArray;
-  tagName: NSString;
 
-  function toPrimaryColors: TFileFinderTagPrimaryColors;
+  function toPrimaryColors(const tagNames: NSArray): TFileFinderTagPrimaryColors;
   var
+    tagName: NSString;
     tag: TFinderTag;
     iSource: NSUInteger;
     iDest: Integer;
@@ -925,16 +889,40 @@ var
     end;
   end;
 
+  function getTagPrimaryColors: TFileFinderTagPrimaryColors;
+  var
+    tagNames: NSArray;
+  begin
+    Result.intValue:= -1;
+    tagNames:= uDarwinFinderModelUtil.getTagNamesOfFile( url );
+    if tagNames = nil then
+      Exit;
+    Result:= toPrimaryColors( tagNames );
+  end;
+
+  function isSeedFile: Boolean;
+  var
+    name: NSString;
+    status: NSString;
+  begin
+    name:= url.lastPathComponent;
+    if name.isEqualToString(NSSTR('..')) then
+      Exit( False );
+    if name.hasPrefix(NSSTR('.')) and name.hasSuffix(NSSTR('.icloud')) then
+      Exit( True );
+
+    url.getResourceValue_forKey_error( @status, NSURLUbiquitousItemDownloadingStatusKey, nil );
+    if status = nil then
+      Exit( False );
+
+    Result:= NOT status.isEqualToString( NSURLUbiquitousItemDownloadingStatusCurrent );
+  end;
+
 begin
-  Result:= nil;
+  Result:= TFileMacOSSpecificProperty.Create;
   url:= NSURL.fileURLWithPath( StrToNSString(path) );
-  tagNames:= uDarwinFinderModelUtil.getTagNamesOfFile( url );
-
-  if tagNames = nil then
-    Exit;
-
-  Result:= TFileFinderTagProperty.Create;
-  Result.Colors:= toPrimaryColors;
+  Result.FinderTagPrimaryColors:= getTagPrimaryColors;
+  Result.IsiCloudSeedFile:= isSeedFile;
 end;
 
 function getMacOSDisplayNameFromPath(const path: String): String;
