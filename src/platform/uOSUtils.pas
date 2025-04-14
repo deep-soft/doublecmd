@@ -76,7 +76,7 @@ const
   RunTermCmd: String = 'xterm';  // default terminal
   RunTermParams: String = '';
   RunInTermStayOpenCmd: String = 'xterm'; // default run in terminal command AND Stay open after command
-  RunInTermStayOpenParams: String = '-e sh -c ''{command}; echo -n Press ENTER to exit... ; read a''';
+  RunInTermStayOpenParams: String = '-e sh -c ''"{command}"; echo -n Press ENTER to exit... ; read a''';
   RunInTermCloseCmd: String = 'xterm'; // default run in terminal command AND Close after command
   RunInTermCloseParams: String = '-e sh -c ''{command}''';
   MonoSpaceFont: String = 'Monospace';
@@ -389,13 +389,13 @@ var
   wsStartPath: UnicodeString;
   AppID, FileExt: UnicodeString;
 begin
-  cchOut:= MAX_PATH;
-  SetLength(AppID, cchOut);
   URL:= NormalizePathDelimiters(URL);
-  FileExt:= CeUtf8ToUtf16(ExtractFileExt(URL));
 
   if CheckWin32Version(10) then
   begin
+    cchOut:= MAX_PATH;
+    SetLength(AppID, cchOut);
+    FileExt:= CeUtf8ToUtf16(ExtractFileExt(URL));
     if (AssocQueryStringW(ASSOCF_NONE, ASSOCSTR_APPID,
                           PWideChar(FileExt), nil, PWideChar(AppID), @cchOut) = S_OK) then
     begin
@@ -405,10 +405,17 @@ begin
         // Special case Microsoft Photos
         if (AppID = 'Microsoft.Windows.Photos_8wekyb3d8bbwe!App') then
         begin
-          if CheckPhotosVersion then
+          // https://blogs.windows.com/windowsdeveloper/2024/06/03/microsoft-photos-migrating-from-uwp-to-windows-app-sdk/
+          if CheckPhotosVersion(2024, 11050) then
           begin
-            URL:= URIEncode(URL);
-            URL:= 'ms-photos:viewer?fileName=' + StringReplace(URL, '%5C', '\', [rfReplaceAll]);
+            // Photos 2025.11010 and 2025.11020 had a bug:
+            // it did not understand an URL-encoded file name
+            if (not CheckPhotosVersion(2025, 0)) or CheckPhotosVersion(2025, 11030) then
+            begin
+              URL:= URIEncode(URL);
+              URL:= StringReplace(URL, '%5C', '\', [rfReplaceAll]);
+            end;
+            URL:= 'ms-photos:viewer?fileName=' + URL;
           end
           // Microsoft Photos does not work correct
           // when process has administrator rights

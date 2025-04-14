@@ -37,7 +37,7 @@ interface
 uses
   SysUtils, Classes, Controls, Forms, ActnList, Menus, SynEdit, StdCtrls, LMessages,
   ComCtrls, SynEditSearch, SynEditHighlighter, uDebug, uOSForms, uShowForm, types, Graphics,
-  uFormCommands, uHotkeyManager, LCLVersion, SynPluginMultiCaret, fEditSearch;
+  KASComCtrls, uFormCommands, uHotkeyManager, LCLVersion, SynPluginMultiCaret, fEditSearch;
 
 const
   HotkeysCategory = 'Editor';
@@ -122,7 +122,7 @@ type
     actConfHigh: TAction;
     miDiv: TMenuItem;
     miConfHigh: TMenuItem;
-    tbToolBar: TToolBar;
+    tbToolBar: TToolBarAdv;
     tbNew: TToolButton;
     tbOpen: TToolButton;
     tbSave: TToolButton;
@@ -134,8 +134,10 @@ type
     tbUndo: TToolButton;
     tbRedo: TToolButton;
     tbSeparator3: TToolButton;
+    tbEditFind: TToolButton;
+    tbEditRplc: TToolButton;
+    tbSeparator4: TToolButton;
     tbConfig: TToolButton;
-    tbHelp: TToolButton;
     procedure actExecute(Sender: TObject);
     procedure EditorMouseWheelDown(Sender: TObject; Shift: TShiftState;
       {%H-}MousePos: TPoint; var Handled: Boolean);

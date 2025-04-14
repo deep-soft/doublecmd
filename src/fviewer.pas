@@ -62,7 +62,7 @@ uses
   uFileSource, fModView, Types, uThumbnails, uFormCommands, uOSForms,Clipbrd,
   uExifReader, KASStatusBar, SynEdit, uShowForm, uRegExpr, uRegExprU,
   Messages, fEditSearch, uMasks, uSearchTemplate, uFileSourceOperation,
-  uFileSourceCalcStatisticsOperation;
+  uFileSourceCalcStatisticsOperation, KASComCtrls;
 
 type
 
@@ -155,7 +155,7 @@ type
     btnDeleteFile1: TSpeedButton;
     btnMoveFile1: TSpeedButton;
     btnNext1: TSpeedButton;
-    btnPenColor: TColorButton;
+    btnPenColor: TToolButtonClr;
     btnPrev1: TSpeedButton;
     btnReload1: TSpeedButton;
     DrawPreview: TDrawGrid;
@@ -247,7 +247,7 @@ type
     TimerScreenshot: TTimer;
     TimerViewer: TTimer;
     tmUpdateFolderSize: TTimer;
-    ToolBar1: TToolBar;
+    ToolBar1: TToolBarAdv;
     btnReload: TToolButton;
     btn270: TToolButton;
     btn90: TToolButton;
@@ -3820,6 +3820,7 @@ begin
       miStretchOnlyLarge.Checked:= False;
       if miPreview.Checked then cm_Preview(['']);
       actFullscreen.ImageIndex:= 25;
+      sboxImage.BorderStyle:= bsNone;
     end
   else
     begin
@@ -3834,6 +3835,7 @@ begin
 {$ENDIF}
       ToolBar1.Visible:= True;
       actFullscreen.ImageIndex:= 22;
+      sboxImage.BorderStyle:= bsSingle;
     end;
   if ExtractOnlyFileExt(FileList.Strings[iActiveFile]) <> 'gif' then
   begin

@@ -166,6 +166,10 @@ function IsUserAdmin: TDuplicates;
 }
 function RemoteSession: Boolean;
 {en
+   Get OneDrive folders
+}
+procedure GetOneDriveFolders(AList: TStringList);
+{en
    Creates windows shortcut file (.lnk)
 }
 procedure CreateShortcut(const Target, Shortcut: String);
@@ -176,7 +180,7 @@ procedure CreateShortcut(const Target, Shortcut: String);
 }
 function ExtractFileAttributes(const FindData: TWin32FindDataW): DWORD;
 
-function CheckPhotosVersion: Boolean;
+function CheckPhotosVersion(ABuild, ARevision: UInt16): Boolean;
 
 procedure UpdateEnvironment;
 
@@ -186,7 +190,8 @@ implementation
 
 uses
   JwaNtStatus, ShellAPI, MMSystem, JwaWinNetWk, JwaWinUser, JwaVista, LazUTF8,
-  SysConst, ActiveX, ShlObj, ComObj, DCWindows, DCConvertEncoding, uShlObjAdditional;
+  SysConst, ActiveX, ShlObj, ComObj, DCWindows, DCConvertEncoding, DCOSUtils,
+  Registry, uShellFolder, uShlObjAdditional;
 
 var
   Wow64DisableWow64FsRedirection: function(OldValue: PPointer): BOOL; stdcall;
@@ -1093,6 +1098,67 @@ begin
   end;
 end;
 
+procedure GetOneDriveFolders(AList: TStringList);
+var
+  APath: String;
+  Index: Integer;
+  Value: UnicodeString;
+  List: TUnicodeStringArray;
+begin
+  AList.CaseSensitive:= FileNameCaseSensitive;
+
+  if GetKnownFolderPath(FOLDERID_SkyDrive, APath) then
+  begin
+    if (Length(APath) > 0) then AList.Add(APath);
+  end;
+  APath:= mbGetEnvironmentVariable('OneDriveConsumer');
+  if (Length(APath) > 0) and (AList.IndexOf(APath) < 0) then
+  begin
+    AList.Add(APath);
+  end;
+  APath:= mbGetEnvironmentVariable('OneDriveCommercial');
+  if (Length(APath) > 0) and (AList.IndexOf(APath) < 0) then
+  begin
+    AList.Add(APath);
+  end;
+
+  with TRegistry.Create(KEY_READ) do
+  try
+    RootKey:= HKEY_CURRENT_USER;
+    if OpenKey('Software\SyncEngines\Providers\OneDrive', False) then
+    begin
+      try
+        List:= GetKeyNames;
+        for Index:= 0 to High(List) do
+        begin
+          if OpenKey(List[Index], False) then
+          begin
+            try
+              Value:= ReadString(UnicodeString('MountPoint'));
+              if Length(Value) > 0 then
+              begin
+                APath:= CeUtf16ToUtf8(Value);
+                if (AList.IndexOf(APath) < 0) then
+                begin
+                  AList.Add(APath);
+                end;
+              end;
+            except
+              // Ignore
+            end;
+            CloseKey;
+          end;
+        end;
+      except
+        // Ignore
+      end;
+      CloseKey;
+    end;
+  finally
+    Free;
+  end;
+end;
+
 procedure CreateShortcut(const Target, Shortcut: String);
 var
   IObject: IUnknown;
@@ -1259,7 +1325,7 @@ var
                            bufferLength: PUINT32; buffer: PBYTE; count: PUINT32): LONG; stdcall;
   ClosePackageInfo: function(packageInfoReference: PACKAGE_INFO_REFERENCE): LONG; stdcall;
 
-function CheckPackageVersion(const Package: UnicodeString; Build, Revision: UInt16): Boolean;
+function GetPackageVersion(const Package: UnicodeString; out Build, Revision: UInt16): Boolean;
 var
   Ret: ULONG;
   Count: UINT32 = 0;
@@ -1290,7 +1356,9 @@ begin
           begin
             with PPACKAGE_INFO(@PackageBuffer[0])^.packageId do
             begin
-              Result:= (version.Build > Build) or ((version.Build = Build) and (version.Revision >= Revision));
+              Result:= True;
+              Build:= version.Build;
+              Revision:= version.Revision;
             end;
           end;
         end;
@@ -1300,20 +1368,21 @@ begin
   end;
 end;
 
-function CheckPhotosVersion: Boolean;
+function CheckPhotosVersion(ABuild, ARevision: UInt16): Boolean;
 const
+  Build: UInt16 = 0;
+  Revision: UInt16 = 0;
   PhotosNew: TDuplicates = dupIgnore;
 begin
   if (PhotosNew = dupIgnore) then
   begin
-    // https://blogs.windows.com/windowsdeveloper/2024/06/03/microsoft-photos-migrating-from-uwp-to-windows-app-sdk/
-    if CheckPackageVersion('Microsoft.Windows.Photos_8wekyb3d8bbwe', 2024, 11050) then
+    if GetPackageVersion('Microsoft.Windows.Photos_8wekyb3d8bbwe', Build, Revision) then
       PhotosNew:= dupAccept
     else begin
       PhotosNew:= dupError;
     end;
   end;
-  Result:= (PhotosNew = dupAccept);
+  Result:= (PhotosNew = dupAccept) and ((Build > ABuild) or ((Build = ABuild) and (Revision >= ARevision)));
 end;
 
 var

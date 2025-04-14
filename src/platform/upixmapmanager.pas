@@ -125,7 +125,7 @@ type
     FiEmblemOnline: PtrInt;
     FiEmblemOffline: PtrInt;
     FiShortcutIconID: PtrInt;
-    FOneDrivePath: String;
+    FOneDrivePath: TStringList;
     {$ELSEIF DEFINED(DARWIN)}
     FUseSystemTheme: Boolean;
     {$ELSEIF DEFINED(UNIX) AND NOT DEFINED(HAIKU)}
@@ -388,7 +388,7 @@ uses
   {$ENDIF}
   {$IFDEF MSWINDOWS}
     , ActiveX, CommCtrl, ShellAPI, Windows, DCFileAttributes, uBitmap, uGdiPlus,
-      DCConvertEncoding, uShlObjAdditional, uShellFolder,
+      DCConvertEncoding, uShlObjAdditional, uShellFolder, uMyWindows,
       uShellFileSourceUtil
   {$ELSE}
     , StrUtils, Types, DCBasicTypes
@@ -1656,6 +1656,8 @@ begin
   end;
 
   FSysImgList := SHGetSystemImageList(iIconSize);
+
+  FOneDrivePath := TStringList.Create;
   {$ENDIF}
 
   {$IF DEFINED(MSWINDOWS) and DEFINED(LCLQT5)}
@@ -1702,6 +1704,7 @@ begin
   end;
 
   {$IF DEFINED(MSWINDOWS)}
+  FOneDrivePath.Free;
   ImageList_Destroy(FSysImgList);
   {$ELSEIF DEFINED(UNIX) AND NOT (DEFINED(DARWIN) OR DEFINED(HAIKU))}
   for I := 0 to FExtToMimeIconName.HashTable.Count - 1 do
@@ -1788,7 +1791,8 @@ begin
     FiEmblemPinned:= CheckAddThemePixmap('emblem-cloud-pinned', I);
     FiEmblemOnline:= CheckAddThemePixmap('emblem-cloud-online', I);
     FiEmblemOffline:= CheckAddThemePixmap('emblem-cloud-offline', I);
-    GetKnownFolderPath(FOLDERID_SkyDrive, FOneDrivePath);
+    // Microsoft OneDrive folders
+    GetOneDriveFolders(FOneDrivePath);
   end;
   FiShortcutIconID := -1;
   if gShowIcons > sim_standart then
@@ -2446,6 +2450,8 @@ begin
 end;
 
 function TPixMapManager.GetIconOverlayByFile(AFile: TFile; DirectAccess: Boolean): PtrInt;
+var
+  Index: Integer;
 begin
   if not DirectAccess then Exit(-1);
   Result:= SHGetOverlayIconIndex(AFile.Path, AFile.Name);
@@ -2453,25 +2459,33 @@ begin
     Result += SystemIconIndexStart;
   end
   // Special case for OneDrive
-  else if (Win32MajorVersion >= 10) and IsInPath(FOneDrivePath, AFile.Path, True, True) then
+  else if (Win32MajorVersion >= 10) then
   begin
-    if AFile.Attributes and FILE_ATTRIBUTE_PINNED <> 0 then
-      Result:= FiEmblemPinned
-    else if AFile.Attributes and FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS <> 0 then
-      Result:= FiEmblemOnline
-    else begin
-      Result:= SHGetStorePropertyValue(AFile.FullPath, PKEY_StorageProviderState);
-      case Result of
-        1:
-          Result:= FiEmblemOnline;
-        2:
-          Result:= FiEmblemOffline;
-        3:
-          Result:= FiEmblemPinned;
-        else
-          Result:= 0;
+    for Index:= 0 to FOneDrivePath.Count - 1 do
+    begin
+      if IsInPath(FOneDrivePath[Index], AFile.Path, True, True) then
+      begin
+        if AFile.Attributes and FILE_ATTRIBUTE_PINNED <> 0 then
+          Result:= FiEmblemPinned
+        else if AFile.Attributes and FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS <> 0 then
+          Result:= FiEmblemOnline
+        else begin
+          Result:= SHGetStorePropertyValue(AFile.FullPath, PKEY_StorageProviderState);
+          case Result of
+            1:
+              Result:= FiEmblemOnline;
+            2:
+              Result:= FiEmblemOffline;
+            3:
+              Result:= FiEmblemPinned;
+            else
+              Result:= 0;
+          end;
+        end;
+        Exit;
       end;
     end;
+    Result:= 0;
   end
   else
     Result:= 0;
