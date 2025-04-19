@@ -1,10 +1,10 @@
 name: 0-build-snapshot-lin
 # 0-build-snapshot-lin.yml
-# 2024-11-05 17:10
+# 2025-04-20 01:20
 
 on:
-# if: ${{ inputs.setup-fpc.deep-soft }}
-# if: ${{ inputs.setup-fpc.alexx2000 }}
+# if: ${{ inputs.lazarus-install.deep-soft }}
+# if: ${{ inputs.lazarus-install.doublecmd }}
   workflow_dispatch:
     inputs:
       deploy_snapshot:
@@ -48,7 +48,7 @@ env:
 
 jobs:
   build-lin:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: install additional files
       shell: bash
@@ -182,7 +182,7 @@ jobs:
         echo "LAZARUS_VERSION=$LAZARUS_VERSION" >> $GITHUB_ENV
 
     - name: Install Free Pascal
-      uses: deep-soft/setup-fpc@master
+      uses: deep-soft/lazarus-install@master
       with:
         lazarus-version: "${{ env.LAZARUS_VERSION }}"
 #        lazarus-version: "stable"
