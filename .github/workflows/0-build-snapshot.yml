@@ -1,18 +1,18 @@
 name: 0-build-snapshot
-# 2024-11-13 15:40
+# 2025-04-20 01:20
 
 on:
   workflow_dispatch:
-# if: ${{ inputs.setup-fpc.deep-soft }}
-# if: ${{ inputs.setup-fpc.alexx2000 }}
+# if: ${{ inputs.lazarus-install.deep-soft }}
+# if: ${{ inputs.lazarus-install.doublecmd }}
     inputs:
       setup-fpc:
-        description: (setup-fpc.deep-soft or setup-fpc.alexx2000)
-        default: 'alexx2000'
+        description: (lazarus-install.deep-soft or lazarus-install.doublecmd)
+        default: 'doublecmd'
         type: choice
         options:
           - deep-soft
-          - alexx2000
+          - doublecmd
         required: true
 #  push:
 #    paths:
