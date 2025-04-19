@@ -22,16 +22,36 @@ uses
 
 type
 
+  { TMiniHttpMethod }
+
+  TMiniHttpMethod = class
+  private
+    _name: NSString;
+  protected
+    constructor Create( const name: String );
+    procedure setQueryToURL(const request: NSMutableURLRequest; const query: TQueryItemsDictonary);
+    procedure setQueryToBody(const request: NSMutableURLRequest; const query: TQueryItemsDictonary);
+  public
+    procedure setQuery( const request: NSMutableURLRequest; const query: TQueryItemsDictonary ); virtual; abstract;
+  public
+    property name: NSString read _name;
+  end;
+
   HttpMethodConst = class
   class var
-    POST: NSString;
-    GET: NSString;
+    GET: TMiniHttpMethod;
+    DELETE: TMiniHttpMethod;
+    POST: TMiniHttpMethod;
+    POSTQueryString: TMiniHttpMethod;
+    PUT: TMiniHttpMethod;
+    PUTQueryString: TMiniHttpMethod;
   end;
 
   HttpHeaderConst = class
   class var
     ContentType: NSString;
     ContentLength: NSString;
+    ContentRange: NSString;
   end;
 
   HttpContentTypeConst = class
@@ -62,6 +82,20 @@ type
     function getHeader( const name: String ): String;
   end;
 
+  { TMiniHttpContentRange }
+
+  TMiniHttpContentRange = class
+  private
+    _first: Integer;
+    _last: Integer;
+    _total: Integer;
+  public
+    constructor Create( const first: Integer; const last: Integer; const total: Integer );
+    function isNeeded: Boolean;
+    function ToString: ansistring; override;
+    function toNSRange: NSRange;
+  end;
+
   IMiniHttpDataCallback = interface
     function progress( const accumulatedBytes: Integer ): Boolean;
   end;
@@ -70,7 +104,7 @@ type
 
   TMiniHttpDataProcessor = class
     function receive( const newData: NSData; const buffer: NSMutableData; const connection: NSURLConnection ): Boolean; virtual; abstract;
-    function send( const accumulatedBytes: Integer; const connection: NSURLConnection ): Boolean; virtual; abstract;
+    function send( const bytesCount: Integer; const connection: NSURLConnection ): Boolean; virtual; abstract;
     function getHttpBodyStream: NSInputStream; virtual; abstract;
     procedure complete( const response: NSURLResponse; const error: NSError ); virtual; abstract;
   end;
@@ -109,39 +143,83 @@ type
   TMiniHttpClient = class
   private
     _request: NSMutableURLRequest;
+    _method: TMiniHttpMethod;
   public
-    constructor Create;
+    constructor Create( const urlPart: String; const method: TMiniHttpMethod );
     destructor Destroy; override;
   public
     procedure addHeader( const name: NSString; const value: NSString ); overload;
     procedure addHeader( const name: String; const value: String ); overload;
-    procedure setBody( const body: String );
+    procedure setQueryParams( lclItems: TQueryItemsDictonary );
+    procedure setBody( const body: NSString );
     procedure setContentType( const contentType: NSString );
     procedure setContentLength( const length: Integer );
+    procedure setContentRange( const range: TMiniHttpContentRange );
   protected
     procedure doRunloop( const delegate: TMiniHttpConnectionDataDelegate );
-    function doPost( const urlPart: String; lclItems: TQueryItemsDictonary;
-      const processor: TMiniHttpDataProcessor ): TMiniHttpResult;
-    function doUpload( const urlPart: String; const localPath: String;
-      const range: NSRangePtr; const callback: IMiniHttpDataCallback ): TMiniHttpResult;
+    function doConnect( const processor: TMiniHttpDataProcessor ): TMiniHttpResult;
+    function doUpload( const localPath: String;
+      const range: TMiniHttpContentRange; const callback: IMiniHttpDataCallback ): TMiniHttpResult;
   public
-    function post( const urlPart: String; lclItems: TQueryItemsDictonary ): TMiniHttpResult;
-    function download( const urlPart: String; const localPath: String;
+    function connect: TMiniHttpResult;
+    function download( const localPath: String; const callback: IMiniHttpDataCallback ): TMiniHttpResult;
+    function upload( const localPath: String;
       const callback: IMiniHttpDataCallback ): TMiniHttpResult;
-    function upload( const urlPart: String; const localPath: String;
-      const callback: IMiniHttpDataCallback ): TMiniHttpResult;
-    function uploadRange( const urlPart: String; const localPath: String;
-      const range: NSRange; const callback: IMiniHttpDataCallback ): TMiniHttpResult;
+    function uploadRange( const localPath: String;
+      const range: TMiniHttpContentRange; const callback: IMiniHttpDataCallback ): TMiniHttpResult;
   end;
 
 implementation
 
 type
+
+  { TMiniHttpMethodGET }
+
+  TMiniHttpMethodGET = class( TMiniHttpMethod )
+    constructor Create;
+    procedure setQuery(const request: NSMutableURLRequest; const query: TQueryItemsDictonary); override;
+  end;
+
+  { TMiniHttpMethodDELETE }
+
+  TMiniHttpMethodDELETE = class( TMiniHttpMethod )
+    constructor Create;
+    procedure setQuery(const request: NSMutableURLRequest; const query: TQueryItemsDictonary); override;
+  end;
+
+  { TMiniHttpMethodPOST }
+
+  TMiniHttpMethodPOST = class( TMiniHttpMethod )
+    constructor Create;
+    procedure setQuery(const request: NSMutableURLRequest; const query: TQueryItemsDictonary); override;
+  end;
+
+  { TMiniHttpMethodPOSTQueryString }
+
+  TMiniHttpMethodPOSTQueryString = class( TMiniHttpMethod )
+    constructor Create;
+    procedure setQuery(const request: NSMutableURLRequest; const query: TQueryItemsDictonary); override;
+  end;
+
+  { TMiniHttpMethodPUT }
+
+  TMiniHttpMethodPUT = class( TMiniHttpMethod )
+    constructor Create;
+    procedure setQuery(const request: NSMutableURLRequest; const query: TQueryItemsDictonary); override;
+  end;
+
+  { TMiniHttpMethodPUTQueryString }
+
+  TMiniHttpMethodPUTQueryString = class( TMiniHttpMethod )
+    constructor Create;
+    procedure setQuery(const request: NSMutableURLRequest; const query: TQueryItemsDictonary); override;
+  end;
+
   { TDefaultHttpDataProcessor }
 
   TDefaultHttpDataProcessor = class( TMiniHttpDataProcessor )
     function receive( const newData: NSData; const buffer: NSMutableData; const connection: NSURLConnection ): Boolean; override;
-    function send( const accumulatedBytes: Integer; const connection: NSURLConnection ): Boolean; override;
+    function send( const bytesCount: Integer; const connection: NSURLConnection ): Boolean; override;
     function getHttpBodyStream: NSInputStream; override;
     procedure complete( const response: NSURLResponse; const error: NSError ); override;
   end;
@@ -153,7 +231,7 @@ begin
   Result:= True;
 end;
 
-function TDefaultHttpDataProcessor.send(const accumulatedBytes: Integer;
+function TDefaultHttpDataProcessor.send(const bytesCount: Integer;
   const connection: NSURLConnection): Boolean;
 begin
   Result:= True;
@@ -184,7 +262,7 @@ type
     destructor Destroy; override;
   public
     function receive( const newData: NSData; const buffer: NSMutableData; const connection: NSURLConnection ): Boolean; override;
-    function send( const accumulatedBytes: Integer; const connection: NSURLConnection ): Boolean; override;
+    function send( const bytesCount: Integer; const connection: NSURLConnection ): Boolean; override;
     procedure complete( const response: NSURLResponse; const error: NSError ); override;
   end;
 
@@ -226,7 +304,7 @@ begin
   Result:= _callback.progress( _accumulatedBytes );
 end;
 
-function TMiniHttpDownloadProcessor.send(const accumulatedBytes: Integer;
+function TMiniHttpDownloadProcessor.send(const bytesCount: Integer;
   const connection: NSURLConnection): Boolean;
 begin
   Result:= True;
@@ -247,11 +325,12 @@ type
     _stream: NSInputStream;
   private
     _callback: IMiniHttpDataCallback;
+    _accumulatedBytes: Integer;
   public
-    constructor Create( const localPath: String; const range: NSRangePtr; const callback: IMiniHttpDataCallback );
+    constructor Create( const localPath: String; const range: TMiniHttpContentRange; const callback: IMiniHttpDataCallback );
     destructor Destroy; override;
   public
-    function send( const accumulatedBytes: Integer; const connection: NSURLConnection ): Boolean; override;
+    function send( const bytesCount: Integer; const connection: NSURLConnection ): Boolean; override;
     function getHttpBodyStream: NSInputStream; override;
     procedure complete( const response: NSURLResponse; const error: NSError ); override;
   end;
@@ -260,15 +339,17 @@ type
 
 constructor TMiniHttpUploadProcessor.Create(
   const localPath: String;
-  const range: NSRangePtr;
+  const range: TMiniHttpContentRange;
   const callback: IMiniHttpDataCallback );
 begin
   _localPath:= StringToNSString( localPath );
   _localPath.retain;
-  if Assigned(range) then
-    _stream:= NSFileRangeInputStream.alloc.initWithFileAtPath_Range( _localPath, range^ )
-  else
+  if range.isNeeded then begin
+    _accumulatedBytes:= range._first;
+    _stream:= NSFileRangeInputStream.alloc.initWithFileAtPath_Range( _localPath, range.toNSRange );
+  end else begin
     _stream:= NSInputStream.alloc.initWithFileAtPath( _localPath );
+  end;
   _callback:= callback;
 end;
 
@@ -284,16 +365,117 @@ begin
   Result:= _stream;
 end;
 
-function TMiniHttpUploadProcessor.send(const accumulatedBytes: Integer;
+function TMiniHttpUploadProcessor.send(const bytesCount: Integer;
   const connection: NSURLConnection): Boolean;
 begin
-  Result:= _callback.progress( accumulatedBytes );
+  inc( _accumulatedBytes, bytesCount );
+  Result:= _callback.progress( _accumulatedBytes );
 end;
 
 procedure TMiniHttpUploadProcessor.complete(const response: NSURLResponse;
   const error: NSError);
 begin
   _stream.close;
+end;
+
+{ TMiniHttpMethod }
+
+constructor TMiniHttpMethod.Create(const name: String);
+begin
+  _name:= NSSTR( name );
+end;
+
+procedure TMiniHttpMethod.setQueryToURL(const request: NSMutableURLRequest;
+  const query: TQueryItemsDictonary);
+var
+  components: NSURLComponents;
+  queryItems: NSArray;
+begin
+  queryItems:= THttpClientUtil.toQueryItems( query );
+  components:= NSURLComponents.componentsWithURL_resolvingAgainstBaseURL(
+    request.URL, False );
+  components.setQueryItems( queryItems );
+  request.setURL( components.URL );
+end;
+
+procedure TMiniHttpMethod.setQueryToBody(const request: NSMutableURLRequest;
+  const query: TQueryItemsDictonary);
+var
+  bodyString: NSString;
+  bodyData: NSData;
+  bodyLength: NSString;
+begin
+  bodyString:= THttpClientUtil.toNSString( query );
+  bodyData:= bodyString.dataUsingEncoding( NSUTF8StringEncoding );
+  bodyLength:= StringToNSString( IntToStr(bodyData.length) );
+  request.setHTTPBody( bodyData );
+  request.addValue_forHTTPHeaderField( HttpConst.Header.ContentLength, bodyLength );
+end;
+
+constructor TMiniHttpMethodGET.Create;
+begin
+  Inherited Create( 'GET' );
+end;
+
+constructor TMiniHttpMethodDELETE.Create;
+begin
+  Inherited Create( 'DELETE' );
+end;
+
+constructor TMiniHttpMethodPOST.Create;
+begin
+  Inherited Create( 'POST' );
+end;
+
+constructor TMiniHttpMethodPOSTQueryString.Create;
+begin
+  Inherited Create( 'POST' );
+end;
+
+constructor TMiniHttpMethodPUT.Create;
+begin
+  Inherited Create( 'PUT' );
+end;
+
+constructor TMiniHttpMethodPUTQueryString.Create;
+begin
+  Inherited Create( 'PUT' );
+end;
+
+procedure TMiniHttpMethodGET.setQuery(const request: NSMutableURLRequest;
+  const query: TQueryItemsDictonary);
+begin
+  self.setQueryToURL( request, query );
+end;
+
+procedure TMiniHttpMethodDELETE.setQuery(const request: NSMutableURLRequest;
+  const query: TQueryItemsDictonary);
+begin
+  self.setQueryToURL( request, query );
+end;
+
+procedure TMiniHttpMethodPOST.setQuery(const request: NSMutableURLRequest;
+  const query: TQueryItemsDictonary);
+begin
+  self.setQueryToBody( request, query );
+end;
+
+procedure TMiniHttpMethodPOSTQueryString.setQuery(
+  const request: NSMutableURLRequest; const query: TQueryItemsDictonary);
+begin
+  self.setQueryToURL( request, query );
+end;
+
+procedure TMiniHttpMethodPUT.setQuery(const request: NSMutableURLRequest;
+  const query: TQueryItemsDictonary);
+begin
+  self.setQueryToBody( request, query );
+end;
+
+procedure TMiniHttpMethodPUTQueryString.setQuery(
+  const request: NSMutableURLRequest; const query: TQueryItemsDictonary);
+begin
+  self.setQueryToURL( request, query );
 end;
 
 { TMiniHttpResult }
@@ -312,6 +494,38 @@ begin
     Result:= NSString( self.response.allHeaderFields.objectForKey( NSSTR(name) ) ).UTF8String
   else
     Result:= EmptyStr;
+end;
+
+{ TMiniHttpContentRange }
+
+constructor TMiniHttpContentRange.Create(const first: Integer;
+  const last: Integer; const total: Integer);
+begin
+  _first:= first;
+  _last:= last;
+  _total:= total;
+end;
+
+function TMiniHttpContentRange.isNeeded: Boolean;
+begin
+  Result:= (_first>0) OR (_last<_total-1);
+end;
+
+function TMiniHttpContentRange.ToString: ansistring;
+var
+  range: String;
+begin
+  if isNeeded then
+    range:= IntToStr(_first) + '-' + IntToStr(_last)
+  else
+    range:= '*';
+  Result:= 'bytes ' + range + '/' + IntToStr(_total);
+end;
+
+function TMiniHttpContentRange.toNSRange: NSRange;
+begin
+  Result.location:= _first;
+  Result.length:= _last - _first + 1;
 end;
 
 { TMiniHttpConnectionDataDelegate }
@@ -360,12 +574,17 @@ procedure TMiniHttpConnectionDataDelegate.connection_didReceiveData
 var
   ret: Boolean;
 begin
-  if NOT isRunning then
-    Exit;
+  try
+    if NOT isRunning then
+      Exit;
 
-  ret:= _processor.receive( data, _data, connection );
-  if NOT ret then begin
-    self.cancelConnection( connection , NSSTR('connection_didReceiveData()') );
+    ret:= _processor.receive( data, _data, connection );
+    if NOT ret then begin
+      self.cancelConnection( connection , NSSTR('connection_didReceiveData()') );
+    end;
+  except
+    on e: Exception do
+      TLogUtil.logError( 'error in TMiniHttpConnectionDataDelegate.connection_didReceiveData(): ' + e.Message );
   end;
 end;
 
@@ -375,12 +594,17 @@ procedure TMiniHttpConnectionDataDelegate.connection_didSendBodyData_totalBytesW
 var
   ret: Boolean;
 begin
-  if NOT isRunning then
-    Exit;
+  try
+    if NOT isRunning then
+      Exit;
 
-  ret:= _processor.send( totalBytesWritten, connection );
-  if NOT ret then begin
-    self.cancelConnection( connection , NSSTR('connection_didSendBodyData_totalBytesWritten_totalBytesExpectedToWrite()') );
+    ret:= _processor.send( bytesWritten, connection );
+    if NOT ret then begin
+      self.cancelConnection( connection , NSSTR('connection_didSendBodyData_totalBytesWritten_totalBytesExpectedToWrite()') );
+    end;
+  except
+    on e: Exception do
+      TLogUtil.logError( 'error in TMiniHttpConnectionDataDelegate.connection_didSendBodyData_totalBytesWritten_totalBytesExpectedToWrite(): ' + e.Message );
   end;
 end;
 
@@ -389,36 +613,46 @@ procedure TMiniHttpConnectionDataDelegate.connectionDidFinishLoading
 var
   dataString: NSString;
 begin
-  _state:= TMiniHttpConnectionState.successful;
-  _processor.complete( _result.response, nil );
-  _result.resultCode:= _result.response.statusCode;
-  if (_data.length>0) then begin
-    dataString:= NSString.alloc.initWithData_encoding( _data, NSUTF8StringEncoding );
-    _result.body:= dataString.UTF8String;
-    dataString.release;
+  try
+    _state:= TMiniHttpConnectionState.successful;
+    _processor.complete( _result.response, nil );
+    _result.resultCode:= _result.response.statusCode;
+    if (_data.length>0) then begin
+      dataString:= NSString.alloc.initWithData_encoding( _data, NSUTF8StringEncoding );
+      _result.body:= dataString.UTF8String;
+      dataString.release;
+    end;
+    TLogUtil.logInformation( 'HttpClient connectionDidFinishLoading' );
+    TLogUtil.logInformation( 'resultCode=' + IntToStr(_result.response.statusCode) );
+    TLogUtil.logInformation( 'body=' + _result.body );
+    CFRunLoopStop( _runloop );
+  except
+    on e: Exception do
+      TLogUtil.logError( 'error in TMiniHttpConnectionDataDelegate.connectionDidFinishLoading(): ' + e.Message );
   end;
-  TLogUtil.logInformation( 'HttpClient connectionDidFinishLoading' );
-  TLogUtil.logInformation( 'resultCode=' + IntToStr(_result.response.statusCode) );
-  TLogUtil.logInformation( 'body=' + _result.body );
-  CFRunLoopStop( _runloop );
 end;
 
 procedure TMiniHttpConnectionDataDelegate.connection_didFailWithError(
   connection: NSURLConnection; error: NSError);
 begin
-  _state:= TMiniHttpConnectionState.failed;
-  _processor.complete( _result.response, error );
+  try
+    _state:= TMiniHttpConnectionState.failed;
+    _processor.complete( _result.response, error );
 
-  TLogUtil.logError( 'HttpClient connection_didFailWithError !!!' );
-  if Assigned(error) then begin
-    TLogUtil.logError( 'error.code=' + IntToStr(error.code) );
-    TLogUtil.logError( 'error.domain=' + error.domain.UTF8String );
-    TLogUtil.logError( 'error.description=' + error.description.UTF8String );
+    TLogUtil.logError( 'HttpClient connection_didFailWithError !!!' );
+    if Assigned(error) then begin
+      TLogUtil.logError( 'error.code=' + IntToStr(error.code) );
+      TLogUtil.logError( 'error.domain=' + error.domain.UTF8String );
+      TLogUtil.logError( 'error.description=' + error.description.UTF8String );
+    end;
+
+    _result.resultCode:= -1;
+    _result.error:= error;
+    error.retain;
+  except
+    on e: Exception do
+      TLogUtil.logError( 'error in TMiniHttpConnectionDataDelegate.connection_didFailWithError(): ' + e.Message );
   end;
-
-  _result.resultCode:= -1;
-  _result.error:= error;
-  error.retain;
 end;
 
 function TMiniHttpConnectionDataDelegate.state: TMiniHttpConnectionState;
@@ -438,9 +672,15 @@ end;
 
 { TMiniHttpClient }
 
-constructor TMiniHttpClient.Create;
+constructor TMiniHttpClient.Create( const urlPart: String; const method: TMiniHttpMethod );
+var
+  url: NSURL;
 begin
+  url:= NSURL.URLWithString( StringToNSString(urlPart) );
   _request:= NSMutableURLRequest.new;
+  _request.setURL( url );
+  _method:= method;
+  _request.setHTTPMethod( _method.name );
 end;
 
 destructor TMiniHttpClient.Destroy;
@@ -458,14 +698,19 @@ begin
   self.addHeader( NSSTR(name), StringToNSString(value) );
 end;
 
-procedure TMiniHttpClient.setBody(const body: String);
+procedure TMiniHttpClient.setBody(const body: NSString);
 var
   bodyData: NSData;
 begin
-  bodyData:= StringToNSString(body).dataUsingEncoding( NSUTF8StringEncoding );
+  bodyData:= body.dataUsingEncoding( NSUTF8StringEncoding );
   _request.setHTTPBody( bodyData );
-  _request.setHTTPMethod( HttpConst.Method.POST );
   self.setContentLength( bodyData.length );
+end;
+
+procedure TMiniHttpClient.setQueryParams(lclItems: TQueryItemsDictonary);
+begin
+  _method.setQuery( _request, lclItems );
+  FreeAndNil( lclItems );
 end;
 
 procedure TMiniHttpClient.setContentType(const contentType: NSString);
@@ -476,6 +721,13 @@ end;
 procedure TMiniHttpClient.setContentLength(const length: Integer);
 begin
   self.addHeader( HttpConst.Header.ContentLength, StringToNSString(IntToStr(length)) );
+end;
+
+procedure TMiniHttpClient.setContentRange(const range: TMiniHttpContentRange);
+begin
+  if NOT range.isNeeded then
+    Exit;
+  self.addHeader( HttpConst.Header.ContentRange, StringToNSString(range.toString) );
 end;
 
 procedure TMiniHttpClient.doRunloop(
@@ -499,56 +751,29 @@ begin
     raise EAbort.Create( 'Raised by HttpClient' );
 end;
 
-function TMiniHttpClient.doPost(
-  const urlPart: String;
-  lclItems: TQueryItemsDictonary;
-  const processor: TMiniHttpDataProcessor): TMiniHttpResult;
+function TMiniHttpClient.doConnect( const processor: TMiniHttpDataProcessor ): TMiniHttpResult;
 var
-  url: NSURL;
   delegate: TMiniHttpConnectionDataDelegate;
-
-  function getBody: String;
-  var
-    components: NSURLComponents;
-    cocoaItems: NSArray;
-  begin
-    components:= NSURLComponents.new;
-    cocoaItems:= THttpClientUtil.toQueryItems( lclItems );
-    components.setQueryItems( cocoaItems );
-    Result:= components.query.UTF8String;
-    components.release;
-  end;
-
 begin
   try
-    url:= NSURL.URLWithString( StringToNSString(urlPart) );
-    _request.setURL( url );
-    _request.setHTTPMethod( HttpConst.Method.POST );
-    if lclItems <> nil then begin
-      self.setBody( getBody );
-      self.setContentType( HttpConst.ContentType.UrlEncoded );
-    end;
-
     delegate:= TMiniHttpConnectionDataDelegate.new;
     delegate.setProcessor( processor );
     doRunloop( delegate );
   finally
     Result:= delegate.getResult;
-    FreeAndNil( lclItems );
     delegate.autorelease;
   end;
 end;
 
-function TMiniHttpClient.post( const urlPart: String; lclItems: TQueryItemsDictonary ): TMiniHttpResult;
+function TMiniHttpClient.connect: TMiniHttpResult;
 var
   processor: TMiniHttpDataProcessor;
 begin
   processor:= TDefaultHttpDataProcessor.Create;
-  Result:= self.doPost( urlPart, lclItems, processor );
+  Result:= self.doConnect( processor );
 end;
 
 function TMiniHttpClient.download(
-  const urlPart: String;
   const localPath: String;
   const callback: IMiniHttpDataCallback ): TMiniHttpResult;
 var
@@ -556,14 +781,13 @@ var
 begin
   TLogUtil.logInformation( '>> HttpClient: Download file start' );
   processor:= TMiniHttpDownloadProcessor.Create( localPath, callback );
-  Result:= self.doPost( urlPart, nil, processor );
+  Result:= self.doConnect( processor );
   TLogUtil.logInformation( '<< HttpClient: Download file end' );
 end;
 
 function TMiniHttpClient.doUpload(
-  const urlPart: String;
   const localPath: String;
-  const range: NSRangePtr;
+  const range: TMiniHttpContentRange;
   const callback: IMiniHttpDataCallback): TMiniHttpResult;
 var
   processor: TMiniHttpUploadProcessor;
@@ -572,37 +796,55 @@ begin
   processor:= TMiniHttpUploadProcessor.Create( localPath, range, callback );
   _request.setHTTPBodyStream( processor.getHttpBodyStream );
   self.setContentType( HttpConst.ContentType.OctetStream );
-  Result:= self.doPost( urlPart, nil, processor );
+  self.setContentRange( range );
+  Result:= self.doConnect( processor );
   TLogUtil.logInformation( '<< HttpClient: Upload file end' );
 end;
 
 function TMiniHttpClient.upload(
-  const urlPart: String;
   const localPath: String;
   const callback: IMiniHttpDataCallback): TMiniHttpResult;
+var
+  size: Integer;
+  range: TMiniHttpContentRange;
 begin
-  Result:= self.doUpload( urlPart, localPath, nil, callback );
+  size:= TFileUtil.filesize( localPath );
+  range:= TMiniHttpContentRange.Create( 0, size-1, size );
+  Result:= self.doUpload( localPath, range, callback );
+  range.Free;
 end;
 
 function TMiniHttpClient.uploadRange(
-  const urlPart: String;
   const localPath: String;
-  const range: NSRange;
+  const range: TMiniHttpContentRange;
   const callback: IMiniHttpDataCallback): TMiniHttpResult;
 begin
-  Result:= self.doUpload( urlPart, localPath, @range, callback );
+  Result:= self.doUpload( localPath, range, callback );
 end;
 
 initialization
-  HttpConst.Method.GET:= NSSTR( 'GET' );
-  HttpConst.Method.POST:= NSSTR( 'POST' );
+  HttpConst.Method.GET:= TMiniHttpMethodGET.Create;
+  HttpConst.Method.DELETE:= TMiniHttpMethodDELETE.Create;
+  HttpConst.Method.POST:= TMiniHttpMethodPOST.Create;
+  HttpConst.Method.POSTQueryString:= TMiniHttpMethodPOSTQueryString.Create;
+  HttpConst.Method.PUT:= TMiniHttpMethodPUT.Create;
+  HttpConst.Method.PUTQueryString:= TMiniHttpMethodPUTQueryString.Create;
 
-  HttpConst.Header.ContentType:= NSSTR('content-type');
-  HttpConst.Header.ContentLength:= NSSTR('content-length');
+  HttpConst.Header.ContentType:=   NSSTR('Content-Type');
+  HttpConst.Header.ContentLength:= NSSTR('Content-Length');
+  HttpConst.Header.ContentRange:=  NSSTR('Content-Range');
 
   HttpConst.ContentType.UrlEncoded:= NSSTR( 'application/x-www-form-urlencoded' );
   HttpConst.ContentType.JSON:= NSSTR( 'application/json' );
   HttpConst.ContentType.OctetStream:= NSSTR( 'application/octet-stream' );
+
+finalization
+  FreeAndNil( HttpConst.Method.GET );
+  FreeAndNil( HttpConst.Method.DELETE );
+  FreeAndNil( HttpConst.Method.POST );
+  FreeAndNil( HttpConst.Method.POSTQueryString );
+  FreeAndNil( HttpConst.Method.PUT );
+  FreeAndNil( HttpConst.Method.PUTQueryString );
 
 end.
 
