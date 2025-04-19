@@ -1,5 +1,5 @@
 name: 0-build-snapshot-win
-# 2024-01-29 07:30
+# 2025-04-20 01:20
 
 on:
   workflow_dispatch:
@@ -160,7 +160,7 @@ jobs:
         echo "LAZARUS_VERSION=$LAZARUS_VERSION" >> $GITHUB_ENV
 
     - name: Install Lazarus
-      uses: deep-soft/setup-fpc@win
+      uses: deep-soft/lazarus-install@win
 #        lazarus-version: "2.2.6"
 #        lazarus-version: "stable"
       with:
