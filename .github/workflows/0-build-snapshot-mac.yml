@@ -2,8 +2,8 @@ name: 0-build-snapshot-mac
 # 2024-12-28 09:00
 
 on:
-# if: ${{ inputs.setup-fpc.deep-soft }}
-# if: ${{ inputs.setup-fpc.alexx2000 }}
+# if: ${{ inputs.lazarus-install.deep-soft }}
+# if: ${{ inputs.lazarus-install.doublecmd }}
   workflow_dispatch:
     inputs:
       archive_all:
@@ -172,7 +172,7 @@ jobs:
         echo "LAZARUS_VERSION=$LAZARUS_VERSION" >> $GITHUB_ENV
 
     - name: Install Free Pascal
-      uses: deep-soft/setup-fpc@master
+      uses: deep-soft/lazarus-install@mac
       with:
         lazarus-version: "${{ env.LAZARUS_VERSION }}"
 #        lazarus-version: "stable"
