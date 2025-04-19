@@ -1,5 +1,5 @@
 name: 0-build-snapshot-mac
-# 2024-12-28 09:00
+# 2025-04-20 01:20
 
 on:
 # if: ${{ inputs.lazarus-install.deep-soft }}
