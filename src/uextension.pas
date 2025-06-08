@@ -106,6 +106,8 @@ begin
     DialogBoxParam:= @fDialogBox.DialogBoxParam;
     SetProperty:= @fDialogBox.SetProperty;
     GetProperty:= @fDialogBox.GetProperty;
+    if Language.Length < sizeof(LanguageID) then
+      LanguageID:= Language;
     CreateComponent:= @fDialogBox.CreateComponent;
   end;
 end;

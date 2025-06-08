@@ -98,6 +98,11 @@ type
       message 'lclSetOpenURLObserver:';
   end;
 
+  NSSplitView_FIX = objccategory external (NSSplitView)
+    procedure insertArrangedSubview( view: NSView; index: NSInteger );
+      message 'insertArrangedSubview:atIndex:';
+  end;
+
   NSTableViewStyle = NSInteger;
 
   NSTableViewFix = objccategory external (NSTableView)
@@ -127,6 +132,9 @@ type
   end;
 
   function StringToNSString(const S: String): NSString;
+
+type
+  TNSDataArray = array of NSObject;
 
 implementation
 

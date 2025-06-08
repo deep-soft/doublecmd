@@ -7137,11 +7137,9 @@ msgid "File name"
 msgstr "文件名"
 
 #: tfrmoptionspluginswfx.lblplugindescription.caption
-#, fuzzy
-#| msgid "Fi&le system plugins allow access to disks inaccessible by operating system or to external devices like Palm/PocketPC."
 msgctxt "tfrmoptionspluginswfx.lblplugindescription.caption"
 msgid "Fi&le system plugins allow access to disks inaccessible by operating system or to external devices like smartphones."
-msgstr "文件系统插件允许访问操作系统或 Palm/PocketPC 等外部设备中无法访问的磁盘。"
+msgstr "文件系统插件允许访问操作系统或智能手机等外部设备中无法访问的磁盘。"
 
 #: tfrmoptionspluginswfx.stgplugins.columns[0].title.caption
 msgctxt "tfrmoptionspluginswfx.stgplugins.columns[0].title.caption"
@@ -8323,7 +8321,7 @@ msgstr ""
 #: tfrmquicksearch.sbfiles.hint
 msgctxt "tfrmquicksearch.sbfiles.hint"
 msgid "Files"
-msgstr "个文件"
+msgstr "文件"
 
 #: tfrmquicksearch.sbmatchbeginning.caption
 msgid "{"
@@ -10961,6 +10959,16 @@ msgctxt "ulng.rsmfstbiiclouddrivertitle"
 msgid "iCloud Driver"
 msgstr "iCloud云盘"
 
+#: ulng.rsmfstbinetworktips
+msgctxt "ulng.rsmfstbinetworktips"
+msgid "network"
+msgstr "网络连接"
+
+#: ulng.rsmfstbinetworktitle
+msgctxt "ulng.rsmfstbinetworktitle"
+msgid "network"
+msgstr "网络连接"
+
 #: ulng.rsmfstbiprivilegetips
 msgid "As a file manager, Double Command requires full disk access permissions. Clicking this button will pop up the macOS system settings page. Please add \"Double Commander.app\" to the \"Full Disk Access\" list to complete the authorization."
 msgstr "Double Command作为文件管理器，需要获得完全磁盘访问权限。点击此按钮将弹出macOS系统设置页，请添加“Double Commander.app”到“完全磁盘访问权限”列表中完成授权。"
@@ -11233,6 +11241,10 @@ msgstr ""
 msgid "Are you sure that you want to cancel this operation?"
 msgstr "确定要取消此操作吗？"
 
+#: ulng.rsmsgcannotchangetarget
+msgid "You cannot change a target location!"
+msgstr ""
+
 #: ulng.rsmsgcannotcopymoveitself
 #, object-pascal-format
 msgid "You can not copy/move a file \"%s\" to itself!"
@@ -11319,7 +11331,7 @@ msgstr "删除部分复制的文件？"
 #: ulng.rsmsgdelfldr
 #, object-pascal-format
 msgid "Delete %d selected files/directories?"
-msgstr "确定婪删除 %d 个选中的文件/文件夹吗？"
+msgstr "确定要删除 %d 个选中的文件/文件夹吗？"
 
 #: ulng.rsmsgdelfldrt
 #, object-pascal-format
@@ -13427,23 +13439,23 @@ msgstr "插件"
 
 #: ulng.rsoptionseditorpluginsdsx
 msgid "Search plugins"
-msgstr ""
+msgstr "搜索插件"
 
 #: ulng.rsoptionseditorpluginswcx
 msgid "Packer plugins"
-msgstr ""
+msgstr "压缩插件"
 
 #: ulng.rsoptionseditorpluginswdx
 msgid "Content plugins"
-msgstr ""
+msgstr "内容插件"
 
 #: ulng.rsoptionseditorpluginswfx
 msgid "File system plugins"
-msgstr ""
+msgstr "文件系统插件"
 
 #: ulng.rsoptionseditorpluginswlx
 msgid "Viewer plugins"
-msgstr ""
+msgstr "查看器插件"
 
 #: ulng.rsoptionseditorquicksearch
 msgid "Quick search/filter"

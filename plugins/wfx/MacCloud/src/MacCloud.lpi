@@ -13,6 +13,10 @@
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
+    <i18n>
+      <EnableI18N Value="True" LFM="False"/>
+      <OutDir Value="../language"/>
+    </i18n>
     <BuildModes>
       <Item Name="Default" Default="True"/>
     </BuildModes>
@@ -23,25 +27,10 @@
     <RunParams>
       <FormatVersion Value="2"/>
     </RunParams>
-    <RequiredPackages>
-      <Item>
-        <PackageName Value="LazUtils"/>
-      </Item>
-    </RequiredPackages>
     <Units>
       <Unit>
         <Filename Value="MacCloud.lpr"/>
         <IsPartOfProject Value="True"/>
-      </Unit>
-      <Unit>
-        <Filename Value="maccloudfunc.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="MacCloudFunc"/>
-      </Unit>
-      <Unit>
-        <Filename Value="httpclient/uminihttpclient.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="uMiniHttpClient"/>
       </Unit>
       <Unit>
         <Filename Value="util/uminicocoa.pas"/>
@@ -54,44 +43,159 @@
         <UnitName Value="uMiniUtil"/>
       </Unit>
       <Unit>
-        <Filename Value="umaccloudutil.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="uMacCloudUtil"/>
-      </Unit>
-      <Unit>
-        <Filename Value="umaccloudcore.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="uMacCloudCore"/>
-      </Unit>
-      <Unit>
-        <Filename Value="umaccloudoptions.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="uMacCloudOptions"/>
-      </Unit>
-      <Unit>
-        <Filename Value="umaccloudconfig.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="uMacCloudConfig"/>
-      </Unit>
-      <Unit>
-        <Filename Value="drivers/dropbox/udropboxclient.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="uDropBoxClient"/>
-      </Unit>
-      <Unit>
         <Filename Value="drivers/root/ucloudrootdriver.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="uCloudRootDriver"/>
       </Unit>
       <Unit>
-        <Filename Value="drivers/yandex/uyandexclient.pas"/>
+        <Filename Value="drivers/uclouddriver.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uCloudDriver"/>
+      </Unit>
+      <Unit>
+        <Filename Value="drivers/aws/uawsauth.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uAWSAuth"/>
+      </Unit>
+      <Unit>
+        <Filename Value="drivers/aws/uawscore.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uAWSCore"/>
+      </Unit>
+      <Unit>
+        <Filename Value="drivers/aws/us3client.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uS3Client"/>
+      </Unit>
+      <Unit>
+        <Filename Value="drivers/aws/aliyunoss/ualiyunossclient.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uAliyunOSSClient"/>
+      </Unit>
+      <Unit>
+        <Filename Value="util/uminihttpclient.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uMiniHttpClient"/>
+      </Unit>
+      <Unit>
+        <Filename Value="drivers/oauth2/box/uboxclient.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uBoxClient"/>
+      </Unit>
+      <Unit>
+        <Filename Value="drivers/oauth2/box/uboxclientutil.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uBoxClientUtil"/>
+      </Unit>
+      <Unit>
+        <Filename Value="drivers/oauth2/dropbox/udropboxclient.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uDropBoxClient"/>
+      </Unit>
+      <Unit>
+        <Filename Value="drivers/oauth2/onedrive/uonedriveclient.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uOneDriveClient"/>
+      </Unit>
+      <Unit>
+        <Filename Value="drivers/oauth2/yandex/uyandexclient.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="uYandexClient"/>
       </Unit>
       <Unit>
-        <Filename Value="drivers/uclouddriver.pas"/>
+        <Filename Value="wfx/ui/uwfxoptionswindow.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="uCloudDriver"/>
+        <UnitName Value="uWFXOptionsWindow"/>
+      </Unit>
+      <Unit>
+        <Filename Value="wfx/uwfxconfig.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uWFXConfig"/>
+      </Unit>
+      <Unit>
+        <Filename Value="wfx/uwfxfunc.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uWFXFunc"/>
+      </Unit>
+      <Unit>
+        <Filename Value="wfx/uwfxplugin.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uWFXPlugin"/>
+      </Unit>
+      <Unit>
+        <Filename Value="wfx/uwfxutil.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uWFXUtil"/>
+      </Unit>
+      <Unit>
+        <Filename Value="drivers/oauth2/uoauth2core.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uOAuth2Core"/>
+      </Unit>
+      <Unit>
+        <Filename Value="drivers/oauth2/uoauth2auth.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uOAuth2Auth"/>
+      </Unit>
+      <Unit>
+        <Filename Value="drivers/oauth2/uoauth2client.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uOAuth2Client"/>
+      </Unit>
+      <Unit>
+        <Filename Value="wfx/ui/uwfxoptionscore.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uWFXOptionsCore"/>
+      </Unit>
+      <Unit>
+        <Filename Value="wfx/ui/uwfxoptionsoauth2.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uWFXOptionsOAuth2"/>
+      </Unit>
+      <Unit>
+        <Filename Value="wfx/ui/uwfxoptionss3.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uWFXOptionsS3"/>
+      </Unit>
+      <Unit>
+        <Filename Value="drivers/aws/tencentcos/utencentcosclient.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uTencentCOSClient"/>
+      </Unit>
+      <Unit>
+        <Filename Value="drivers/aws/amazons3/uamazons3client.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uAmazonS3Client"/>
+      </Unit>
+      <Unit>
+        <Filename Value="drivers/aws/s3compatible/us3compatibleclient.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uS3CompatibleClient"/>
+      </Unit>
+      <Unit>
+        <Filename Value="drivers/aws/huaweiobs/uhuaweiobsclient.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uHuaweiOBSClient"/>
+      </Unit>
+      <Unit>
+        <Filename Value="wfx/ui/uwfxoptionscommonrs.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uWFXOptionsCommonRS"/>
+      </Unit>
+      <Unit>
+        <Filename Value="drivers/aws/qiniukodo/uqiniukodoclient.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uQiniuKODOClient"/>
+      </Unit>
+      <Unit>
+        <Filename Value="drivers/aws/upyunuss/uupyunussclient.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uUpyunUSSClient"/>
+      </Unit>
+      <Unit>
+        <Filename Value="drivers/aws/backblazeb2/ubackblazeb2client.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="uBackBlazeB2Client"/>
       </Unit>
     </Units>
   </ProjectOptions>
@@ -102,7 +206,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../../../../sdk;util;httpclient;drivers/dropbox;drivers/root;drivers/yandex;drivers"/>
+      <OtherUnitFiles Value="../../../../sdk;util;drivers/root;drivers;drivers/aws;drivers/aws/aliyunoss;drivers/oauth2/box;drivers/oauth2/dropbox;drivers/oauth2/onedrive;drivers/oauth2/yandex;wfx/ui;wfx;drivers/oauth2;drivers/aws/tencentcos;drivers/aws/amazons3;drivers/aws/s3compatible;drivers/aws/huaweiobs;drivers/qiniukodo;drivers/aws/qiniukodo;drivers/aws/upyunuss;drivers/aws/backblazeb2"/>
       <UnitOutputDirectory Value="../lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <CodeGeneration>

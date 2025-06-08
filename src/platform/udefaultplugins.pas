@@ -30,6 +30,10 @@ uses
   Classes, SysUtils; 
 
 const
+  { Default plugins list version number }
+  pdVersion = 1;
+
+const
   WcxMask = '*.wcx'{$IFDEF CPU64} + ';*.wcx64'{$ENDIF};
   WdxMask = '*.wdx'{$IFDEF CPU64} + ';*.wdx64'{$ENDIF};
   WfxMask = '*.wfx'{$IFDEF CPU64} + ';*.wfx64'{$ENDIF};
@@ -316,9 +320,9 @@ begin
   end;
 
   {$IF DEFINED(DARWIN)}
-  if gWFXPlugins.IndexOfName('DropBox') < 0 then
+  if gWFXPlugins.IndexOfName('cloud') < 0 then
   begin
-    gWFXPlugins.Add('DropBox', Folder + 'MacCloud' + PathDelim + 'MacCloud.wfx');
+    gWFXPlugins.Add('cloud', Folder + 'MacCloud' + PathDelim + 'MacCloud.wfx');
   end;
   {$ENDIF}
 

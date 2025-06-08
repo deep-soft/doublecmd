@@ -62,8 +62,10 @@ install -m 644 plugins/wdx/audioinfo/audioinfo.lng  $DC_INSTALL_DIR/plugins/wdx/
 cp -r plugins/wfx/ftp/language                      $DC_INSTALL_DIR/plugins/wfx/ftp
 install -m 644 plugins/wfx/ftp/ftp.wfx              $DC_INSTALL_DIR/plugins/wfx/ftp/
 install -m 644 plugins/wfx/ftp/src/ftp.ico          $DC_INSTALL_DIR/plugins/wfx/ftp/
+cp -r plugins/wfx/MacCloud/language                 $DC_INSTALL_DIR/plugins/wfx/MacCloud
 cp -r plugins/wfx/MacCloud/drivers                  $DC_INSTALL_DIR/plugins/wfx/MacCloud
 install -m 644 plugins/wfx/MacCloud/MacCloud.wfx    $DC_INSTALL_DIR/plugins/wfx/MacCloud/
+install -m 644 plugins/wfx/MacCloud/MacCloud.ico    $DC_INSTALL_DIR/plugins/wfx/MacCloud/
 # WLX
 install -m 644 plugins/wlx/MacPreview/MacPreview.wlx $DC_INSTALL_DIR/plugins/wlx/MacPreview/
 
@@ -87,3 +89,5 @@ cp -a *.dylib             $DC_INSTALL_DIR/
 # Install instruction
 cp -r install/darwin/dmg/. $1
 
+# Update icon-theme.cache time
+touch -r $DC_INSTALL_DIR/pixmaps/dctheme $DC_INSTALL_DIR/pixmaps/dctheme/icon-theme.cache

@@ -62,7 +62,7 @@ uses
   uFileSource, fModView, Types, uThumbnails, uFormCommands, uOSForms,Clipbrd,
   uExifReader, KASStatusBar, SynEdit, uShowForm, uRegExpr, uRegExprU,
   Messages, fEditSearch, uMasks, uSearchTemplate, uFileSourceOperation,
-  uFileSourceCalcStatisticsOperation, KASComCtrls;
+  uFileSourceCalcStatisticsOperation, KASComCtrls, LCLVersion;
 
 type
 
@@ -390,6 +390,9 @@ type
     FPluginEncoding: Integer;
     //---------------------
     FSynEditOriginalText: String;
+{$if lcl_fullversion >= 4990000}
+    FSynEditWrap: TLazSynEditPlugin;
+{$endif}
     FSearchOptions: TEditSearchOptions;
     FHighlighter: TSynCustomHighlighter;
     //---------------------
@@ -537,6 +540,9 @@ uses
   fPrintSetup, uFindFiles, uAdministrator, uOfficeXML, uHighlighterProcs, dmHigh,
   SynEditTypes, uFile, uFileSystemFileSource, uFileProcs, uOperationsManager,
   uFileSourceOperationOptions
+{$if lcl_fullversion >= 4990000}
+  , SynEditWrappedView
+{$endif}
 {$IFDEF LCLGTK2}
   , uGraphics
 {$ENDIF}
@@ -1618,8 +1624,9 @@ end;
 
 procedure TfrmViewer.EnableActions(AEnabled: Boolean);
 begin
-  actSave.Enabled:= AEnabled;
   actCopyFile.Enabled:= AEnabled;
+  actSave.Enabled:= AEnabled and bImage;
+  actSaveAs.Enabled:= AEnabled and bImage;
   actMoveFile.Enabled:= AEnabled and (FileList.Count > 1);
   actDeleteFile.Enabled:= AEnabled and (FileList.Count > 1);
 end;
@@ -3070,6 +3077,11 @@ begin
       MarkupInfo.Background:= clBtnFace;
       MarkupInfo.Foreground:= clBtnText;
     end;
+{$if lcl_fullversion >= 4990000}
+    if gViewerWrapText then begin
+      FSynEditWrap:= TLazSynEditLineWrapPlugin.Create(SynEdit);
+    end;
+{$endif}
     SynEdit.Options:= gEditorSynEditOptions;
     SynEdit.TabWidth := gEditorSynEditTabWidth;
     SynEdit.RightEdge := gEditorSynEditRightEdge;
@@ -3352,8 +3364,16 @@ begin
     if FFindDialog.cbRegExp.Checked then
     begin
       FRegExp.ModifierI:= not FFindDialog.cbCaseSens.Checked;
-      FRegExp.Expression:= sSearchTextU;
-      bTextFound:= FRegExp.Exec(FLastSearchPos + FLastMatchLength + 1);
+      try
+        FRegExp.Expression:= sSearchTextU;
+        bTextFound:= FRegExp.Exec(FLastSearchPos + FLastMatchLength + 1);
+      except
+        on E: Exception do
+        begin
+          msgError(StripHotkey(FFindDialog.cbRegExp.Caption) + ': ' + E.Message);
+          Exit;
+        end;
+      end;
       if bTextFound then
       begin
         FLastMatchLength:= FRegExp.MatchLen[0];
@@ -3578,13 +3598,19 @@ begin
   miFullScreen.Visible := (bImage and not bQuickView);
   miScreenshot.Visible := (bImage and not bQuickView);
   miSave.Visible       := bImage;
+  actSave.Enabled      := bImage;
   miSaveAs.Visible     := bImage;
+  actSaveAs.Enabled    := bImage;
 
   miShowTransparency.Visible := bImage;
 
   actGotoLine.Enabled  := (Panel = pnlCode);
   actShowCaret.Enabled := (Panel = pnlText) or (Panel = pnlCode);
-  actWrapText.Enabled  := (bPlugin and FWlxModule.CanCommand) or ((Panel = pnlText) and (ViewerControl.Mode in [vcmText, vcmWrap]));
+  actWrapText.Enabled  := (bPlugin and FWlxModule.CanCommand) or ((Panel = pnlText) and (ViewerControl.Mode in [vcmText, vcmWrap]))
+{$if lcl_fullversion >= 4990000}
+    or (Panel = pnlCode);
+{$endif}
+  ;
 
   miGotoLine.Visible       := (Panel = pnlCode);
   miDiv5.Visible           := (Panel = pnlText) or (Panel = pnlCode);
@@ -4166,6 +4192,10 @@ begin
 end;
 
 procedure TfrmViewer.cm_WrapText(const Params: array of string);
+{$if lcl_fullversion >= 4990000}
+var
+  TopLine: Integer;
+{$endif}
 begin
   gViewerWrapText:= not gViewerWrapText;
   actWrapText.Checked:= gViewerWrapText;
@@ -4174,6 +4204,19 @@ begin
     FWlxModule.CallListSendCommand(lc_newparams, PluginShowFlags)
   else if not miGraphics.Checked then
   begin
+{$if lcl_fullversion >= 4990000}
+    if miCode.Checked then
+    begin
+      TopLine:= SynEdit.TopLine;
+      if gViewerWrapText then
+        FSynEditWrap:= TLazSynEditLineWrapPlugin.Create(SynEdit)
+      else begin
+        FreeAndNil(FSynEditWrap);
+      end;
+      SynEdit.TopLine:= TopLine;
+    end
+    else
+{$endif}
     if ViewerControl.Mode in [vcmText, vcmWrap] then
     begin
       ViewerControl.Mode:= WRAP_MODE[gViewerWrapText];

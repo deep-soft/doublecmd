@@ -32,8 +32,8 @@ uses
   gtk2,
   Gtk2Int,
   {$ENDIF}
-  {$IF DEFINED(LCLQT5) and not DEFINED(DARWIN)}
-  uQt5Workaround,
+  {$IF DEFINED(LCLQT5) or DEFINED(LCLQT6)}
+  uQtWorkaround,
   {$ENDIF}
   {$ENDIF}
   uSystem,
@@ -41,6 +41,9 @@ uses
   uMoveConfig,
   uEarlyConfig,
   DCConvertEncoding,
+  {$IF DEFINED(MSWINDOWS)}
+  uLibraryPath,
+  {$ENDIF}
   {$IF DEFINED(LCLWIN32) and DEFINED(DARKWIN)}
   uWin32WidgetSetDark,
   {$ENDIF}
@@ -54,9 +57,6 @@ uses
   {$ENDIF}
   {$IFDEF LCLWIN32}
   uDClass,
-  {$IF NOT DEFINED(DARKWIN)}
-  uWin32WidgetSetFix,
-  {$ENDIF}
   {$ENDIF}
   LCLProc,
   Classes,
