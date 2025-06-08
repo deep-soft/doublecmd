@@ -1,5 +1,5 @@
 name: 0-build-snapshot-mac
-# 2025-04-20 01:20
+# 2025-06-08 20:40
 
 on:
 # if: ${{ inputs.lazarus-install.deep-soft }}
@@ -23,6 +23,11 @@ on:
         description: LAZARUS_VERSION (default stable, try 3.0RC2)
         default: 'stable'
         required: true
+      LAZARUS_MAC_REF:
+        description: LAZARUS_MAC_REF (default fixes_4)
+        default: 'fixes_4'
+        required: true
+
 
   workflow_call:
 #  push:
@@ -154,11 +159,6 @@ jobs:
         mv ${{ env.ZIP_RELEASE_ARCHIVE }} ../
         ls -l ../${{ env.ZIP_RELEASE_ARCHIVE }}
 
-    - name: Get Lazarus source
-      uses: deep-soft/checkout@v4
-      with:
-        repository: 'fpc/Lazarus'
-
     - name: Set version to Install Free Pascal
       shell: bash
       run: |
@@ -176,6 +176,13 @@ jobs:
       with:
         lazarus-version: "${{ env.LAZARUS_VERSION }}"
 #        lazarus-version: "stable"
+
+    - name: Get Lazarus source
+      uses: deep-soft/checkout@v4
+      with:
+        repository: 'fpc/Lazarus'
+        ref: "${{ env.LAZARUS_MAC_REF }}"
+#        ref: 'fixes_4'
 
     - name: Build and install Lazarus
       run: |
