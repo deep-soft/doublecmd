@@ -595,6 +595,7 @@ resourcestring
   rsPropsErrChMod = 'Can not change access rights for "%s"';
   rsPropsErrChOwn = 'Can not change owner for "%s"';
   // Compare by content Dialog
+  rsDiffShow = '&Show';
   rsDiffMatches = ' Matches: ';
   rsDiffModifies = ' Modifies: ';
   rsDiffAdds = ' Adds: ';
@@ -999,7 +1000,7 @@ resourcestring
   // Quick Search/Filter
   rsOptSearchItems = '&Files;Di&rectories;Files a&nd Directories';
   rsOptSearchCase = '&Sensitive;&Insensitive';
-  rsOptSearchOpt = '&Hide filter panel when not focused;Keep saving setting modifications for next session';
+  rsOptSearchOpt = 'Ignore &diacritics and ligatures;&Hide filter panel when not focused;Keep saving setting modifications for next session';
 
   // Toolbar
   rsOptToolbarButtonType = 'S&eparator;Inte&rnal command;E&xternal command;Men&u';
@@ -1024,8 +1025,8 @@ resourcestring
   rsMFSTBISwapPanelsTitle = 'SwapPanels';
   rsMFSTBISwapPanelsTips = 'Swap Panels';
 
-  rsMFSTBIiCloudDriverTitle = 'iCloud Driver';
-  rsMFSTBIiCloudDriverTips = 'iCloud Driver';
+  rsMFSTBIiCloudDriverTitle = 'iCloud Drive';
+  rsMFSTBIiCloudDriverTips = 'iCloud Drive';
 
   rsMFSTBINetworkTitle = 'network';
   rsMFSTBINetworkTips = 'network';

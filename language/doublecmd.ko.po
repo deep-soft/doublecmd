@@ -3155,6 +3155,7 @@ msgid "&Network"
 msgstr "네트워크(&N)"
 
 #: tfrmmain.mnushow.caption
+msgctxt "tfrmmain.mnushow.caption"
 msgid "&Show"
 msgstr "표시(&S)"
 
@@ -8308,6 +8309,14 @@ msgstr "Aa"
 msgid "Case Sensitive"
 msgstr "대소문자 구분"
 
+#: tfrmquicksearch.sbdiacritics.caption
+msgid "Ďï"
+msgstr ""
+
+#: tfrmquicksearch.sbdiacritics.hint
+msgid "Diacritics and ligatures"
+msgstr ""
+
 #: tfrmquicksearch.sbdirectories.caption
 msgid "D"
 msgstr "D"
@@ -9771,14 +9780,6 @@ msgctxt "TWFXPLUGINCOPYMOVEOPERATIONOPTIONSUI.LBLFILEEXISTS.CAPTION"
 msgid "When file exists"
 msgstr "파일이 존재하는 경우"
 
-#: uaccentsutils.rsstraccents
-msgid "á;â;à;å;ã;ä;ç;é;ê;è;ë;í;î;ì;ï;ñ;ó;ô;ò;ø;õ;ö;ú;û;ù;ü;ÿ;Á;Â;À;Å;Ã;Ä;Ç;É;Ê;È;Ë;Í;Í;Ì;Ï;Ñ;Ó;Ô;Ø;Õ;Ö;ß;Ú;Û;Ù;Ü;Ÿ;¿;¡;œ;æ;Æ;Œ"
-msgstr "á;â;à;å;ã;ä;ç;é;ê;è;ë;í;î;ì;ï;ñ;ó;ô;ò;ø;õ;ö;ú;û;ù;ü;ÿ;Á;Â;À;Å;Ã;Ä;Ç;É;Ê;È;Ë;Í;Í;Ì;Ï;Ñ;Ó;Ô;Ø;Õ;Ö;ß;Ú;Û;Ù;Ü;Ÿ;¿;¡;œ;æ;Æ;Œ"
-
-#: uaccentsutils.rsstraccentsstripped
-msgid "a;a;a;a;a;a;c;e;e;e;e;i;i;i;i;n;o;o;o;o;o;o;u;u;u;u;y;A;A;A;A;A;A;C;E;E;E;E;I;I;I;I;N;O;O;O;O;O;B;U;U;U;U;Y;?;!;oe;ae;AE;OE"
-msgstr "a;a;a;a;a;a;c;e;e;e;e;i;i;i;i;n;o;o;o;o;o;o;u;u;u;u;y;A;A;A;A;A;A;C;E;E;E;E;I;I;I;I;N;O;O;O;O;O;B;U;U;U;U;Y;?;!;oe;ae;AE;OE"
-
 #: uadministrator.rselevationrequired
 msgid "You need to provide administrator permission"
 msgstr "관리자 권한을 제공해야 합니다"
@@ -10084,6 +10085,12 @@ msgstr " 일치: "
 #: ulng.rsdiffmodifies
 msgid " Modifies: "
 msgstr " 수정: "
+
+#: ulng.rsdiffshow
+#, fuzzy
+msgctxt "ulng.rsdiffshow"
+msgid "&Show"
+msgstr "표시(&S)"
 
 #: ulng.rsdifftextdifferenceencoding
 msgctxt "ulng.rsdifftextdifferenceencoding"
@@ -10949,12 +10956,12 @@ msgstr "수평 분할"
 
 #: ulng.rsmfstbiiclouddrivertips
 msgctxt "ulng.rsmfstbiiclouddrivertips"
-msgid "iCloud Driver"
+msgid "iCloud Drive"
 msgstr "iCloud 드라이버"
 
 #: ulng.rsmfstbiiclouddrivertitle
 msgctxt "ulng.rsmfstbiiclouddrivertitle"
-msgid "iCloud Driver"
+msgid "iCloud Drive"
 msgstr "iCloud 드라이버"
 
 #: ulng.rsmfstbinetworktips
@@ -13560,7 +13567,9 @@ msgid "&Files;Di&rectories;Files a&nd Directories"
 msgstr "파일(&F);디렉터리(&R);파일 및 디렉터리(&N)"
 
 #: ulng.rsoptsearchopt
-msgid "&Hide filter panel when not focused;Keep saving setting modifications for next session"
+#, fuzzy
+#| msgid "&Hide filter panel when not focused;Keep saving setting modifications for next session"
+msgid "Ignore &diacritics and ligatures;&Hide filter panel when not focused;Keep saving setting modifications for next session"
 msgstr "초점이 맞지 않을 때는 필터 패널 숨기기(&H);다음 세션의 설정 수정사항 저장"
 
 #: ulng.rsoptsortcasesens
@@ -14330,3 +14339,4 @@ msgstr "교체가 이루어지지 않았습니다."
 #, object-pascal-format
 msgid "No setup named \"%s\""
 msgstr "\"%s\"라는 이름의 설정 없음"
+

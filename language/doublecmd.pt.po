@@ -3219,6 +3219,7 @@ msgid "&Network"
 msgstr "Rede"
 
 #: tfrmmain.mnushow.caption
+msgctxt "tfrmmain.mnushow.caption"
 msgid "&Show"
 msgstr "Mo&strar"
 
@@ -8505,6 +8506,14 @@ msgstr "Aa"
 msgid "Case Sensitive"
 msgstr "Sensível a maiúsculas"
 
+#: tfrmquicksearch.sbdiacritics.caption
+msgid "Ďï"
+msgstr ""
+
+#: tfrmquicksearch.sbdiacritics.hint
+msgid "Diacritics and ligatures"
+msgstr ""
+
 #: tfrmquicksearch.sbdirectories.caption
 msgid "D"
 msgstr "P"
@@ -10002,14 +10011,6 @@ msgctxt "TWFXPLUGINCOPYMOVEOPERATIONOPTIONSUI.LBLFILEEXISTS.CAPTION"
 msgid "When file exists"
 msgstr "Quando o ficheiro existir"
 
-#: uaccentsutils.rsstraccents
-msgid "á;â;à;å;ã;ä;ç;é;ê;è;ë;í;î;ì;ï;ñ;ó;ô;ò;ø;õ;ö;ú;û;ù;ü;ÿ;Á;Â;À;Å;Ã;Ä;Ç;É;Ê;È;Ë;Í;Í;Ì;Ï;Ñ;Ó;Ô;Ø;Õ;Ö;ß;Ú;Û;Ù;Ü;Ÿ;¿;¡;œ;æ;Æ;Œ"
-msgstr "á;â;à;å;ã;ä;ç;é;ê;è;ë;í;î;ì;ï;ñ;ó;ô;ò;ø;õ;ö;ú;û;ù;ü;ÿ;Á;Â;À;Å;Ã;Ä;Ç;É;Ê;È;Ë;Í;Í;Ì;Ï;Ñ;Ó;Ô;Ø;Õ;Ö;ß;Ú;Û;Ù;Ü;Ÿ;¿;¡;œ;æ;Æ;Œ"
-
-#: uaccentsutils.rsstraccentsstripped
-msgid "a;a;a;a;a;a;c;e;e;e;e;i;i;i;i;n;o;o;o;o;o;o;u;u;u;u;y;A;A;A;A;A;A;C;E;E;E;E;I;I;I;I;N;O;O;O;O;O;B;U;U;U;U;Y;?;!;oe;ae;AE;OE"
-msgstr "a;a;a;a;a;a;c;e;e;e;e;i;i;i;i;n;o;o;o;o;o;o;u;u;u;u;y;A;A;A;A;A;A;C;E;E;E;E;I;I;I;I;N;O;O;O;O;O;B;U;U;U;U;Y;?;!;oe;ae;AE;OE"
-
 #: uadministrator.rselevationrequired
 msgid "You need to provide administrator permission"
 msgstr "Tem de fornecer permissão de administrador"
@@ -10315,6 +10316,12 @@ msgstr " Compara: "
 #: ulng.rsdiffmodifies
 msgid " Modifies: "
 msgstr " Modifica: "
+
+#: ulng.rsdiffshow
+#, fuzzy
+msgctxt "ulng.rsdiffshow"
+msgid "&Show"
+msgstr "Mo&strar"
 
 #: ulng.rsdifftextdifferenceencoding
 msgctxt "ulng.rsdifftextdifferenceencoding"
@@ -11186,12 +11193,12 @@ msgstr "HorzSplit"
 
 #: ulng.rsmfstbiiclouddrivertips
 msgctxt "ulng.rsmfstbiiclouddrivertips"
-msgid "iCloud Driver"
+msgid "iCloud Drive"
 msgstr ""
 
 #: ulng.rsmfstbiiclouddrivertitle
 msgctxt "ulng.rsmfstbiiclouddrivertitle"
-msgid "iCloud Driver"
+msgid "iCloud Drive"
 msgstr ""
 
 #: ulng.rsmfstbinetworktips
@@ -13811,7 +13818,9 @@ msgid "&Files;Di&rectories;Files a&nd Directories"
 msgstr "&Ficheiros;Pa&stas;Ficheiros e &pastas"
 
 #: ulng.rsoptsearchopt
-msgid "&Hide filter panel when not focused;Keep saving setting modifications for next session"
+#, fuzzy
+#| msgid "&Hide filter panel when not focused;Keep saving setting modifications for next session"
+msgid "Ignore &diacritics and ligatures;&Hide filter panel when not focused;Keep saving setting modifications for next session"
 msgstr "Ocultar painel de filtra&gem quando sem foco;Manter modificações de definições para a sessão seguinte"
 
 #: ulng.rsoptsortcasesens

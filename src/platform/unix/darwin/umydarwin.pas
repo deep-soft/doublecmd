@@ -36,7 +36,7 @@ interface
 uses
   Classes, SysUtils, UnixType,
   InterfaceBase, Menus, Controls, Forms,
-  uFileProperty, uFileSourceProperty, uDisplayFile, uFileView, uColumnsFileView,
+  uFileProperty, uDisplayFile, uFileView, uColumnsFileView,
   uLng,
   Cocoa_Extra, MacOSAll, CocoaAll, QuickLookUI,
   CocoaUtils, CocoaInt, CocoaPrivate, CocoaConst, CocoaMenus,
@@ -71,6 +71,8 @@ function unmountAndEject(const path: String): Boolean;
 procedure openNewInstance();
 
 function getMacOSDisplayNameFromPath(const path: String): String;
+
+function getMacOSFileUniqueIcon(const path: String ): NSImage;
 
 // Workarounds for FPC RTL Bug
 // copied from ptypes.inc and modified fstypename only
@@ -209,6 +211,14 @@ implementation
 
 uses
   DynLibs;
+
+const
+  ICON_SPECIAL_FOLDER_EXT_STRING = '.app;.musiclibrary;.imovielibrary;.tvlibrary;.photoslibrary;.theater;.saver;.xcode;.xcodeproj;.xcworkspace;.playground;.scptd;.action;.workflow;.prefpane;.appex;.kext;.xpc;.bundle;.qlgenerator;.mdimporter;.systemextension;.fcpbundle;.fcpxmld;';
+  ICON_SPECIAL_PARENT_FOLDER_STRING = '/;/System;/Applications;/Volumes;/Users;~;~/Music;~/Pictures;~/Movies;';
+
+var
+  ICON_SPECIAL_FOLDER_EXT: NSString;
+  ICON_SPECIAL_PARENT_FOLDER: NSString;
 
 procedure onMainMenuCreate( menu: NSMenu );
 var
@@ -709,6 +719,11 @@ begin
   HasMountURL:= Assigned(NetFSMountURLSync) or Assigned(FSMountServerVolumeSync);
   MacosServiceMenuHelper:= TMacosServiceMenuHelper.Create;
   DarwinFileViewDrawHelper:= TDarwinFileViewDrawHelper.Create;
+  ICON_SPECIAL_FOLDER_EXT:= StringToNSString( ICON_SPECIAL_FOLDER_EXT_STRING );
+  ICON_SPECIAL_FOLDER_EXT.retain;
+  ICON_SPECIAL_PARENT_FOLDER:= StringToNSString( ICON_SPECIAL_PARENT_FOLDER_STRING );
+  ICON_SPECIAL_PARENT_FOLDER:= ICON_SPECIAL_PARENT_FOLDER.stringByReplacingOccurrencesOfString_withString( NSSTR('~'), NSHomeDirectory );
+  ICON_SPECIAL_PARENT_FOLDER.retain;
 end;
 
 procedure Finalize;
@@ -933,6 +948,43 @@ begin
   cocoaPath:= StringToNSString(path).stringByStandardizingPath;
   displayName:= NSFileManager.defaultManager.displayNameAtPath( cocoaPath );
   Result:= displayName.UTF8String;
+end;
+
+function hasUniqueIcon( const path: String ): Boolean;
+var
+  pathRef: FSRef;
+  catalogInfo: FSCatalogInfo;
+  pFinderInfo: FileInfoPtr;
+begin
+  FSPathMakeRef( pchar(path), pathRef, nil );
+  FSGetCatalogInfo( pathRef, kFSCatInfoFinderInfo, @catalogInfo, nil, nil, nil );
+  pFinderInfo:= FileInfoPtr( @catalogInfo.finderInfo );
+  Result:= (pFinderInfo^.finderFlags and kHasCustomIcon) <> 0;
+end;
+
+function hasSpecialFolderExt( const path: String ): Boolean;
+var
+  ext: NSString;
+begin
+  ext:= StringToNSString(path).pathExtension.lowercaseString;
+  ext:= NSSTR('.').stringByAppendingString(ext).stringByAppendingString(NSSTR(';'));
+  Result:= ICON_SPECIAL_FOLDER_EXT.containsString( ext );
+end;
+
+function inSpecialParentFolder( const path: String ): Boolean;
+var
+  parentPath: NSString;
+begin
+  parentPath:= StringToNSString(path).stringByDeletingLastPathComponent;
+  parentPath:= parentPath.stringByAppendingString(NSSTR(';'));
+  Result:= ICON_SPECIAL_PARENT_FOLDER.containsString( parentPath );
+end;
+
+function getMacOSFileUniqueIcon( const path: String ): NSImage;
+begin
+  Result:= nil;
+  if hasUniqueIcon(path) or hasSpecialFolderExt(path) or inSpecialParentFolder(path) then
+    Result:= NSWorkspace.sharedWorkspace.iconForFile( StringToNSString(path) );
 end;
 
 initialization

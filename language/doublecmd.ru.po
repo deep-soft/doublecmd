@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Double Commander 1.2.0 alpha\n"
-"POT-Creation-Date: 2025-03-12 13:47+0300\n"
-"PO-Revision-Date: 2025-03-12 17:40+0300\n"
+"POT-Creation-Date: 2025-06-12 01:47+0300\n"
+"PO-Revision-Date: 2025-06-13 11:30+0300\n"
 "Last-Translator: Alexander Koblov <alexx2000@mail.ru>\n"
 "Language-Team: \n"
 "Language: ru\n"
@@ -3209,6 +3209,7 @@ msgid "&Network"
 msgstr "&Сеть"
 
 #: tfrmmain.mnushow.caption
+msgctxt "tfrmmain.mnushow.caption"
 msgid "&Show"
 msgstr "Ви&д"
 
@@ -8535,6 +8536,14 @@ msgstr "Аа"
 msgid "Case Sensitive"
 msgstr "Учитывать регистр"
 
+#: tfrmquicksearch.sbdiacritics.caption
+msgid "Ďï"
+msgstr "Ďï"
+
+#: tfrmquicksearch.sbdiacritics.hint
+msgid "Diacritics and ligatures"
+msgstr "Диакритика и лигатуры"
+
 #: tfrmquicksearch.sbdirectories.caption
 msgid "D"
 msgstr "К"
@@ -10026,14 +10035,6 @@ msgctxt "TWFXPLUGINCOPYMOVEOPERATIONOPTIONSUI.LBLFILEEXISTS.CAPTION"
 msgid "When file exists"
 msgstr "Если файл существует"
 
-#: uaccentsutils.rsstraccents
-msgid "á;â;à;å;ã;ä;ç;é;ê;è;ë;í;î;ì;ï;ñ;ó;ô;ò;ø;õ;ö;ú;û;ù;ü;ÿ;Á;Â;À;Å;Ã;Ä;Ç;É;Ê;È;Ë;Í;Í;Ì;Ï;Ñ;Ó;Ô;Ø;Õ;Ö;ß;Ú;Û;Ù;Ü;Ÿ;¿;¡;œ;æ;Æ;Œ"
-msgstr "á;â;à;å;ã;ä;ç;é;ê;è;ë;í;î;ì;ï;ñ;ó;ô;ò;ø;õ;ö;ú;û;ù;ü;ÿ;Á;Â;À;Å;Ã;Ä;Ç;É;Ê;È;Ë;Í;Í;Ì;Ï;Ñ;Ó;Ô;Ø;Õ;Ö;ß;Ú;Û;Ù;Ü;Ÿ;¿;¡;œ;æ;Æ;Œ"
-
-#: uaccentsutils.rsstraccentsstripped
-msgid "a;a;a;a;a;a;c;e;e;e;e;i;i;i;i;n;o;o;o;o;o;o;u;u;u;u;y;A;A;A;A;A;A;C;E;E;E;E;I;I;I;I;N;O;O;O;O;O;B;U;U;U;U;Y;?;!;oe;ae;AE;OE"
-msgstr "a;a;a;a;a;a;c;e;e;e;e;i;i;i;i;n;o;o;o;o;o;o;u;u;u;u;y;A;A;A;A;A;A;C;E;E;E;E;I;I;I;I;N;O;O;O;O;O;B;U;U;U;U;Y;?;!;oe;ae;AE;OE"
-
 #: uadministrator.rselevationrequired
 msgid "You need to provide administrator permission"
 msgstr "Нужно обладать правами администратора"
@@ -10339,6 +10340,11 @@ msgstr " Совпало: "
 #: ulng.rsdiffmodifies
 msgid " Modifies: "
 msgstr " Изменено: "
+
+#: ulng.rsdiffshow
+msgctxt "ulng.rsdiffshow"
+msgid "&Show"
+msgstr "&Показать"
 
 #: ulng.rsdifftextdifferenceencoding
 msgctxt "ulng.rsdifftextdifferenceencoding"
@@ -11127,12 +11133,12 @@ msgstr "Поделиться..."
 #: ulng.rsmfstbiairdroptips
 msgctxt "ulng.rsmfstbiairdroptips"
 msgid "AirDrop"
-msgstr ""
+msgstr "AirDrop"
 
 #: ulng.rsmfstbiairdroptitle
 msgctxt "ulng.rsmfstbiairdroptitle"
 msgid "AirDrop"
-msgstr ""
+msgstr "AirDrop"
 
 #: ulng.rsmfstbicommandmenudirectoryhotlist
 msgctxt "ulng.rsmfstbicommandmenudirectoryhotlist"
@@ -11186,7 +11192,7 @@ msgstr "Открыть в Finder"
 
 #: ulng.rsmfstbifinderrevealtitle
 msgid "Finder"
-msgstr ""
+msgstr "Finder"
 
 #: ulng.rsmfstbigotips
 msgctxt "ulng.rsmfstbigotips"
@@ -11208,12 +11214,12 @@ msgstr "Горизонтальное разделение"
 
 #: ulng.rsmfstbiiclouddrivertips
 msgctxt "ulng.rsmfstbiiclouddrivertips"
-msgid "iCloud Driver"
+msgid "iCloud Drive"
 msgstr "Диск iCloud"
 
 #: ulng.rsmfstbiiclouddrivertitle
 msgctxt "ulng.rsmfstbiiclouddrivertitle"
-msgid "iCloud Driver"
+msgid "iCloud Drive"
 msgstr "Диск iCloud"
 
 #: ulng.rsmfstbinetworktips
@@ -11482,7 +11488,7 @@ msgstr "Вы действительно хотите отменить опера
 
 #: ulng.rsmsgcannotchangetarget
 msgid "You cannot change a target location!"
-msgstr ""
+msgstr "Вы не можете изменить целевой каталог!"
 
 #: ulng.rsmsgcannotcopymoveitself
 #, object-pascal-format
@@ -13843,8 +13849,8 @@ msgid "&Files;Di&rectories;Files a&nd Directories"
 msgstr "&Файлы;Катало&ги;Ф&айлы и каталоги"
 
 #: ulng.rsoptsearchopt
-msgid "&Hide filter panel when not focused;Keep saving setting modifications for next session"
-msgstr "Ск&рывать панель фильтра, когда она не в фокусе;Сохранять настройки, изменённые через панель фильтра"
+msgid "Ignore &diacritics and ligatures;&Hide filter panel when not focused;Keep saving setting modifications for next session"
+msgstr "Игнорировать &диакритические знаки и лигатуры;Ск&рывать панель фильтра, когда она не в фокусе;Сохранять настройки, изменённые через панель фильтра"
 
 #: ulng.rsoptsortcasesens
 msgid "not case sensitive;according to locale settings (aAbBcC);first upper then lower case (ABCabc)"
@@ -14229,7 +14235,7 @@ msgstr "Другие"
 
 #: ulng.rsstrpreviewsearchingletters
 msgid "OU"
-msgstr ""
+msgstr "OU"
 
 #: ulng.rsstrpreviewsidenote
 msgid "Side note"

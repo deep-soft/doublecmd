@@ -357,12 +357,14 @@ end;
 
 procedure TBriefDrawGrid.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 
-  procedure handleMBLeft;
+  function handleMBLeft: Boolean;
   var
     handler: TFileSourceUIHandler;
     params: TFileSourceUIParams;
     index: Integer;
   begin
+    Result:= False;
+
     params:= Default( TFileSourceUIParams );
     params.sender:= FBriefView;
     params.fs:= FBriefView.FileSource;
@@ -387,14 +389,16 @@ procedure TBriefDrawGrid.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y:
     ColRowToOffset(False, True, params.row, params.drawingRect.Top, params.drawingRect.Bottom );
 
     params.displayFile:= FBriefView.FFiles[index];
-    handler.click( params );
+    Result:= handler.click( params );
   end;
 
 begin
-  if Button = mbLeft then
-    handleMBLeft
-  else
-    inherited;
+  if (Button = mbLeft) and handleMBLeft then
+  begin
+    FBriefView.tmRenameFile.Enabled := False;
+    FBriefView.FRenameFileIndex := -1;
+  end;
+  inherited MouseUp(Button, Shift, X, Y);
 end;
 
 procedure TBriefDrawGrid.MouseMove(Shift: TShiftState; X, Y: Integer);
@@ -481,16 +485,10 @@ var
   procedure DrawIconCell;
     //------------------------------------------------------
     var
-      IconID: PtrInt;
       targetWidth: Integer;
     begin
       if (gShowIcons <> sim_none) then
       begin
-        IconID := AFile.IconID;
-        // Draw default icon if there is no icon for the file.
-        if IconID = -1 then
-          IconID := PixMapManager.GetDefaultIcon(AFile.FSFile);
-
         // center icon vertically
         params.iconRect.Left:= aRect.Left + CELL_PADDING;
         params.iconRect.Top:= aRect.Top + (aRect.Height - gIconsSize) div 2;
@@ -498,14 +496,14 @@ var
         params.iconRect.Height:= gIconsSize;
 
         if gShowHiddenDimmed and FBriefView.FileSource.IsHiddenFile(AFile.FSFile) then
-          PixMapManager.DrawBitmapAlpha(IconID,
+          PixMapManager.DrawBitmapAlpha(AFile,
                                         Canvas,
                                         params.iconRect.Left,
                                         params.iconRect.Top
                                        )
         else
           // Draw icon for a file
-          PixMapManager.DrawBitmap(IconID,
+          PixMapManager.DrawBitmap(AFile,
                                    Canvas,
                                    params.iconRect.Left,
                                    params.iconRect.Top
