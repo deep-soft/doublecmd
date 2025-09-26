@@ -323,6 +323,11 @@ msgctxt "tfrmchecksumcalc.caption"
 msgid "Calculate checksum..."
 msgstr ""
 
+#: tfrmchecksumcalc.cbhashalgorithm.caption
+msgctxt "tfrmchecksumcalc.cbhashalgorithm.caption"
+msgid "=>"
+msgstr ""
+
 #: tfrmchecksumcalc.cbopenafterjobiscomplete.caption
 msgid "Open checksum file after job is completed"
 msgstr ""
@@ -349,6 +354,10 @@ msgstr ""
 
 #: tfrmchecksumcalc.rbwindows.caption
 msgid "Windows"
+msgstr ""
+
+#: tfrmchecksumcalc.rghashalgorithm.caption
+msgid "Algorithm"
 msgstr ""
 
 #: tfrmchecksumverify.btnclose.caption
@@ -1071,6 +1080,16 @@ msgstr ""
 
 #: tfrmeditor.actfilesaveas.hint
 msgid "Save As"
+msgstr ""
+
+#: tfrmeditor.actzoomin.caption
+msgctxt "tfrmeditor.actzoomin.caption"
+msgid "Zoom In"
+msgstr ""
+
+#: tfrmeditor.actzoomout.caption
+msgctxt "tfrmeditor.actzoomout.caption"
+msgid "Zoom Out"
 msgstr ""
 
 #: tfrmeditor.caption
@@ -2447,6 +2466,16 @@ msgstr ""
 
 #: tfrmmain.actloadtabs.caption
 msgid "&Load Tabs from File"
+msgstr ""
+
+#: tfrmmain.actmainfontzoomin.caption
+msgctxt "tfrmmain.actmainfontzoomin.caption"
+msgid "Zoom In"
+msgstr ""
+
+#: tfrmmain.actmainfontzoomout.caption
+msgctxt "tfrmmain.actmainfontzoomout.caption"
+msgid "Zoom Out"
 msgstr ""
 
 #: tfrmmain.actmakedir.caption
@@ -6900,6 +6929,11 @@ msgstr ""
 msgid "By clic&king on icon"
 msgstr ""
 
+#: tfrmoptionsmouse.chkzoomwithctrlwheel.caption
+msgctxt "tfrmoptionsmouse.chkzoomwithctrlwheel.caption"
+msgid "Zoom with Ctrl + Scroll Wheel"
+msgstr ""
+
 #: tfrmoptionsmouse.gbopenwith.caption
 msgctxt "tfrmoptionsmouse.gbopenwith.caption"
 msgid "Open with"
@@ -6911,6 +6945,11 @@ msgstr ""
 
 #: tfrmoptionsmouse.gbselection.caption
 msgid "Selection"
+msgstr ""
+
+#: tfrmoptionsmouse.gbzoom.caption
+msgctxt "tfrmoptionsmouse.gbzoom.caption"
+msgid "Zoom"
 msgstr ""
 
 #: tfrmoptionsmouse.lblmousemode.caption
@@ -8189,6 +8228,7 @@ msgid "&Multiple disk archive"
 msgstr ""
 
 #: tfrmpackdlg.cbotherplugins.caption
+msgctxt "tfrmpackdlg.cbotherplugins.caption"
 msgid "=>"
 msgstr ""
 
@@ -9479,6 +9519,7 @@ msgid "&Wrap text"
 msgstr ""
 
 #: tfrmviewer.actzoom.caption
+msgctxt "tfrmviewer.actzoom.caption"
 msgid "Zoom"
 msgstr ""
 

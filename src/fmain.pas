@@ -73,6 +73,8 @@ type
 
   TfrmMain = class(TAloneForm, IFormCommands)
     actAddPlugin: TAction;
+    actMainFontZoomOut: TAction;
+    actMainFontZoomIn: TAction;
     actMapNetworkDrive: TAction;
     actShowTabsList: TAction;
     actSaveFileDetailsToFile: TAction;
@@ -1277,7 +1279,7 @@ end;
 procedure TfrmMain.btnF3MouseWheelDown(Sender: TObject; Shift: TShiftState;
   MousePos: TPoint; var Handled: Boolean);
 begin
-  if (ssCtrl in Shift) and (gFonts[dcfFunctionButtons].Size > gFonts[dcfFunctionButtons].MinValue) then
+  if gZoomWithCtrlWheel and (ssCtrl in Shift) and (gFonts[dcfFunctionButtons].Size > gFonts[dcfFunctionButtons].MinValue) then
   begin
     Dec(gFonts[dcfFunctionButtons].Size);
     UpdateGUIFunctionKeys;
@@ -1287,7 +1289,7 @@ end;
 procedure TfrmMain.btnF3MouseWheelUp(Sender: TObject; Shift: TShiftState;
   MousePos: TPoint; var Handled: Boolean);
 begin
-  if (ssCtrl in Shift) and (gFonts[dcfFunctionButtons].Size < gFonts[dcfFunctionButtons].MaxValue) then
+  if gZoomWithCtrlWheel and (ssCtrl in Shift) and (gFonts[dcfFunctionButtons].Size < gFonts[dcfFunctionButtons].MaxValue) then
   begin
     Inc(gFonts[dcfFunctionButtons].Size);
     UpdateGUIFunctionKeys;
@@ -5265,7 +5267,7 @@ begin
       AFileViewFlags := [fvfDelayLoadingFiles]
     else
       AFileViewFlags := [];
-    AFileView := TColumnsFileView.Create(Page, aFileSource, gpExePath, AFileViewFlags);
+    AFileView := TColumnsFileView.Create(Page, aFileSource, {$IFDEF DARWIN}GetHomeDir{$ELSE}gpExePath{$ENDIF}, AFileViewFlags);
     Commands.DoSortByFunctions(AFileView, ColSet.GetColumnSet('Default').GetColumnFunctions(0));
     AssignEvents(AFileView);
   end

@@ -173,7 +173,15 @@ type
 
 const
   { Default hotkey list version number }
-  hkVersion = 64;
+  hkVersion = 68;
+  // 68 - In "Main" context, for macOS, added:
+  //      "Shift+Cmd+." for "cm_ShowSysFiles"
+  //      "Cmd+," for "cm_Options"
+  //      "Cmd+Down" for "cm_Open"
+  //      "Cmd+Up," for "cm_ChangeDirToParent"
+  // 67 - In "Editor" context, for macOS, added the "Cmd+=" for "cm_ZoomIn", "Cmd+-" for "cm_ZoomOut"
+  // 66 - In "Viewer" context, for macOS, added the "Cmd+=" for "cm_ZoomIn", "Cmd+-" for "cm_ZoomOut"
+  // 65 - In "Files Panel", for macOS, added the "Cmd+=" for "cm_MainFontZoomIn", "Cmd+-" for "cm_MainFontZoomOut"
   // 54 - In "Viewer" context, added the "W" for "cm_WrapText", "4" for "cm_ShowAsDec", "8" for "cm_ShowOffice".
   // 53 - In "Main" context, change shortcut "Alt+`" to "Alt+0" for the "cm_ActivateTabByIndex".
   // 52 - In "Main" context, add shortcut "Ctrl+Shift+B" for "cm_FlatViewSel".
@@ -376,6 +384,7 @@ var
   gSpaceMovesDown: Boolean;
   gScrollMode: TScrollMode;
   gWheelScrollLines: Integer;
+  gZoomWithCtrlWheel: Boolean;
   gAlwaysShowTrayIcon: Boolean;
   gMinimizeToTray: Boolean;
   gConfirmQuit: Boolean;
@@ -741,7 +750,7 @@ uses
    uGlobsPaths, uLng, uShowMsg, uFileProcs, uOSUtils, uFindFiles, uEarlyConfig,
    dmHigh, uDCUtils, fMultiRename, uDCVersion, uDebug, uFileFunctions,
    uDefaultPlugins, Lua, uKeyboard, DCOSUtils, DCStrUtils, uPixMapManager,
-   FileUtil, uSynDiffControls
+   FileUtil, uSynDiffControls, InterfaceBase
    {$IF DEFINED(MSWINDOWS)}
     , ShlObj
    {$ENDIF}
@@ -844,14 +853,30 @@ begin
 end;
 
 function AskUserOnError(var ErrorMessage: String): Boolean;
+var
+  Button: TDialogButton;
+  Buttons: TDialogButtons;
 begin
   // Show error messages.
   if ErrorMessage <> EmptyStr then
   begin
-    Result := QuestionDlg(Application.Title + ' - ' + rsMsgErrorLoadingConfiguration,
-                          ErrorMessage, mtWarning,
-                          [1, rsDlgButtonContinue, 'isdefault',
-                           2, rsDlgButtonExitProgram], 0) = 1;
+    Buttons:= TDialogButtons.Create(TDialogButton);
+    try
+      Button:= Buttons.Add;
+      Button.Default:= True;
+      Button.ModalResult:= mrOK;
+      Button.Caption:= rsDlgButtonContinue;
+
+      Button:= Buttons.Add;
+      Button.Cancel:= True;
+      Button.ModalResult:= mrAbort;
+      Button.Caption:= rsDlgButtonExitProgram;
+
+      Result := DefaultQuestionDialog(Application.Title + ' - ' + rsMsgErrorLoadingConfiguration,
+                                      ErrorMessage, idDialogWarning, Buttons, 0) = mrOK;
+    finally
+      Buttons.Free;
+    end;
     // Reset error message.
     ErrorMessage := '';
   end
@@ -1181,6 +1206,13 @@ begin
         'Ctrl+9','','index=9',''],
       'cm_OpenDriveByIndex');
 
+      {$IFDEF DARWIN}
+      AddIfNotExists(['Shift+Cmd+.'],'cm_ShowSysFiles',['Ctrl+.'],[]);
+      AddIfNotExists(['Cmd+,'],[],'cm_Options');
+      AddIfNotExists(['Cmd+Down'],[],'cm_Open');
+      AddIfNotExists(['Cmd+Up'],'cm_ChangeDirToParent',['Ctrl+PgUp'],[]);
+      {$ENDIF}
+
       if HotMan.Version < 38 then
       begin
         HMHotKey:= FindByCommand('cm_EditComment');
@@ -1218,6 +1250,11 @@ begin
       AddIfNotExists(VK_C, [ssModifier], 'cm_CopyToClipboard');
       AddIfNotExists(VK_V, [ssModifier], 'cm_PasteFromClipboard');
       AddIfNotExists(VK_X, [ssModifier], 'cm_CutToClipboard');
+
+      {$IFDEF DARWIN}
+      AddIfNotExists(['Cmd+='],[],'cm_MainFontZoomIn');
+      AddIfNotExists(['Cmd+-'],[],'cm_MainFontZoomOut');
+      {$ENDIF}
     end;
 
   HMForm := HotMan.Forms.FindOrCreate('Viewer');
@@ -1290,6 +1327,10 @@ begin
 
       AddIfNotExists(['Num+'],[],'cm_ZoomIn');
       AddIfNotExists(['Num-'],[],'cm_ZoomOut');
+      {$IFDEF DARWIN}
+      AddIfNotExists(['Cmd+='],'cm_ZoomIn',['Num+'],[]);
+      AddIfNotExists(['Cmd+-'],'cm_ZoomOut',['Num-'],[]);
+      {$ENDIF}
 
       AddIfNotExists(['Alt+Enter'],[],'cm_Fullscreen');
 
@@ -1392,6 +1433,11 @@ begin
       AddIfNotExists(VK_A, [ssModifier], 'cm_EditSelectAll');
       AddIfNotExists(VK_Z, [ssModifier, ssShift], 'cm_EditRedo');
       AddIfNotExists(VK_G, [ssModifier], 'cm_EditGotoLine');
+
+      {$IFDEF DARWIN}
+      AddIfNotExists(['Cmd+='],[],'cm_ZoomIn');
+      AddIfNotExists(['Cmd+-'],[],'cm_ZoomOut');
+      {$ENDIF}
     end;
 
 
@@ -1725,6 +1771,7 @@ begin
   gMouseSelectionIconClick := 0;
   gScrollMode := smLineByLine;
   gWheelScrollLines:= Mouse.WheelScrollLines;
+  gZoomWithCtrlWheel:= {$ifdef DARWIN}False{$else}True{$endif};
   gAutoFillColumns := False;
   gAutoSizeColumn := 1;
   gColumnsLongInStatus := False;
@@ -2273,8 +2320,11 @@ begin
       begin
         if mbFileAccess(gpGlobalCfgDir + 'doublecmd.xml', fmOpenRead or fmShareDenyWrite) then
         begin
-          LoadConfigCheckErrors(@LoadGlobalConfig, gpGlobalCfgDir + 'doublecmd.xml', ErrorMessage);
-          if gConfig.TryGetValue(gConfig.RootNode, 'Configuration/UseConfigInProgramDir', gUseConfigInProgramDir) then
+          if not LoadConfigCheckErrors(@LoadGlobalConfig, gpGlobalCfgDir + 'doublecmd.xml', ErrorMessage) then
+          begin
+            if not gUseConfigInProgramDir then ErrorMessage := EmptyStr;
+          end
+          else if gConfig.TryGetValue(gConfig.RootNode, 'Configuration/UseConfigInProgramDir', gUseConfigInProgramDir) then
           begin
             gConfig.DeleteNode(gConfig.RootNode, 'Configuration/UseConfigInProgramDir');
             if not gUseConfigInProgramDir then
@@ -2675,6 +2725,7 @@ begin
       gMouseSelectionIconClick := GetValue(Node, 'Mouse/Selection/IconClick', gMouseSelectionIconClick);
       gScrollMode := TScrollMode(GetValue(Node, 'Mouse/ScrollMode', Integer(gScrollMode)));
       gWheelScrollLines:= GetValue(Node, 'Mouse/WheelScrollLines', gWheelScrollLines);
+      gZoomWithCtrlWheel:= GetValue(Node, 'Mouse/ZoomWithCtrlWheel', gZoomWithCtrlWheel);
       gAutoFillColumns := GetValue(Node, 'AutoFillColumns', gAutoFillColumns);
       gAutoSizeColumn := GetValue(Node, 'AutoSizeColumn', gAutoSizeColumn);
       gDateTimeFormat := GetValidDateTimeFormat(GetValue(Node, 'DateTimeFormat', gDateTimeFormat), DefaultDateTimeFormat);
@@ -3407,6 +3458,7 @@ begin
     SetValue(SubNode, 'Selection/IconClick', gMouseSelectionIconClick);
     SetValue(SubNode, 'ScrollMode', Integer(gScrollMode));
     SetValue(SubNode, 'WheelScrollLines', gWheelScrollLines);
+    SetValue(SubNode, 'ZoomWithCtrlWheel', gZoomWithCtrlWheel);
     SetValue(Node, 'AutoFillColumns', gAutoFillColumns);
     SetValue(Node, 'AutoSizeColumn', gAutoSizeColumn);
     SetValue(Node, 'CustomColumnsChangeAllColumns', gCustomColumnsChangeAllColumns);

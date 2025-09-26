@@ -334,6 +334,12 @@ msgctxt "tfrmchecksumcalc.caption"
 msgid "Calculate checksum..."
 msgstr "Изчисляване на проверочен сбор..."
 
+#: tfrmchecksumcalc.cbhashalgorithm.caption
+#, fuzzy
+msgctxt "tfrmchecksumcalc.cbhashalgorithm.caption"
+msgid "=>"
+msgstr "=>"
+
 #: tfrmchecksumcalc.cbopenafterjobiscomplete.caption
 msgid "Open checksum file after job is completed"
 msgstr ""
@@ -360,6 +366,10 @@ msgstr ""
 
 #: tfrmchecksumcalc.rbwindows.caption
 msgid "Windows"
+msgstr ""
+
+#: tfrmchecksumcalc.rghashalgorithm.caption
+msgid "Algorithm"
 msgstr ""
 
 #: tfrmchecksumverify.btnclose.caption
@@ -1103,6 +1113,16 @@ msgstr "Съхраняване &като..."
 #: tfrmeditor.actfilesaveas.hint
 msgid "Save As"
 msgstr "Съхраняване &като"
+
+#: tfrmeditor.actzoomin.caption
+msgctxt "tfrmeditor.actzoomin.caption"
+msgid "Zoom In"
+msgstr "Увеличаване"
+
+#: tfrmeditor.actzoomout.caption
+msgctxt "tfrmeditor.actzoomout.caption"
+msgid "Zoom Out"
+msgstr "Смаляване"
 
 #: tfrmeditor.caption
 msgctxt "tfrmeditor.caption"
@@ -2540,6 +2560,16 @@ msgstr "&Зареждане на отбелязването от файл"
 #: tfrmmain.actloadtabs.caption
 msgid "&Load Tabs from File"
 msgstr "&Зареждане на подпрозорци от файл"
+
+#: tfrmmain.actmainfontzoomin.caption
+msgctxt "tfrmmain.actmainfontzoomin.caption"
+msgid "Zoom In"
+msgstr "Увеличаване"
+
+#: tfrmmain.actmainfontzoomout.caption
+msgctxt "tfrmmain.actmainfontzoomout.caption"
+msgid "Zoom Out"
+msgstr "Смаляване"
 
 #: tfrmmain.actmakedir.caption
 msgid "Create &Directory"
@@ -7261,6 +7291,11 @@ msgstr ""
 msgid "By clic&king on icon"
 msgstr ""
 
+#: tfrmoptionsmouse.chkzoomwithctrlwheel.caption
+msgctxt "tfrmoptionsmouse.chkzoomwithctrlwheel.caption"
+msgid "Zoom with Ctrl + Scroll Wheel"
+msgstr ""
+
 #: tfrmoptionsmouse.gbopenwith.caption
 msgctxt "tfrmoptionsmouse.gbopenwith.caption"
 msgid "Open with"
@@ -7273,6 +7308,11 @@ msgstr "Превъртане"
 #: tfrmoptionsmouse.gbselection.caption
 msgid "Selection"
 msgstr "Избиране"
+
+#: tfrmoptionsmouse.gbzoom.caption
+msgctxt "tfrmoptionsmouse.gbzoom.caption"
+msgid "Zoom"
+msgstr ""
 
 #: tfrmoptionsmouse.lblmousemode.caption
 msgid "&Mode:"
@@ -8612,6 +8652,7 @@ msgid "&Multiple disk archive"
 msgstr "&Многотомов архив"
 
 #: tfrmpackdlg.cbotherplugins.caption
+msgctxt "tfrmpackdlg.cbotherplugins.caption"
 msgid "=>"
 msgstr "=>"
 
@@ -9953,6 +9994,7 @@ msgid "&Wrap text"
 msgstr ""
 
 #: tfrmviewer.actzoom.caption
+msgctxt "tfrmviewer.actzoom.caption"
 msgid "Zoom"
 msgstr ""
 
@@ -9962,7 +10004,6 @@ msgid "Zoom In"
 msgstr "Увеличаване"
 
 #: tfrmviewer.actzoomin.hint
-#, fuzzy
 msgctxt "tfrmviewer.actzoomin.hint"
 msgid "Zoom In"
 msgstr "Увеличаване"

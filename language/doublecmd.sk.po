@@ -325,6 +325,12 @@ msgctxt "tfrmchecksumcalc.caption"
 msgid "Calculate checksum..."
 msgstr "Výpočet kontrolného súčtu..."
 
+#: tfrmchecksumcalc.cbhashalgorithm.caption
+#, fuzzy
+msgctxt "tfrmchecksumcalc.cbhashalgorithm.caption"
+msgid "=>"
+msgstr "=>"
+
 #: tfrmchecksumcalc.cbopenafterjobiscomplete.caption
 msgid "Open checksum file after job is completed"
 msgstr "Otvoriť súbor s kontrolným súčtom po dokončení"
@@ -352,6 +358,10 @@ msgstr "Unix (LF)"
 #: tfrmchecksumcalc.rbwindows.caption
 msgid "Windows"
 msgstr "Windows (CRLF)"
+
+#: tfrmchecksumcalc.rghashalgorithm.caption
+msgid "Algorithm"
+msgstr ""
 
 #: tfrmchecksumverify.btnclose.caption
 msgctxt "TFRMCHECKSUMVERIFY.BTNCLOSE.CAPTION"
@@ -1074,6 +1084,16 @@ msgstr "Uložiť &ako.."
 #: tfrmeditor.actfilesaveas.hint
 msgid "Save As"
 msgstr "Uložiť ako"
+
+#: tfrmeditor.actzoomin.caption
+msgctxt "tfrmeditor.actzoomin.caption"
+msgid "Zoom In"
+msgstr "Priblížiť"
+
+#: tfrmeditor.actzoomout.caption
+msgctxt "tfrmeditor.actzoomout.caption"
+msgid "Zoom Out"
+msgstr "Oddialiť"
 
 #: tfrmeditor.caption
 msgctxt "tfrmeditor.caption"
@@ -2450,6 +2470,16 @@ msgstr "Nahrať výber zo súboru..."
 #: tfrmmain.actloadtabs.caption
 msgid "&Load Tabs from File"
 msgstr "Načítať karty zo súboru"
+
+#: tfrmmain.actmainfontzoomin.caption
+msgctxt "tfrmmain.actmainfontzoomin.caption"
+msgid "Zoom In"
+msgstr "Priblížiť"
+
+#: tfrmmain.actmainfontzoomout.caption
+msgctxt "tfrmmain.actmainfontzoomout.caption"
+msgid "Zoom Out"
+msgstr "Oddialiť"
 
 #: tfrmmain.actmakedir.caption
 msgid "Create &Directory"
@@ -6902,6 +6932,11 @@ msgstr "Textový kurzor už nesleduje kurzor myši"
 msgid "By clic&king on icon"
 msgstr "Kliknutím na ikonu"
 
+#: tfrmoptionsmouse.chkzoomwithctrlwheel.caption
+msgctxt "tfrmoptionsmouse.chkzoomwithctrlwheel.caption"
+msgid "Zoom with Ctrl + Scroll Wheel"
+msgstr ""
+
 #: tfrmoptionsmouse.gbopenwith.caption
 msgctxt "tfrmoptionsmouse.gbopenwith.caption"
 msgid "Open with"
@@ -6914,6 +6949,12 @@ msgstr "Skrolovanie"
 #: tfrmoptionsmouse.gbselection.caption
 msgid "Selection"
 msgstr "Výber"
+
+#: tfrmoptionsmouse.gbzoom.caption
+#, fuzzy
+msgctxt "tfrmoptionsmouse.gbzoom.caption"
+msgid "Zoom"
+msgstr "Priblíženie"
 
 #: tfrmoptionsmouse.lblmousemode.caption
 msgid "&Mode:"
@@ -8193,6 +8234,7 @@ msgid "&Multiple disk archive"
 msgstr "&Viaczväzkový archív"
 
 #: tfrmpackdlg.cbotherplugins.caption
+msgctxt "tfrmpackdlg.cbotherplugins.caption"
 msgid "=>"
 msgstr "=>"
 
@@ -9483,6 +9525,7 @@ msgid "&Wrap text"
 msgstr "&Zalomiť text"
 
 #: tfrmviewer.actzoom.caption
+msgctxt "tfrmviewer.actzoom.caption"
 msgid "Zoom"
 msgstr "Priblíženie"
 

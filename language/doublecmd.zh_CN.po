@@ -324,6 +324,11 @@ msgctxt "tfrmchecksumcalc.caption"
 msgid "Calculate checksum..."
 msgstr "计算校验码..."
 
+#: tfrmchecksumcalc.cbhashalgorithm.caption
+msgctxt "tfrmchecksumcalc.cbhashalgorithm.caption"
+msgid "=>"
+msgstr ""
+
 #: tfrmchecksumcalc.cbopenafterjobiscomplete.caption
 msgid "Open checksum file after job is completed"
 msgstr "任务完成后打开校验码文件"
@@ -350,6 +355,10 @@ msgstr ""
 
 #: tfrmchecksumcalc.rbwindows.caption
 msgid "Windows"
+msgstr ""
+
+#: tfrmchecksumcalc.rghashalgorithm.caption
+msgid "Algorithm"
 msgstr ""
 
 #: tfrmchecksumverify.btnclose.caption
@@ -1073,6 +1082,16 @@ msgstr "另存为(&A)..."
 #: tfrmeditor.actfilesaveas.hint
 msgid "Save As"
 msgstr "另存为"
+
+#: tfrmeditor.actzoomin.caption
+msgctxt "tfrmeditor.actzoomin.caption"
+msgid "Zoom In"
+msgstr "放大"
+
+#: tfrmeditor.actzoomout.caption
+msgctxt "tfrmeditor.actzoomout.caption"
+msgid "Zoom Out"
+msgstr "缩小"
 
 #: tfrmeditor.caption
 msgctxt "tfrmeditor.caption"
@@ -2449,6 +2468,16 @@ msgstr "从文件加载选择(&L)"
 #: tfrmmain.actloadtabs.caption
 msgid "&Load Tabs from File"
 msgstr "从文件加载标签(&L)"
+
+#: tfrmmain.actmainfontzoomin.caption
+msgctxt "tfrmmain.actmainfontzoomin.caption"
+msgid "Zoom In"
+msgstr "放大"
+
+#: tfrmmain.actmainfontzoomout.caption
+msgctxt "tfrmmain.actmainfontzoomout.caption"
+msgid "Zoom Out"
+msgstr "缩小"
 
 #: tfrmmain.actmakedir.caption
 msgid "Create &Directory"
@@ -6900,6 +6929,11 @@ msgstr "文本光标不再跟随鼠标光标"
 msgid "By clic&king on icon"
 msgstr "通过点击图标(&K)"
 
+#: tfrmoptionsmouse.chkzoomwithctrlwheel.caption
+msgctxt "tfrmoptionsmouse.chkzoomwithctrlwheel.caption"
+msgid "Zoom with Ctrl + Scroll Wheel"
+msgstr "滾動時按住Ctrl鍵進行縮放"
+
 #: tfrmoptionsmouse.gbopenwith.caption
 msgctxt "tfrmoptionsmouse.gbopenwith.caption"
 msgid "Open with"
@@ -6912,6 +6946,11 @@ msgstr "滚动"
 #: tfrmoptionsmouse.gbselection.caption
 msgid "Selection"
 msgstr "选择"
+
+#: tfrmoptionsmouse.gbzoom.caption
+msgctxt "tfrmoptionsmouse.gbzoom.caption"
+msgid "Zoom"
+msgstr "缩放"
 
 #: tfrmoptionsmouse.lblmousemode.caption
 msgid "&Mode:"
@@ -8189,6 +8228,7 @@ msgid "&Multiple disk archive"
 msgstr "多卷压缩(&M)"
 
 #: tfrmpackdlg.cbotherplugins.caption
+msgctxt "tfrmpackdlg.cbotherplugins.caption"
 msgid "=>"
 msgstr ""
 
@@ -9479,6 +9519,7 @@ msgid "&Wrap text"
 msgstr "文本换行(&W)"
 
 #: tfrmviewer.actzoom.caption
+msgctxt "tfrmviewer.actzoom.caption"
 msgid "Zoom"
 msgstr "缩放"
 

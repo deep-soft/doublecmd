@@ -338,6 +338,12 @@ msgctxt "TFRMCHECKSUMCALC.CAPTION"
 msgid "Calculate checksum..."
 msgstr "Izračunaj zbirnu proveru"
 
+#: tfrmchecksumcalc.cbhashalgorithm.caption
+#, fuzzy
+msgctxt "tfrmchecksumcalc.cbhashalgorithm.caption"
+msgid "=>"
+msgstr "=>"
+
 #: tfrmchecksumcalc.cbopenafterjobiscomplete.caption
 msgid "Open checksum file after job is completed"
 msgstr ""
@@ -366,6 +372,10 @@ msgstr ""
 
 #: tfrmchecksumcalc.rbwindows.caption
 msgid "Windows"
+msgstr ""
+
+#: tfrmchecksumcalc.rghashalgorithm.caption
+msgid "Algorithm"
 msgstr ""
 
 #: tfrmchecksumverify.btnclose.caption
@@ -1119,6 +1129,16 @@ msgstr "Sačuvaj &kao..."
 #: tfrmeditor.actfilesaveas.hint
 msgid "Save As"
 msgstr "Sačuvaj kao"
+
+#: tfrmeditor.actzoomin.caption
+msgctxt "tfrmeditor.actzoomin.caption"
+msgid "Zoom In"
+msgstr "Približi"
+
+#: tfrmeditor.actzoomout.caption
+msgctxt "tfrmeditor.actzoomout.caption"
+msgid "Zoom Out"
+msgstr "Udalji"
 
 #: tfrmeditor.caption
 msgctxt "TFRMEDITOR.CAPTION"
@@ -2545,6 +2565,16 @@ msgstr "&Učitaj izbor iz datoteke..."
 #: tfrmmain.actloadtabs.caption
 msgid "&Load Tabs from File"
 msgstr "&Učitaj kartice iz datoteke"
+
+#: tfrmmain.actmainfontzoomin.caption
+msgctxt "tfrmmain.actmainfontzoomin.caption"
+msgid "Zoom In"
+msgstr "Približi"
+
+#: tfrmmain.actmainfontzoomout.caption
+msgctxt "tfrmmain.actmainfontzoomout.caption"
+msgid "Zoom Out"
+msgstr "Udalji"
 
 #: tfrmmain.actmakedir.caption
 msgid "Create &Directory"
@@ -7247,6 +7277,11 @@ msgstr ""
 msgid "By clic&king on icon"
 msgstr ""
 
+#: tfrmoptionsmouse.chkzoomwithctrlwheel.caption
+msgctxt "tfrmoptionsmouse.chkzoomwithctrlwheel.caption"
+msgid "Zoom with Ctrl + Scroll Wheel"
+msgstr ""
+
 #: tfrmoptionsmouse.gbopenwith.caption
 msgctxt "tfrmoptionsmouse.gbopenwith.caption"
 msgid "Open with"
@@ -7259,6 +7294,11 @@ msgstr "Klizanje"
 #: tfrmoptionsmouse.gbselection.caption
 msgid "Selection"
 msgstr "Izbor"
+
+#: tfrmoptionsmouse.gbzoom.caption
+msgctxt "tfrmoptionsmouse.gbzoom.caption"
+msgid "Zoom"
+msgstr ""
 
 #: tfrmoptionsmouse.lblmousemode.caption
 msgid "&Mode:"
@@ -8588,6 +8628,7 @@ msgid "&Multiple disk archive"
 msgstr "&Višestruko skladište diskova"
 
 #: tfrmpackdlg.cbotherplugins.caption
+msgctxt "tfrmpackdlg.cbotherplugins.caption"
 msgid "=>"
 msgstr "=>"
 
@@ -9960,11 +10001,11 @@ msgid "&Wrap text"
 msgstr ""
 
 #: tfrmviewer.actzoom.caption
+msgctxt "tfrmviewer.actzoom.caption"
 msgid "Zoom"
 msgstr ""
 
 #: tfrmviewer.actzoomin.caption
-#, fuzzy
 msgctxt "tfrmviewer.actzoomin.caption"
 msgid "Zoom In"
 msgstr "Približi"
@@ -9972,10 +10013,9 @@ msgstr "Približi"
 #: tfrmviewer.actzoomin.hint
 msgctxt "tfrmviewer.actzoomin.hint"
 msgid "Zoom In"
-msgstr ""
+msgstr "Približi"
 
 #: tfrmviewer.actzoomout.caption
-#, fuzzy
 msgctxt "tfrmviewer.actzoomout.caption"
 msgid "Zoom Out"
 msgstr "Udalji"
@@ -9983,7 +10023,7 @@ msgstr "Udalji"
 #: tfrmviewer.actzoomout.hint
 msgctxt "tfrmviewer.actzoomout.hint"
 msgid "Zoom Out"
-msgstr ""
+msgstr "Udalji"
 
 #: tfrmviewer.btncuttuimage.hint
 msgctxt "TFRMVIEWER.BTNCUTTUIMAGE.HINT"

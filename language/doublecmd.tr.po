@@ -371,6 +371,12 @@ msgctxt "tfrmchecksumcalc.caption"
 msgid "Calculate checksum..."
 msgstr "Sağlama toplamı hesapla..."
 
+#: tfrmchecksumcalc.cbhashalgorithm.caption
+#, fuzzy
+msgctxt "tfrmchecksumcalc.cbhashalgorithm.caption"
+msgid "=>"
+msgstr "=>"
+
 #: tfrmchecksumcalc.cbopenafterjobiscomplete.caption
 msgid "Open checksum file after job is completed"
 msgstr ""
@@ -401,6 +407,10 @@ msgstr ""
 
 #: tfrmchecksumcalc.rbwindows.caption
 msgid "Windows"
+msgstr ""
+
+#: tfrmchecksumcalc.rghashalgorithm.caption
+msgid "Algorithm"
 msgstr ""
 
 #: tfrmchecksumverify.btnclose.caption
@@ -1178,6 +1188,16 @@ msgstr "Farklı &Kaydet..."
 #: tfrmeditor.actfilesaveas.hint
 msgid "Save As"
 msgstr "Farklı Kaydet..."
+
+#: tfrmeditor.actzoomin.caption
+msgctxt "tfrmeditor.actzoomin.caption"
+msgid "Zoom In"
+msgstr "Yakınlaştır"
+
+#: tfrmeditor.actzoomout.caption
+msgctxt "tfrmeditor.actzoomout.caption"
+msgid "Zoom Out"
+msgstr "Uzaklaştır"
 
 #: tfrmeditor.caption
 msgctxt "TFRMEDITOR.CAPTION"
@@ -2657,6 +2677,16 @@ msgstr "&Dosya Yükle öğesini seç"
 #: tfrmmain.actloadtabs.caption
 msgid "&Load Tabs from File"
 msgstr ""
+
+#: tfrmmain.actmainfontzoomin.caption
+msgctxt "tfrmmain.actmainfontzoomin.caption"
+msgid "Zoom In"
+msgstr "Yakınlaştır"
+
+#: tfrmmain.actmainfontzoomout.caption
+msgctxt "tfrmmain.actmainfontzoomout.caption"
+msgid "Zoom Out"
+msgstr "Uzaklaştır"
 
 #: tfrmmain.actmakedir.caption
 #, fuzzy
@@ -7322,6 +7352,11 @@ msgstr ""
 msgid "By clic&king on icon"
 msgstr ""
 
+#: tfrmoptionsmouse.chkzoomwithctrlwheel.caption
+msgctxt "tfrmoptionsmouse.chkzoomwithctrlwheel.caption"
+msgid "Zoom with Ctrl + Scroll Wheel"
+msgstr ""
+
 #: tfrmoptionsmouse.gbopenwith.caption
 msgctxt "tfrmoptionsmouse.gbopenwith.caption"
 msgid "Open with"
@@ -7334,6 +7369,11 @@ msgstr "Kaydırma"
 
 #: tfrmoptionsmouse.gbselection.caption
 msgid "Selection"
+msgstr ""
+
+#: tfrmoptionsmouse.gbzoom.caption
+msgctxt "tfrmoptionsmouse.gbzoom.caption"
+msgid "Zoom"
 msgstr ""
 
 #: tfrmoptionsmouse.lblmousemode.caption
@@ -8705,6 +8745,7 @@ msgid "&Multiple disk archive"
 msgstr "&Çoklu disk arşivi"
 
 #: tfrmpackdlg.cbotherplugins.caption
+msgctxt "tfrmpackdlg.cbotherplugins.caption"
 msgid "=>"
 msgstr "=>"
 
@@ -10130,11 +10171,11 @@ msgid "&Wrap text"
 msgstr ""
 
 #: tfrmviewer.actzoom.caption
+msgctxt "tfrmviewer.actzoom.caption"
 msgid "Zoom"
 msgstr ""
 
 #: tfrmviewer.actzoomin.caption
-#, fuzzy
 msgctxt "tfrmviewer.actzoomin.caption"
 msgid "Zoom In"
 msgstr "Yakınlaştır"
@@ -10142,10 +10183,9 @@ msgstr "Yakınlaştır"
 #: tfrmviewer.actzoomin.hint
 msgctxt "tfrmviewer.actzoomin.hint"
 msgid "Zoom In"
-msgstr ""
+msgstr "Yakınlaştır"
 
 #: tfrmviewer.actzoomout.caption
-#, fuzzy
 msgctxt "tfrmviewer.actzoomout.caption"
 msgid "Zoom Out"
 msgstr "Uzaklaştır"
@@ -10153,7 +10193,7 @@ msgstr "Uzaklaştır"
 #: tfrmviewer.actzoomout.hint
 msgctxt "tfrmviewer.actzoomout.hint"
 msgid "Zoom Out"
-msgstr ""
+msgstr "Uzaklaştır"
 
 #: tfrmviewer.btncuttuimage.hint
 msgctxt "TFRMVIEWER.BTNCUTTUIMAGE.HINT"

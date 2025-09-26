@@ -60,6 +60,8 @@ type
     actEditFindPrevious: TAction;
     actFileReload: TAction;
     actEditTimeDate: TAction;
+    actZoomOut: TAction;
+    actZoomIn: TAction;
     ilBookmarks: TImageList;
     MainMenu1: TMainMenu;
     ActListEdit: TActionList;
@@ -177,6 +179,9 @@ type
     function SaveFile(const aFileName: String): Boolean;
     procedure SetFileName(const AValue: String);
 
+    procedure DoZoom( const inc: Integer );
+    function DoZoomIn: Boolean;
+    function DoZoomOut: Boolean;
   protected
     procedure CMThemeChanged(var Message: TLMessage); message CM_THEMECHANGED;
 
@@ -229,6 +234,8 @@ type
      procedure cm_FileExit(const {%H-}Params:array of string);
      procedure cm_ConfHigh(const {%H-}Params:array of string);
      procedure cm_EditRplc(const {%H-}Params:array of string);
+     procedure cm_ZoomIn(const {%H-}Params: array of string);
+     procedure cm_ZoomOut(const {%H-}Params: array of string);
   end;
 
   procedure ShowEditor(const sFileName: String; WaitData: TWaitData = nil);
@@ -383,36 +390,20 @@ end;
 
 procedure TfrmEditor.EditorMouseWheelDown(Sender: TObject; Shift: TShiftState;
   MousePos: TPoint; var Handled: Boolean);
-var
-   t:integer;
 begin
-  if (Shift=[ssCtrl])and(gFonts[dcfEditor].Size > gFonts[dcfEditor].MinValue) then
-  begin
-    t:=Editor.TopLine;
-    gFonts[dcfEditor].Size:=gFonts[dcfEditor].Size-1;
-    FontOptionsToFont(gFonts[dcfEditor], Editor.Font);
-    Editor.TopLine:=t;
-    Editor.Refresh;
-    Handled:=True;
+  if gZoomWithCtrlWheel and (Shift=[ssCtrl]) then begin
+    if self.DoZoomOut then
+      Handled:= True;
   end;
-
 end;
 
 procedure TfrmEditor.EditorMouseWheelUp(Sender: TObject; Shift: TShiftState;
   MousePos: TPoint; var Handled: Boolean);
-var
-   t:integer;
 begin
-  if (Shift=[ssCtrl])and(gFonts[dcfEditor].Size < gFonts[dcfEditor].MaxValue) then
-  begin
-    t:=Editor.TopLine;
-    gFonts[dcfEditor].Size:=gFonts[dcfEditor].Size+1;
-    FontOptionsToFont(gFonts[dcfEditor], Editor.Font);
-    Editor.TopLine:=t;
-    Editor.Refresh;
-    Handled:=True;
+  if gZoomWithCtrlWheel and (Shift=[ssCtrl]) then begin
+    if self.DoZoomIn then
+      Handled:= True;
   end;
-
 end;
 
 function TfrmEditor.OpenFile(const aFileName: String): Boolean;
@@ -598,6 +589,35 @@ begin
 
   FFileName := AValue;
   Caption := ReplaceHome(FFileName);
+end;
+
+procedure TfrmEditor.DoZoom(const inc: Integer);
+var
+  t:integer;
+begin
+  t:=Editor.TopLine;
+  gFonts[dcfEditor].Size:=gFonts[dcfEditor].Size+inc;
+  FontOptionsToFont(gFonts[dcfEditor], Editor.Font);
+  Editor.TopLine:=t;
+  Editor.Refresh;
+end;
+
+function TfrmEditor.DoZoomIn: Boolean;
+begin
+  Result:= False;
+  if gFonts[dcfEditor].Size < gFonts[dcfEditor].MaxValue then begin
+    self.DoZoom( 1 );
+    Result:= True;
+  end;
+end;
+
+function TfrmEditor.DoZoomOut: Boolean;
+begin
+  Result:= False;
+  if gFonts[dcfEditor].Size > gFonts[dcfEditor].MinValue then begin
+    self.DoZoom( -1 );
+    Result:= True;
+  end;
 end;
 
 procedure TfrmEditor.CMThemeChanged(var Message: TLMessage);
@@ -1069,6 +1089,16 @@ end;
 procedure TfrmEditor.cm_EditRplc(const Params: array of string);
 begin
   ShowSearchReplaceDialog(Self, Editor, cbChecked, FSearchOptions)
+end;
+
+procedure TfrmEditor.cm_ZoomIn(const Params: array of string);
+begin
+  self.DoZoomIn;
+end;
+
+procedure TfrmEditor.cm_ZoomOut(const Params: array of string);
+begin
+  self.DoZoomOut;
 end;
 
 procedure TfrmEditor.frmEditorClose(Sender: TObject;

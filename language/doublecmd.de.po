@@ -326,6 +326,12 @@ msgctxt "tfrmchecksumcalc.caption"
 msgid "Calculate checksum..."
 msgstr "Prüfsumme berechnen …"
 
+#: tfrmchecksumcalc.cbhashalgorithm.caption
+#, fuzzy
+msgctxt "tfrmchecksumcalc.cbhashalgorithm.caption"
+msgid "=>"
+msgstr "=>"
+
 #: tfrmchecksumcalc.cbopenafterjobiscomplete.caption
 msgid "Open checksum file after job is completed"
 msgstr "Prüfsummen-Datei öffnen, nachdem der Job beendet ist"
@@ -353,6 +359,10 @@ msgstr "Unix"
 #: tfrmchecksumcalc.rbwindows.caption
 msgid "Windows"
 msgstr "Windows"
+
+#: tfrmchecksumcalc.rghashalgorithm.caption
+msgid "Algorithm"
+msgstr ""
 
 #: tfrmchecksumverify.btnclose.caption
 msgctxt "TFRMCHECKSUMVERIFY.BTNCLOSE.CAPTION"
@@ -1075,6 +1085,16 @@ msgstr "Speichern &unter …"
 #: tfrmeditor.actfilesaveas.hint
 msgid "Save As"
 msgstr "Datei unter anderem Namen speichern"
+
+#: tfrmeditor.actzoomin.caption
+msgctxt "tfrmeditor.actzoomin.caption"
+msgid "Zoom In"
+msgstr "Vergrößern"
+
+#: tfrmeditor.actzoomout.caption
+msgctxt "tfrmeditor.actzoomout.caption"
+msgid "Zoom Out"
+msgstr "Verkleinern"
 
 #: tfrmeditor.caption
 msgctxt "tfrmeditor.caption"
@@ -2451,6 +2471,16 @@ msgstr "Auswah&l aus Datei laden …"
 #: tfrmmain.actloadtabs.caption
 msgid "&Load Tabs from File"
 msgstr "&Lade Tabs aus Datei"
+
+#: tfrmmain.actmainfontzoomin.caption
+msgctxt "tfrmmain.actmainfontzoomin.caption"
+msgid "Zoom In"
+msgstr "Vergrößern"
+
+#: tfrmmain.actmainfontzoomout.caption
+msgctxt "tfrmmain.actmainfontzoomout.caption"
+msgid "Zoom Out"
+msgstr "Verkleinern"
 
 #: tfrmmain.actmakedir.caption
 msgid "Create &Directory"
@@ -6903,6 +6933,11 @@ msgstr "und der Textcursor folgt nicht mehr dem Mauszeiger"
 msgid "By clic&king on icon"
 msgstr "auch durch klicken auf das Icon des Elements"
 
+#: tfrmoptionsmouse.chkzoomwithctrlwheel.caption
+msgctxt "tfrmoptionsmouse.chkzoomwithctrlwheel.caption"
+msgid "Zoom with Ctrl + Scroll Wheel"
+msgstr ""
+
 #: tfrmoptionsmouse.gbopenwith.caption
 msgctxt "tfrmoptionsmouse.gbopenwith.caption"
 msgid "Open with"
@@ -6915,6 +6950,12 @@ msgstr "Bildlauf"
 #: tfrmoptionsmouse.gbselection.caption
 msgid "Selection"
 msgstr "Auswahl/Markieren"
+
+#: tfrmoptionsmouse.gbzoom.caption
+#, fuzzy
+msgctxt "tfrmoptionsmouse.gbzoom.caption"
+msgid "Zoom"
+msgstr "Zoom"
 
 #: tfrmoptionsmouse.lblmousemode.caption
 msgid "&Mode:"
@@ -8192,6 +8233,7 @@ msgid "&Multiple disk archive"
 msgstr "Archiv auf&teilen"
 
 #: tfrmpackdlg.cbotherplugins.caption
+msgctxt "tfrmpackdlg.cbotherplugins.caption"
 msgid "=>"
 msgstr "=>"
 
@@ -9482,6 +9524,7 @@ msgid "&Wrap text"
 msgstr "Text umbrechen"
 
 #: tfrmviewer.actzoom.caption
+msgctxt "tfrmviewer.actzoom.caption"
 msgid "Zoom"
 msgstr "Zoom"
 

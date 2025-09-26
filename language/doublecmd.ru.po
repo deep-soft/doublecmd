@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Double Commander 1.2.0 alpha\n"
-"POT-Creation-Date: 2025-06-12 01:47+0300\n"
-"PO-Revision-Date: 2025-06-13 11:30+0300\n"
+"POT-Creation-Date: 2025-07-14 19:30+0300\n"
+"PO-Revision-Date: 2025-07-14 21:33+0300\n"
 "Last-Translator: Alexander Koblov <alexx2000@mail.ru>\n"
 "Language-Team: \n"
 "Language: ru\n"
@@ -331,6 +331,11 @@ msgctxt "tfrmchecksumcalc.caption"
 msgid "Calculate checksum..."
 msgstr "Посчитать контрольные суммы..."
 
+#: tfrmchecksumcalc.cbhashalgorithm.caption
+msgctxt "tfrmchecksumcalc.cbhashalgorithm.caption"
+msgid "=>"
+msgstr "=>"
+
 #: tfrmchecksumcalc.cbopenafterjobiscomplete.caption
 msgid "Open checksum file after job is completed"
 msgstr "Открыть файл контрольной суммы после расчёта"
@@ -358,6 +363,10 @@ msgstr "Unix"
 #: tfrmchecksumcalc.rbwindows.caption
 msgid "Windows"
 msgstr "Windows"
+
+#: tfrmchecksumcalc.rghashalgorithm.caption
+msgid "Algorithm"
+msgstr "Алгоритм"
 
 #: tfrmchecksumverify.btnclose.caption
 msgctxt "TFRMCHECKSUMVERIFY.BTNCLOSE.CAPTION"
@@ -1086,6 +1095,16 @@ msgstr "Сохранить &как..."
 #: tfrmeditor.actfilesaveas.hint
 msgid "Save As"
 msgstr "Сохранить как..."
+
+#: tfrmeditor.actzoomin.caption
+msgctxt "tfrmeditor.actzoomin.caption"
+msgid "Zoom In"
+msgstr "Увеличить"
+
+#: tfrmeditor.actzoomout.caption
+msgctxt "tfrmeditor.actzoomout.caption"
+msgid "Zoom Out"
+msgstr "Уменьшить"
 
 #: tfrmeditor.caption
 msgctxt "tfrmeditor.caption"
@@ -2495,6 +2514,16 @@ msgstr "Загрузить выделение из &файла..."
 #: tfrmmain.actloadtabs.caption
 msgid "&Load Tabs from File"
 msgstr "Загрузить вкладки из файла"
+
+#: tfrmmain.actmainfontzoomin.caption
+msgctxt "tfrmmain.actmainfontzoomin.caption"
+msgid "Zoom In"
+msgstr "Увеличить"
+
+#: tfrmmain.actmainfontzoomout.caption
+msgctxt "tfrmmain.actmainfontzoomout.caption"
+msgid "Zoom Out"
+msgstr "Уменьшить"
 
 #: tfrmmain.actmakedir.caption
 msgid "Create &Directory"
@@ -7095,6 +7124,11 @@ msgstr "Текстовый курсор не следует за курсоро�
 msgid "By clic&king on icon"
 msgstr "Щелч&ком по значку"
 
+#: tfrmoptionsmouse.chkzoomwithctrlwheel.caption
+msgctxt "tfrmoptionsmouse.chkzoomwithctrlwheel.caption"
+msgid "Zoom with Ctrl + Scroll Wheel"
+msgstr "Масштабирование с Ctrl+колесо мыши"
+
 #: tfrmoptionsmouse.gbopenwith.caption
 msgctxt "tfrmoptionsmouse.gbopenwith.caption"
 msgid "Open with"
@@ -7107,6 +7141,11 @@ msgstr "Прокрутка"
 #: tfrmoptionsmouse.gbselection.caption
 msgid "Selection"
 msgstr "Выделение"
+
+#: tfrmoptionsmouse.gbzoom.caption
+msgctxt "tfrmoptionsmouse.gbzoom.caption"
+msgid "Zoom"
+msgstr "Масштабирование"
 
 #: tfrmoptionsmouse.lblmousemode.caption
 msgid "&Mode:"
@@ -8418,6 +8457,7 @@ msgid "&Multiple disk archive"
 msgstr "&Многотомный архив"
 
 #: tfrmpackdlg.cbotherplugins.caption
+msgctxt "tfrmpackdlg.cbotherplugins.caption"
 msgid "=>"
 msgstr "=>"
 
@@ -9735,6 +9775,7 @@ msgid "&Wrap text"
 msgstr "&Переносить строки"
 
 #: tfrmviewer.actzoom.caption
+msgctxt "tfrmviewer.actzoom.caption"
 msgid "Zoom"
 msgstr "Увеличение"
 

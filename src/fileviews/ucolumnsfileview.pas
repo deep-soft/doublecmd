@@ -47,6 +47,7 @@ type
     procedure DragCanceled; override;
     procedure DoMouseMoveScroll(X, Y: Integer);
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
+    function DoMouseWheelHorz(Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint): Boolean; override;
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X,Y: Integer); override;
     procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
     procedure MouseUp(Button: TMouseButton; Shift:TShiftState; X,Y:Integer); override;
@@ -383,15 +384,11 @@ begin
   if not IsLoadingFileList then
   begin
 
-    if (Shift=[ssCtrl])and(gFonts[dcfMain].Size < gFonts[dcfMain].MaxValue) then
+    if gZoomWithCtrlWheel and(Shift=[ssCtrl])and(frmMain.Commands.MainFontZoomIn()) then
     begin
-      gFonts[dcfMain].Size:=gFonts[dcfMain].Size+1;
-      frmMain.FrameLeft.UpdateView;
-      frmMain.FrameRight.UpdateView;
       Handled:=True;
       Exit;
     end;
-
 
     case gScrollMode of
       smLineByLine:
@@ -414,11 +411,8 @@ begin
   if not IsLoadingFileList then
   begin
 
-    if (Shift=[ssCtrl])and(gFonts[dcfMain].Size > gFonts[dcfMain].MinValue) then
+    if gZoomWithCtrlWheel and(Shift=[ssCtrl])and(frmMain.Commands.MainFontZoomOut()) then
     begin
-      gFonts[dcfMain].Size:=gFonts[dcfMain].Size-1;
-      frmMain.FrameLeft.UpdateView;
-      frmMain.FrameRight.UpdateView;
       Handled:=True;
       Exit;
     end;
@@ -2405,6 +2399,18 @@ begin
 
   if (ColumnsView.FRangeSelecting) and (Row >= FixedRows) then
     ColumnsView.Selection(SavedKey, Row - FixedRows);
+end;
+
+function TDrawGridEx.DoMouseWheelHorz(Shift: TShiftState; WheelDelta: Integer;
+  MousePos: TPoint): Boolean;
+begin
+  Result:= AutoFillColumns;
+  if not Result then
+  begin
+    MouseWheelOption:= mwGrid;
+    Result:= inherited DoMouseWheelHorz(Shift, WheelDelta, MousePos);
+    MouseWheelOption:= mwCursor;
+  end;
 end;
 
 procedure TDrawGridEx.ScrollHorizontally(ForwardDirection: Boolean);

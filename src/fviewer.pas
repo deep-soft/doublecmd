@@ -317,8 +317,6 @@ type
     procedure pmEditMenuPopup(Sender: TObject);
     procedure miPluginsClick(Sender: TObject);
 
-    procedure pnlTextMouseWheelUp(Sender: TObject; Shift: TShiftState;
-      MousePos: TPoint; var Handled: Boolean);
     procedure sboxImageMouseEnter(Sender: TObject);
     procedure sboxImageMouseLeave(Sender: TObject);
     procedure sboxImageMouseMove(Sender: TObject; Shift: TShiftState; X,
@@ -377,6 +375,7 @@ type
     FThumbnailManager: TThumbnailManager;
     FFileSourceCalcStatisticsOperation: TFileSourceCalcStatisticsOperation;
     FCommands: TFormCommands;
+    FScaleFactor: Double;
     FZoomFactor: Integer;
     FExif: TExifReader;
     FWindowState: TWindowState;
@@ -462,6 +461,9 @@ type
     procedure ShowTextViewer(AMode: TViewerControlMode);
     procedure CopyMoveFile(AViewerAction:TViewerCopyMoveAction);
     procedure ZoomImage(ADelta: Double);
+    function DoZoom( const delta: Double; const inc: Integer ): Boolean;
+    function DoZoomIn: Boolean;
+    function DoZoomOut: Boolean;
     procedure RotateImage(AGradus:integer);
     procedure MirrorImage(AVertically:boolean=False);
 
@@ -786,6 +788,19 @@ var
   bmpThumb: TBitmap;
   AIndex, X, Y: Integer;
 begin
+
+  // in TfrmOptionsHotkeys.FillCommandList(), a TfrmViewer instance may be created
+  // to obtain Hotkeys.
+  // in this case, the TfrmViewer is not initialized normally, and an exception
+  // may occur in some WidgetSets due to the Paint event.
+  // therefore, the code is added here.
+  // this is a hack-like patch, and the root cause is that the implementation of
+  // TfrmOptionsHotkeys.FillCommandList() is unreasonable.
+  // to completely avoid such issue, TfrmOptionsHotkeys.FillCommandList() should
+  // be reimplemented in the future.
+  if FFileList = nil then
+    Exit;
+
   AIndex:= CellToIndex(aCol, aRow);
 
   if InRange(AIndex, 0, FFileList.Count - 1) then
@@ -1848,8 +1863,52 @@ end;
 
 procedure TfrmViewer.ZoomImage(ADelta: Double);
 begin
+  if (FZoomFactor = 100) and (miStretch.Checked or miStretchOnlyLarge.Checked) then
+  begin
+    // Calculate zoom factor at first zoom
+    FZoomFactor:= Round(FScaleFactor * 100);
+  end;
   FZoomFactor := Round(FZoomFactor * ADelta);
   AdjustImageSize;
+end;
+
+function TfrmViewer.DoZoom( const delta: Double; const inc: Integer ): Boolean;
+var
+  ALine: Integer;
+begin
+  Result:= False;
+  if miGraphics.Checked then begin
+    ZoomImage( delta );
+    Result:= True;
+    Exit;
+  end;
+
+  if (inc>0) and (gFonts[dcfViewer].Size>=gFonts[dcfViewer].MaxValue) then
+    Exit;
+  if (inc<0) and (gFonts[dcfViewer].Size<=gFonts[dcfViewer].MinValue) then
+    Exit;
+  gFonts[dcfViewer].Size:= gFonts[dcfViewer].Size + inc;
+  Result:= True;
+
+  if miCode.Checked then begin
+    ALine:= SynEdit.TopLine;
+    FontOptionsToFont(gFonts[dcfViewer], SynEdit.Font);
+    SynEdit.TopLine:= ALine;
+    SynEdit.Refresh;
+  end else begin
+    ViewerControl.Font.Size:= gFonts[dcfViewer].Size;
+    ViewerControl.Repaint;
+  end;
+end;
+
+function TfrmViewer.DoZoomIn: Boolean;
+begin
+  Result:= DoZoom( 1.1, 1 );
+end;
+
+function TfrmViewer.DoZoomOut: Boolean;
+begin
+  Result:= DoZoom( 0.909, -1 );
 end;
 
 procedure TfrmViewer.RotateImage(AGradus: integer);
@@ -1858,14 +1917,14 @@ var
   x, y: Integer;
   xWidth,
   yHeight: Integer;
-  SourceImg: TLazIntfImage = nil;
-  TargetImg: TLazIntfImage = nil;
+  SourceImg: TLazIntfImage;
+  TargetImg: TLazIntfImage;
 begin
   TargetImg:= TLazIntfImage.Create(0, 0);
-  SourceImg:= Image.Picture.Bitmap.CreateIntfImage;
+  SourceImg := TLazIntfImage.Create(TRasterImage(Image.Picture.Graphic).RawImage, False);
   TargetImg.DataDescription:= SourceImg.DataDescription; // use the same image format
-  xWidth:= Image.Picture.Bitmap.Width - 1;
-  yHeight:= Image.Picture.Bitmap.Height - 1;
+  xWidth:= SourceImg.Width - 1;
+  yHeight:= SourceImg.Height - 1;
 
   if AGradus = 90 then
   begin
@@ -1909,7 +1968,7 @@ begin
     Image.Height:= x;
   end;
 
-  Image.Picture.Bitmap.LoadFromIntfImage(TargetImg);
+  TRasterImage(Image.Picture.Graphic).LoadFromIntfImage(TargetImg);
   FreeAndNil(SourceImg);
   FreeAndNil(TargetImg);
   AdjustImageSize;
@@ -1921,15 +1980,14 @@ var
   x, y: Integer;
   xWidth,
   yHeight: Integer;
-  SourceImg: TLazIntfImage = nil;
-  TargetImg: TLazIntfImage = nil;
+  SourceImg: TLazIntfImage;
+  TargetImg: TLazIntfImage;
 begin
   TargetImg:= TLazIntfImage.Create(0, 0);
-  SourceImg:= Image.Picture.Bitmap.CreateIntfImage;
+  SourceImg := TLazIntfImage.Create(TRasterImage(Image.Picture.Graphic).RawImage, False);
   TargetImg.DataDescription:= SourceImg.DataDescription; // use the same image format
-  xWidth:= Image.Picture.Bitmap.Width - 1;
-  yHeight:= Image.Picture.Bitmap.Height - 1;
-  TargetImg.SetSize(xWidth + 1, yHeight + 1);
+  xWidth:= SourceImg.Width - 1;
+  yHeight:= SourceImg.Height - 1;
 
   if not AVertically then
     for y:= 0 to yHeight do
@@ -1948,8 +2006,7 @@ begin
       end;
     end;
 
-
-  Image.Picture.Bitmap.LoadFromIntfImage(TargetImg);
+  TRasterImage(Image.Picture.Graphic).LoadFromIntfImage(TargetImg);
   FreeAndNil(SourceImg);
   FreeAndNil(TargetImg);
   AdjustImageSize;
@@ -2076,19 +2133,6 @@ begin
   end
   else begin
     LoadFile(FFileName);
-  end;
-end;
-
-procedure TfrmViewer.pnlTextMouseWheelUp(Sender: TObject; Shift: TShiftState;
-  MousePos: TPoint; var Handled: Boolean);
-begin
-  if Shift=[ssCtrl] then
-  begin
-    gFonts[dcfMain].Size:=gFonts[dcfMain].Size+1;
-    pnlText.Font.Size:=gFonts[dcfMain].Size;
-    pnlText.Repaint;
-    Handled:=True;
-    Exit;
   end;
 end;
 
@@ -2343,6 +2387,7 @@ begin
   if Assigned(FFileSourceCalcStatisticsOperation) then
   begin
     tmUpdateFolderSize.Enabled:= False;
+    FFileSourceCalcStatisticsOperation.RemoveStateChangedListener([fsosStopped], @FileSourceOperationStateChangedNotify);
     FFileSourceCalcStatisticsOperation.Stop;
   end;
   FFileSourceCalcStatisticsOperation:= nil;
@@ -2777,53 +2822,36 @@ end;
 procedure TfrmViewer.SynEditMouseWheel(Sender: TObject; Shift: TShiftState;
   WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
 var
-  ALine: Integer;
+  inc: Integer;
 begin
-  if (Shift = [ssCtrl]) then
+  if WheelDelta = 0 then
+    Exit;
+
+  if gZoomWithCtrlWheel and (Shift = [ssCtrl]) then
   begin
-    if (WheelDelta > 0) and (gFonts[dcfViewer].Size < gFonts[dcfViewer].MaxValue) then
-    begin
-      Handled:= True;
-      Inc(gFonts[dcfViewer].Size);
-    end
-    else if (WheelDelta < 0) and (gFonts[dcfViewer].Size > gFonts[dcfViewer].MinValue) then
-    begin
-      Handled:= True;
-      Dec(gFonts[dcfViewer].Size);
-    end;
-    if Handled then
-    begin
-      ALine:= SynEdit.TopLine;
-      FontOptionsToFont(gFonts[dcfViewer], SynEdit.Font);
-      SynEdit.TopLine:= ALine;
-      SynEdit.Refresh;
-    end;
+    if WheelDelta > 0 then
+      inc:= 1
+    else
+      inc:= -1;
+    self.DoZoom( 1, inc );
   end;
 end;
 
 procedure TfrmViewer.ViewerControlMouseWheelDown(Sender: TObject;
   Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
 begin
-  if (Shift=[ssCtrl])and(gFonts[dcfViewer].Size > gFonts[dcfViewer].MinValue) then
-  begin
-    gFonts[dcfViewer].Size:=gFonts[dcfViewer].Size-1;
-    ViewerControl.Font.Size:=gFonts[dcfViewer].Size;
-    ViewerControl.Repaint;
-    Handled:=True;
-    Exit;
+  if gZoomWithCtrlWheel and (Shift=[ssCtrl]) then begin
+    if self.DoZoomOut then
+      Handled:= True;
   end;
 end;
 
 procedure TfrmViewer.ViewerControlMouseWheelUp(Sender: TObject;
   Shift: TShiftState; MousePos: TPoint; var Handled: Boolean);
 begin
-  if (Shift=[ssCtrl])and(gFonts[dcfViewer].Size < gFonts[dcfViewer].MaxValue) then
-  begin
-    gFonts[dcfViewer].Size:=gFonts[dcfViewer].Size+1;
-    ViewerControl.Font.Size:=gFonts[dcfViewer].Size;
-    ViewerControl.Repaint;
-    Handled:=True;
-    Exit;
+  if gZoomWithCtrlWheel and (Shift=[ssCtrl]) then begin
+    if self.DoZoomIn then
+      Handled:= True;
   end;
 end;
 
@@ -2841,7 +2869,6 @@ const
   fmtImageInfo = '%dx%d (%.0f %%)';
 var
   AControl: TControl;
-  dScaleFactor : Double;
   ImgWidth, ImgHeight : Integer;
   iLeft, iTop, iWidth, iHeight : Integer;
 begin
@@ -2865,17 +2892,17 @@ begin
 
   if (ImgWidth = 0) or (ImgHeight = 0) then Exit;
 
-  dScaleFactor:= FZoomFactor / 100;
+  FScaleFactor:= FZoomFactor / 100;
 
   // Place and resize image
   if (FZoomFactor = 100) and (miStretch.Checked or miStretchOnlyLarge.Checked) then
   begin
-    dScaleFactor:= Min(sboxImage.ClientWidth / ImgWidth, sboxImage.ClientHeight / ImgHeight);
-    dScaleFactor:= IfThen((miStretchOnlyLarge.Checked) and (dScaleFactor > 1.0), 1.0, dScaleFactor);
+    FScaleFactor:= Min(sboxImage.ClientWidth / ImgWidth, sboxImage.ClientHeight / ImgHeight);
+    FScaleFactor:= IfThen((miStretchOnlyLarge.Checked) and (FScaleFactor > 1.0), 1.0, FScaleFactor);
   end;
 
-  iWidth:= Trunc(ImgWidth * dScaleFactor);
-  iHeight:= Trunc(ImgHeight * dScaleFactor);
+  iWidth:= Trunc(ImgWidth * FScaleFactor);
+  iHeight:= Trunc(ImgHeight * FScaleFactor);
   if (miCenter.Checked) then
   begin
     iLeft:= (sboxImage.ClientWidth - iWidth) div 2;
@@ -2900,7 +2927,7 @@ begin
   end;
 
   // Update status bar
-  Status.Panels[sbpCurrentResolution].Text:= Format(fmtImageInfo, [iWidth, iHeight,  100.0 * dScaleFactor]);
+  Status.Panels[sbpCurrentResolution].Text:= Format(fmtImageInfo, [iWidth, iHeight,  100.0 * FScaleFactor]);
   Status.Panels[sbpFullResolution].Text:= Format(fmtImageInfo, [ImgWidth, ImgHeight, 100.0]);
 end;
 
@@ -3832,26 +3859,12 @@ end;
 
 procedure TfrmViewer.cm_ZoomIn(const Params: array of string);
 begin
-  if miGraphics.Checked then
-     ZoomImage(1.1)
-  else
-  begin
-    gFonts[dcfViewer].Size:=gFonts[dcfViewer].Size+1;
-    ViewerControl.Font.Size:=gFonts[dcfViewer].Size;
-    ViewerControl.Repaint;
-  end;
+  self.DoZoomIn;
 end;
 
 procedure TfrmViewer.cm_ZoomOut(const Params: array of string);
 begin
-  if miGraphics.Checked then
-     ZoomImage(0.9)
-  else
-  begin
-    gFonts[dcfViewer].Size:=gFonts[dcfViewer].Size-1;
-    ViewerControl.Font.Size:=gFonts[dcfViewer].Size;
-    ViewerControl.Repaint;
-  end;
+  self.DoZoomOut;
 end;
 
 procedure TfrmViewer.cm_Fullscreen(const Params: array of string);

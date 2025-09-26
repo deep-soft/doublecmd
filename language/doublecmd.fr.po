@@ -376,6 +376,12 @@ msgctxt "tfrmchecksumcalc.caption"
 msgid "Calculate checksum..."
 msgstr "Calculer une signature..."
 
+#: tfrmchecksumcalc.cbhashalgorithm.caption
+#, fuzzy
+msgctxt "tfrmchecksumcalc.cbhashalgorithm.caption"
+msgid "=>"
+msgstr "=>"
+
 #: tfrmchecksumcalc.cbopenafterjobiscomplete.caption
 msgid "Open checksum file after job is completed"
 msgstr "Ouvre le fichier de signature à la fin de la tâche"
@@ -403,6 +409,10 @@ msgstr "Unix"
 #: tfrmchecksumcalc.rbwindows.caption
 msgid "Windows"
 msgstr "Windows"
+
+#: tfrmchecksumcalc.rghashalgorithm.caption
+msgid "Algorithm"
+msgstr ""
 
 #: tfrmchecksumverify.btnclose.caption
 msgctxt "TFRMCHECKSUMVERIFY.BTNCLOSE.CAPTION"
@@ -1149,6 +1159,16 @@ msgstr "Enregistrer &sous..."
 #: tfrmeditor.actfilesaveas.hint
 msgid "Save As"
 msgstr "Enregistrer sous"
+
+#: tfrmeditor.actzoomin.caption
+msgctxt "tfrmeditor.actzoomin.caption"
+msgid "Zoom In"
+msgstr "Agrandir"
+
+#: tfrmeditor.actzoomout.caption
+msgctxt "tfrmeditor.actzoomout.caption"
+msgid "Zoom Out"
+msgstr "Réduire"
 
 #: tfrmeditor.caption
 msgctxt "tfrmeditor.caption"
@@ -2561,6 +2581,16 @@ msgstr "&Charger la sélection depuis un fichier..."
 #: tfrmmain.actloadtabs.caption
 msgid "&Load Tabs from File"
 msgstr "Charger les onglets depuis un fichier"
+
+#: tfrmmain.actmainfontzoomin.caption
+msgctxt "tfrmmain.actmainfontzoomin.caption"
+msgid "Zoom In"
+msgstr "Agrandir"
+
+#: tfrmmain.actmainfontzoomout.caption
+msgctxt "tfrmmain.actmainfontzoomout.caption"
+msgid "Zoom Out"
+msgstr "Réduire"
 
 #: tfrmmain.actmakedir.caption
 msgid "Create &Directory"
@@ -7164,6 +7194,11 @@ msgstr "Le curseur de texte ne suit plus le curseur de la souris"
 msgid "By clic&king on icon"
 msgstr "En cliquant sur l'icône"
 
+#: tfrmoptionsmouse.chkzoomwithctrlwheel.caption
+msgctxt "tfrmoptionsmouse.chkzoomwithctrlwheel.caption"
+msgid "Zoom with Ctrl + Scroll Wheel"
+msgstr ""
+
 #: tfrmoptionsmouse.gbopenwith.caption
 msgctxt "tfrmoptionsmouse.gbopenwith.caption"
 msgid "Open with"
@@ -7177,6 +7212,12 @@ msgstr "Défilement"
 #: tfrmoptionsmouse.gbselection.caption
 msgid "Selection"
 msgstr "Sélection"
+
+#: tfrmoptionsmouse.gbzoom.caption
+#, fuzzy
+msgctxt "tfrmoptionsmouse.gbzoom.caption"
+msgid "Zoom"
+msgstr "Zoom"
 
 #: tfrmoptionsmouse.lblmousemode.caption
 msgctxt "TFRMOPTIONSMOUSE.LBLMOUSEMODE.CAPTION"
@@ -8491,6 +8532,7 @@ msgid "&Multiple disk archive"
 msgstr "Archive en plusieurs &volumes"
 
 #: tfrmpackdlg.cbotherplugins.caption
+msgctxt "tfrmpackdlg.cbotherplugins.caption"
 msgid "=>"
 msgstr "=>"
 
@@ -9810,6 +9852,7 @@ msgid "&Wrap text"
 msgstr "Envelopper le texte"
 
 #: tfrmviewer.actzoom.caption
+msgctxt "tfrmviewer.actzoom.caption"
 msgid "Zoom"
 msgstr "Zoom"
 
