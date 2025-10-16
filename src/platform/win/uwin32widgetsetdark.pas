@@ -8,7 +8,19 @@
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
+  version 2.1 of the License, or (at your option) any later version
+  with the following modification:
+
+  As a special exception, the copyright holders of this library give you
+  permission to link this library with independent modules to produce an
+  executable, regardless of the license terms of these independent modules,and
+  to copy and distribute the resulting executable under terms of your choice,
+  provided that you also meet, for each linked independent module, the terms
+  and conditions of the license of that module. An independent module is a
+  module which is not derived from or based on this library. If you modify
+  this library, you may extend this exception to your version of the library,
+  but you are not obligated to do so. If you do not wish to do so, delete this
+  exception statement from your version.
 
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -1007,6 +1019,41 @@ begin
         LCanvas.Handle:= 0;
         LCanvas.Free;
       end;
+    end
+    else if iPartId in [TP_SEPARATOR, TP_SEPARATORVERT] then
+    begin
+      LCanvas:= TCanvas.Create;
+      try
+        LRect:= pRect;
+        LCanvas.Handle:= hdc;
+        LCanvas.Brush.Color:= SysColor[COLOR_BTNSHADOW];
+
+        if (iPartId = TP_SEPARATOR) then
+        begin
+          if (LRect.Right - LRect.Left) > 4 then
+          begin
+            LRect.Left := (LRect.Left + LRect.Right) div 2 - 1;
+            LRect.Right := LRect.Left + 1;
+          end;
+          LRect.Top:= LRect.Top + 2;
+          LRect.Bottom:= LRect.Bottom - 2;
+        end
+        else begin
+          if (LRect.Bottom - LRect.Top) > 4 then
+          begin
+            LRect.Top := (LRect.Top + LRect.Bottom) div 2 - 1;
+            LRect.Bottom := LRect.Top + 1;
+          end;
+          LRect.Left:= LRect.Left + 2;
+          LRect.Right:= LRect.Right - 2;
+        end;
+
+        LCanvas.FillRect(LRect);
+
+      finally
+        LCanvas.Handle:= 0;
+        LCanvas.Free;
+      end;
     end;
   end
 
@@ -1878,4 +1925,5 @@ initialization
   Initialize;
 
 end.
+
 
