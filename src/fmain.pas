@@ -5111,8 +5111,7 @@ begin
 
       // Set drive icon.
       BitmapTmp := PixMapManager.GetDriveIcon(Drive, dskPanel.GlyphSize, clBtnFace, False);
-      Button.Glyph.Assign(BitmapTmp);
-      FreeAndNil(BitmapTmp);
+      AssignRetinaBitmapForControl(Button, gDiskIconsSize, BitmapTmp);
 
       {Set Buttons Transparent. Is need? }
       Button.Glyph.Transparent := True;
@@ -6607,12 +6606,10 @@ begin
       BitmapTmp := PixMapManager.GetDefaultDriveIcon(gDiskIconsSize, DriveButton.Color);
   end;
 
-  DriveButton.Glyph := BitmapTmp;
+  AssignRetinaBitmapForControl(DriveButton, gDiskIconsSize, BitmapTmp);
 
-  DriveButton.Width := DriveButton.Glyph.Width
+  DriveButton.Width := gDiskIconsSize
                      + DriveButton.Canvas.TextWidth(DriveButton.Caption) + 24;
-
-  FreeAndNil(BitmapTmp);
 end;
 
 procedure TfrmMain.UpdateSelectedDrive(ANoteBook: TFileViewNotebook);

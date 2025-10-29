@@ -27,7 +27,7 @@ unit fOptionsIcons;
 interface
 
 uses
-  Classes, SysUtils, StdCtrls, ExtCtrls, fOptionsFrame;
+  Classes, SysUtils, Controls, StdCtrls, ExtCtrls, fOptionsFrame;
 
 type
 
@@ -92,8 +92,7 @@ begin
   if cbIconsSize.ItemIndex < 0 then Exit;
   iSize:= PtrInt(cbIconsSize.Items.Objects[cbIconsSize.ItemIndex]);
   bmpTemp:= PixmapManager.GetFolderIcon(iSize, pnlImage.Color);
-  imgIconExample.Picture.Assign(bmpTemp);
-  FreeAndNil(bmpTemp);
+  AssignRetinaBitmapForControl(imgIconExample, iSize, bmpTemp);
 end;
 
 procedure TfrmOptionsIcons.cbIconsExcludeChange(Sender: TObject);
@@ -109,8 +108,7 @@ begin
   if cbDiskIconsSize.ItemIndex < 0 then Exit;
   iSize:= PtrInt(cbDiskIconsSize.Items.Objects[cbDiskIconsSize.ItemIndex]);
   bmpTemp:= PixmapManager.GetDefaultDriveIcon(iSize, pnlImage.Color);
-  imgDiskIconExample.Picture.Assign(bmpTemp);
-  FreeAndNil(bmpTemp);
+  AssignRetinaBitmapForControl(imgDiskIconExample, iSize, bmpTemp);
 end;
 
 procedure TfrmOptionsIcons.rbIconsShowNoneChange(Sender: TObject);
