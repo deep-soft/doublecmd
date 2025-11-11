@@ -1418,7 +1418,7 @@ begin
   if pnlPreview.Visible or delete then
     begin
       if not Assigned(FThumbnailManager) then
-        FThumbnailManager:= TThumbnailManager.Create(DrawPreview.Canvas.Brush.Color);
+        FThumbnailManager:= TThumbnailManager.Create(self, DrawPreview.Canvas.Brush.Color);
       if delete then
         begin
           FThumbnailManager.RemovePreview(FullPathToFile); // delete thumb if need
@@ -3639,6 +3639,7 @@ begin
   else if Panel = pnlImage then
   begin
     pnlImage.TabStop:= True;
+    Image.Invalidate;
     Status.Panels[sbpTextEncoding].Text:= EmptyStr;
     if (not bQuickView) and CanFocus and pnlImage.CanFocus then pnlImage.SetFocus;
     ToolBar1.Visible:= not (bQuickView or (miFullScreen.Checked and not ToolBar1.MouseInClient));

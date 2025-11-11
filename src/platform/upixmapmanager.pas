@@ -471,6 +471,53 @@ begin
   end;
 end;
 
+procedure AssignRetinaBitmapForControl(
+  const button: TCustomSpeedButton;
+  const imageSize: Integer;
+  bitmap: Graphics.TBitmap);
+var
+  ScaleFactor: Double;
+  oldImages: TCustomImageList;
+  images: TImageList;
+  imageListSize: Integer;
+begin
+  oldImages:= button.Images;
+  ScaleFactor := findScaleFactorByControl(button);
+  imageListSize := Round(imageSize * ScaleFactor);
+  images := TImageList.Create(button);
+  images.Width := imageListSize;
+  images.Height := imageListSize;
+  images.Scaled := (ScaleFactor > 1.0);
+  images.Add(bitmap, nil);
+  button.ImageWidth := imageSize;
+  button.Images := images;
+  button.ImageIndex := 0;
+  FreeAndNil(bitmap);
+  FreeAndNil(oldImages);
+end;
+
+procedure AssignRetinaBitmapForControl(
+  const imageControl: TCustomImage;
+  const imageSize: Integer;
+  bitmap: Graphics.TBitmap);
+var
+  oldImages: TCustomImageList;
+  images: TImageList;
+  imageListSize: Integer;
+begin
+  oldImages:= imageControl.Images;
+  imageListSize := Round(imageSize * findScaleFactorByControl(imageControl));
+  images := TImageList.Create(imageControl);
+  images.Width := imageListSize;
+  images.Height := imageListSize;
+  images.Add(bitmap, nil);
+  imageControl.ImageWidth := imageSize;
+  imageControl.Images := images;
+  imageControl.ImageIndex := 0;
+  FreeAndNil(bitmap);
+  FreeAndNil(oldImages);
+end;
+
 { TPixMapManager }
 
 { TPixMapManager.LoadBitmapFromFile }
@@ -1151,71 +1198,6 @@ begin
   end;
 end;
 
-function findScaleFactor( control: TControl ): Double;
-var
-  topParent: TControl;
-begin
-  if Assigned(control) then begin
-    topParent:= control.GetTopParent;
-    if Assigned(topParent) then
-      control:= topParent;
-    if (control is TWinControl) and TWinControl(control).HandleAllocated then begin
-      Result:= control.GetCanvasScaleFactor;
-      Exit;
-    end;
-  end;
-  if Screen.FormCount > 0 then begin
-    Result:= Screen.Forms[0].GetCanvasScaleFactor();
-    Exit;
-  end;
-  Result:= 1;
-end;
-
-procedure AssignRetinaBitmapForControl(
-  const button: TCustomSpeedButton;
-  const imageSize: Integer;
-  bitmap: Graphics.TBitmap);
-var
-  oldImages: TCustomImageList;
-  images: TImageList;
-  imageListSize: Integer;
-begin
-  oldImages:= button.Images;
-  imageListSize := Round(imageSize * findScaleFactor(button));
-  images := TImageList.Create(button);
-  images.Width := imageListSize;
-  images.Height := imageListSize;
-  images.Scaled := True;
-  images.Add(bitmap, nil);
-  button.ImageWidth := imageSize;
-  button.Images := images;
-  button.ImageIndex := 0;
-  FreeAndNil(bitmap);
-  FreeAndNil(oldImages);
-end;
-
-procedure AssignRetinaBitmapForControl(
-  const imageControl: TCustomImage;
-  const imageSize: Integer;
-  bitmap: Graphics.TBitmap);
-var
-  oldImages: TCustomImageList;
-  images: TImageList;
-  imageListSize: Integer;
-begin
-  oldImages:= imageControl.Images;
-  imageListSize := Round(imageSize * findScaleFactor(imageControl));
-  images := TImageList.Create(imageControl);
-  images.Width := imageListSize;
-  images.Height := imageListSize;
-  images.Add(bitmap, nil);
-  imageControl.ImageWidth := imageSize;
-  imageControl.Images := images;
-  imageControl.ImageIndex := 0;
-  FreeAndNil(bitmap);
-  FreeAndNil(oldImages);
-end;
-
 function NSImageToTBitmap( const image:NSImage ): TBitmap;
 var
   nsbitmap: NSBitmapImageRep;
@@ -1376,7 +1358,7 @@ var
   FileName: String;
   bitmapSize: Integer;
 begin
-  bitmapSize := Round(AIconSize * findScaleFactor(nil));
+  bitmapSize := Round(AIconSize * findScaleFactorByFirstForm());
   FileName:= AIconTheme.FindIcon(AIconName, bitmapSize, 1);
   if FileName = EmptyStr then Exit(nil);
   if TScalableVectorGraphics.IsFileExtensionSupported(ExtractFileExt(FileName)) then
@@ -1536,7 +1518,6 @@ var
 begin
   Result:= -1;
   if not FUseSystemTheme then Exit;
-  if AIconSize = 24 then AIconSize:= 32;
   nImage:= NSWorkspace.sharedWorkspace.iconForFileType(NSSTR(PChar(AFileExt)));
   // Try to find best representation for requested icon size
   bestRect.origin.x:= 0;

@@ -65,7 +65,7 @@ uses
    , uUDisks, uUDev, uMountWatcher, DCStrUtils, uOSUtils, FileUtil, uGVolume, DCOSUtils
    {$ENDIF}
    {$IFDEF DARWIN}
-   , StrUtils, uMyDarwin, uDarwinFSWatch, ExtCtrls
+   , StrUtils, uMyDarwin, uDarwinFSWatch, uDarwinIO, ExtCtrls
    {$ENDIF}
    {$IFDEF HAIKU}
    , BaseUnix, DCHaiku
@@ -1301,11 +1301,14 @@ const
 var
   drive: PDrive;
   fstab: PFSTab;
-  fs: TFixedStatfs;
+  fsPtr: ^TFixedStatfs;
   fsList: array[0..MAX_FS] of TFixedStatfs;
   iMounted, iAdded, count: Integer;
   found: boolean;
   dtype: TDriveType;
+{$IF DEFINED(DARWIN)}
+  darwinVolumns: TDarwinIOVolumns;
+{$ENDIF}
 begin
   Result := TDrivesList.Create;
 
@@ -1344,12 +1347,15 @@ begin
   endfsent();
 
   count := getfsstat(@fsList, SizeOf(fsList), MNT_WAIT);
+{$IF DEFINED(DARWIN)}
+  darwinVolumns:= TDarwinIOVolumns.Create( @fsList, count );
+{$ENDIF}
   for iMounted := 0 to count - 1 do
   begin
-    fs := fsList[iMounted];
+    fsPtr := @fsList[iMounted];
 
 {$IF DEFINED(DARWIN)}
-    if (fs.fflags and MNT_DONTBROWSE <> 0) then
+    if (fsPtr^.fflags and MNT_DONTBROWSE <> 0) then
       Continue;
 {$ENDIF}
 
@@ -1357,7 +1363,7 @@ begin
     found := false;
     for iAdded := 0 to Result.Count - 1 do
     begin
-      if Result[iAdded]^.Path = fs.mountpoint then
+      if Result[iAdded]^.Path = fsPtr^.mountpoint then
       begin
         drive := Result[iAdded];
         with drive^ do
@@ -1375,27 +1381,34 @@ begin
 
     dtype := GetDriveTypeFromDeviceOrFSType(
                                             {$IF DEFINED(DARWIN)}
-                                            fs.mntfromname
+                                            fsPtr^.mntfromname
                                             {$ELSE}
-                                            fs.mnfromname
+                                            fsPtr^.mnfromname
                                             {$ENDIF},
-                                            fs.fstypename
+                                            fsPtr^.fstypename
                                             );
 
     // only add known drive types and skip root directory
-    if (dtype = dtUnknown) {$IFNDEF DARWIN}or (fs.mountpoint = PathDelim){$ENDIF} then
+    if (dtype = dtUnknown) {$IFNDEF DARWIN}or (fsPtr^.mountpoint = PathDelim){$ENDIF} then
       Continue;
+
+    if (dtype = dtHardDisk) and (fsPtr^.mountpoint <> PathDelim) then
+      dtype := dtRemovableUsb;
+    {$IFDEF DARWIN}
+      if darwinVolumns.isRemovable(fsPtr) then
+        dtype := dtRemovable;
+    {$ENDIF}
 
     New(drive);
     Result.Add(drive);
 
     with drive^ do
     begin
-      Path := CeSysToUtf8(fs.mountpoint);
-      DisplayName := ExtractFileName(Path);
+      DeviceId := {$IFDEF DARWIN}fsPtr^.mntfromname{$ELSE}fsPtr^.mnfromname{$ENDIF};
+      Path := {$IFDEF DARWIN}darwinVolumns.getPath(fsPtr){$ELSE}CeSysToUtf8(fsPtr^.mountpoint){$ENDIF};
+      DisplayName := ExtractFileName({$IFDEF DARWIN}darwinVolumns.getDisplayName(fsPtr){$ELSE}Path{$ENDIF});
       DriveLabel := Path;
-      FileSystem := fs.fstypename;
-      DeviceId := {$IF DEFINED(DARWIN)}fs.mntfromname{$ELSE}fs.mnfromname{$ENDIF};
+      FileSystem := fsPtr^.fstypename;
       DriveType := dtype;
       IsMediaAvailable := true;
       IsMediaEjectable := false;
@@ -1403,25 +1416,10 @@ begin
       IsMounted := true;
       AutoMount := true;
     end; { with }
-{$IF DEFINED(DARWIN)}
-    if (fs.mountpoint = PathDelim) then
-    begin
-      Drive^.DisplayName:= GetVolumeName(fs.mntfromname);
-      if Length(Drive^.DisplayName) = 0 then Drive^.DisplayName:= 'System';
-    end
-    else
-    begin
-      if (fs.fstypename = 'apfs') and (fs.fflags and MNT_RDONLY = MNT_RDONLY) then
-      begin
-        // APFS bootable specifications, there are two Volumns:
-        //   VolumnName:        ReadOnly, No FSEvent
-        //   VolumnName - Data: Writable, MNT_DONTBROWSE, FSEvent
-        Drive^.Path := Drive^.Path + ' - Data';
-        Drive^.DriveLabel := Drive^.Path;
-      end;
-    end;
-{$ENDIF}
   end; { for }
+{$IF DEFINED(DARWIN)}
+  FreeAndNil( darwinVolumns );
+{$ENDIF}
 end;
 {$ELSEIF DEFINED(HAIKU)}
 var
