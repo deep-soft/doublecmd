@@ -10,6 +10,7 @@ unit uDarwinIO;
 
 {$mode ObjFPC}{$H+}
 {$modeswitch objectivec2}
+{$interfaces corba}
 {$linkframework IOKit}
 
 interface
@@ -17,11 +18,9 @@ interface
 uses
   Classes, SysUtils,
   MacOSAll, CocoaAll, CocoaUtils,
-  uMyDarwin;
+  uMyDarwin, uLog;
 
 type
-  natural_t = UInt32;
-  mach_port_t = natural_t;
   io_object_t = mach_port_t;
   io_iterator_t = io_object_t;
   p_io_iterator_t = ^io_iterator_t;
@@ -30,8 +29,6 @@ type
   io_registry_entry_t = io_object_t;
   p_io_registry_entry_t = ^io_object_t;
 
-  kern_return_t = integer;
-  IOOptionBits = UInt32;
   io_name_t = array of char;
 
 function IOServiceGetMatchingServices(
@@ -59,6 +56,8 @@ function IORegistryEntryCreateCFProperties(
 function IOServiceMatching( const name: pchar ): NSDictionary; cdecl; external;
 
 function IOIteratorNext( iterator: io_iterator_t ): io_object_t; cdecl; external;
+
+function IOObjectRelease( o: io_object_t ): kern_return_t; cdecl; external;
 
 var
   kIOMasterPortDefault: mach_port_t; cvar; external;
@@ -91,6 +90,32 @@ type
     function isRemovable( const fs: PDarwinStatfs ): Boolean;
   end;
 
+  { IDarwinVolumnHandler }
+
+  IDarwinVolumnHandler = Interface
+    procedure handleAdded( const fullpath: String );
+    procedure handleRemoved( const fullpath: String );
+    procedure handleRenamed( const fullpath: String );
+  end;
+
+  { TDarwinVolumnObserver }
+
+  TDarwinVolumnObserver = Objcclass(NSObject)
+    procedure dcHandle( notification: NSNotification ); message 'dcHandle:';
+  end;
+
+  { TDarwinVolumnUtil }
+
+  TDarwinVolumnUtil = class
+  private
+    class var _observer: TDarwinVolumnObserver;
+    class var _handler: IDarwinVolumnHandler;
+    class procedure handle( notification: NSNotification );
+  public
+    class procedure setHandler( const handler: IDarwinVolumnHandler );
+    class procedure removeHandler;
+  end;
+
 implementation
 
 const
@@ -112,33 +137,24 @@ var
   ioServiceObject: io_object_t;
   ioVolumnObject: io_object_t;
   ret: integer;
-  volumnProperties: NSMutableDictionary;
   volumns: NSMutableArray;
+  hasMore: Boolean;
 
-  bsdName: CFTypeRef;
-  groupUUID: CFTypeRef;
-  mntFromName: CFTypeRef;
-  roleValue: CFTypeRef;
-  removable: CFTypeRef;
-begin
-  Result:= nil;
-
-  ret:= IOServiceGetMatchingServices(
-    kIOMasterPortDefault,
-    IOServiceMatching( 'IOMediaBSDClient' ),
-    @ioIterator );
-  if ret <> 0 then
-    Exit;
-
-  volumns:= NSMutableArray.new;
-
-  repeat
+  function addOneVolumn: Boolean;
+  var
+    volumnProperties: NSMutableDictionary;
+    bsdName: CFTypeRef;
+    groupUUID: CFTypeRef;
+    roleValue: CFTypeRef;
+    removable: CFTypeRef;
+  begin
+    Result:= False;
     ioServiceObject:= IOIteratorNext( ioIterator );
     if ioServiceObject = 0 then
-      break;
+      Exit;
     ret:= IORegistryEntryGetParentEntry( ioServiceObject, kIOServicePlane, @ioVolumnObject );
     if ret <> 0 then
-      break;
+      Exit;
     volumnProperties:= NSMutableDictionary.new;
     bsdName:= IORegistryEntryCreateCFProperty( ioVolumnObject, BsdName_KEY, kCFAllocatorDefault, 0 );
     volumnProperties.setValue_forKey( bsdName , BsdName_KEY );
@@ -150,9 +166,46 @@ begin
     volumnProperties.setValue_forKey( removable , Removable_KEY );
     volumns.addObject( volumnProperties );
     volumnProperties.release;
-  until False;
 
+    if Assigned( bsdName ) then
+      CFRelease( bsdName );
+    if Assigned( groupUUID ) then
+      CFRelease( groupUUID );
+    if Assigned( roleValue ) then
+      CFRelease( roleValue );
+    if Assigned( removable ) then
+      CFRelease( removable );
+
+    Result:= True;
+  end;
+
+begin
+  volumns:= NSMutableArray.new;
   Result:= volumns;
+
+  ret:= IOServiceGetMatchingServices(
+    kIOMasterPortDefault,
+    IOServiceMatching( 'IOMediaBSDClient' ),
+    @ioIterator );
+  if ret <> 0 then
+    Exit;
+
+  repeat
+    ioServiceObject:= 0;
+    ioVolumnObject:= 0;
+    ret:= 0;
+
+    hasMore:= addOneVolumn();
+    if ret <> 0 then
+      volumns.removeAllObjects;
+
+    if ioVolumnObject <> 0 then
+      IOObjectRelease( ioVolumnObject );
+    if ioServiceObject <> 0 then
+      IOObjectRelease( ioServiceObject );
+  until NOT hasMore;
+
+  IOObjectRelease( ioIterator );
 end;
 
 function TDarwinIOVolumns.getDeviceID(const fs: PDarwinStatfs): NSString;
@@ -232,8 +285,21 @@ end;
 
 constructor TDarwinIOVolumns.Create(const pStatfs: PDarwinStatfs;
   const statfsCount: Integer);
+var
+  i: Integer;
 begin
-  _volumns:= createVolumns;
+  for i:= 1 to 10 do begin
+    _volumns:= createVolumns;
+    if _volumns.count > 0 then
+      break;
+    LogWrite( 'error in TDarwinIOVolumns.createVolumns(), times=' + IntToStr(i), lmtError );
+    if i < 10 then begin
+      _volumns.release;
+      _volumns:= nil;
+      sleep( 3000 );
+    end;
+  end;
+  LogWrite( 'TDarwinIOVolumns.createVolumns() Result:'#13 + _volumns.description.utf8String );
   _pStatfs:= pStatfs;
   _statfsCount:= statfsCount;
 end;
@@ -287,6 +353,59 @@ begin
   volumn:= self.getVolumnByDeviceID( deviceID );
   removable:= NSNumber( volumn.valueForKey(Removable_KEY) );
   Result:= ( removable.integerValue <> 0 );
+end;
+
+class procedure TDarwinVolumnUtil.handle( notification: NSNotification );
+var
+  url: NSURL;
+  path: String;
+  notificationName: NSString;
+begin
+  LogWrite( '>> handle:' );
+  LogWrite( notification.description.UTF8String );
+  if _handler = nil then
+    Exit;
+  url:= notification.userInfo.valueForKey( NSWorkspaceVolumeURLKey );
+  if url = nil then
+    Exit;
+  path:= url.path.UTF8String;
+  notificationName:= notification.name;
+
+  if notificationName = NSWorkspaceDidMountNotification then
+    _handler.handleAdded( path )
+  else if notificationName = NSWorkspaceDidUnmountNotification then
+    _handler.handleRemoved( path )
+  else if notificationName = NSWorkspaceDidRenameVolumeNotification then
+    _handler.handleRenamed( path )
+end;
+
+class procedure TDarwinVolumnUtil.setHandler( const handler: IDarwinVolumnHandler );
+var
+  nc: NSNotificationCenter;
+begin
+  if _observer = nil then begin
+    nc:= NSWorkspace.sharedWorkspace.notificationCenter;
+    _observer:= TDarwinVolumnObserver.new;
+    nc.addObserver_selector_name_object( _observer, ObjCSelector('dcHandle:'), NSWorkspaceDidMountNotification, nil );
+    nc.addObserver_selector_name_object( _observer, ObjCSelector('dcHandle:'), NSWorkspaceDidUnmountNotification, nil );
+    nc.addObserver_selector_name_object( _observer, ObjCSelector('dcHandle:'), NSWorkspaceDidRenameVolumeNotification, nil );
+  end;
+  _handler:= handler;
+end;
+
+class procedure TDarwinVolumnUtil.removeHandler;
+begin
+  _handler:= nil;
+  NSWorkspace.sharedWorkspace.notificationCenter.removeObserver( _observer );
+  _observer.Release;
+  _observer:= nil;
+end;
+
+{ TDarwinVolumnObserver }
+
+procedure TDarwinVolumnObserver.dcHandle( notification: NSNotification );
+begin
+  TDarwinVolumnUtil.handle( notification );
 end;
 
 initialization

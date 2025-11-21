@@ -77,6 +77,9 @@ uses
   {$ENDIF}
   ;
 
+const
+  MAX_FS = 128;
+
 {$IFDEF LINUX}
 type
 
@@ -102,12 +105,13 @@ type
   
   { TDarwinDriverWatcher }
 
-  TDarwinDriverWatcher = class
+  TDarwinDriverWatcher = class( IDarwinVolumnHandler )
   private
-    _monitor: TSimpleDarwinFSWatcher;
     _drivePath: String;
     _timer: TTimer;
-    procedure handleEvent( event:TDarwinFSWatchEvent );
+    procedure handleAdded( const fullpath: String );
+    procedure handleRemoved( const fullpath: String );
+    procedure handleRenamed( const fullpath: String );
     procedure createTimer;
     procedure tryAddDrive( Sender: TObject );
   public
@@ -215,20 +219,30 @@ end;
 
 { TDarwinDriverWatcher }
 
-procedure TDarwinDriverWatcher.handleEvent( event:TDarwinFSWatchEvent );
+procedure TDarwinDriverWatcher.handleAdded(const fullpath: String);
 var
   drive: TDrive;
 begin
-  drive.Path:= event.fullPath;
-  if ecCreated in event.categories then begin
-    _drivePath:= drive.Path;
-    _timer.Interval:= 1*1000;
-    _timer.Enabled:= True;
-  end else if ecRemoved in event.categories then begin
-    DoDriveRemoved( @drive );
-  end else if not event.fullPath.IsEmpty then begin
-    DoDriveChanged( @drive );
-  end;
+  drive.Path:= fullpath;
+  _drivePath:= fullpath;
+  _timer.Interval:= 1*1000;
+  _timer.Enabled:= True;
+end;
+
+procedure TDarwinDriverWatcher.handleRemoved(const fullpath: String);
+var
+  drive: TDrive;
+begin
+  drive.Path:= fullpath;
+  DoDriveRemoved( @drive );
+end;
+
+procedure TDarwinDriverWatcher.handleRenamed(const fullpath: String);
+var
+  drive: TDrive;
+begin
+  drive.Path:= fullpath;
+  DoDriveChanged( @drive );
 end;
 
 procedure TDarwinDriverWatcher.createTimer;
@@ -241,18 +255,18 @@ end;
 procedure TDarwinDriverWatcher.tryAddDrive( Sender: TObject );
   function driveReady: Boolean;
   var
-    driveList: TDrivesList = nil;
+    fsPtr: ^TFixedStatfs;
+    fsList: array[0..MAX_FS] of TFixedStatfs;
+    count: Integer;
     i: Integer;
   begin
     Result:= False;
-    driveList:= TDriveWatcher.GetDrivesList;
-    try
-      for i:=0 to driveList.Count-1 do begin
-        if _drivePath = driveList[i]^.Path then
-          Exit( True );
-      end;
-    finally
-      FreeAndNil( driveList );
+    count := getfsstat(@fsList, SizeOf(fsList), MNT_WAIT);
+    fsPtr := @fsList;
+    for i:=0 to count-1 do begin
+      if _drivePath = fsPtr^.mountpoint then
+        Exit( True );
+      inc( fsPtr );
     end;
   end;
 var
@@ -277,18 +291,16 @@ begin
 end;
 
 constructor TDarwinDriverWatcher.Create;
-const
-  VOLUME_PATH = '/Volumes';
 begin
   Inherited;
-  _monitor:= TSimpleDarwinFSWatcher.Create( VOLUME_PATH , @handleEvent );
+  TDarwinVolumnUtil.setHandler( self );
   self.createTimer;
 end;
 
 destructor TDarwinDriverWatcher.Destroy;
 begin
+  TDarwinVolumnUtil.removeHandler;
   FreeAndNil( _timer );
-  FreeAndNil( _monitor );
   inherited Destroy;
 end;
 
@@ -1296,8 +1308,6 @@ end;
     else
       Result := dtUnknown; // devfs, nullfs, procfs, etc.
   end;
-const
-  MAX_FS = 128;
 var
   drive: PDrive;
   fstab: PFSTab;
