@@ -78,7 +78,7 @@ uses
   uOSUtils, uFileProcs, uShellExecute, uLng, uPixMapManager, uMyUnix, uOSForms,
   fMain, fFileProperties, DCOSUtils, DCStrUtils, uExts, uArchiveFileSourceUtil, uSysFolders
   {$IF DEFINED(DARWIN)}
-  , LCLStrConsts, MacOSAll, CocoaAll, uMyDarwin, uDarwinUtil
+  , LCLStrConsts, MacOSAll, CocoaAll, uDarwinApplication, uDarwinPanel, uDarwinUtil
   {$ELSEIF NOT DEFINED(HAIKU)}
   , uKeyFile, uMimeActions
     {$IF DEFINED(LINUX)}
@@ -629,7 +629,7 @@ var
 begin
   addDelimiterMenuItem( self );
 
-  // attach Services Menu in TMacosServiceMenuHelper
+  // attach Services Menu in TDarwinApplicationUtil.popUpMenuWithServiceSubmenu()
   mi:=TMenuItem.Create(Self);
   mi.Caption:=LCLStrConsts.rsMacOSMenuServices;
   Self.Items.Add(mi);
@@ -657,12 +657,12 @@ end;
 
 procedure TShellContextMenu.SharingMenuItemAction(Sender: TObject);
 begin
-  showMacOSSharingServiceMenu;
+  TDarwinPanelUtil.showSharingService;
 end;
 
 procedure TShellContextMenu.EditFinderTagsAction(Sender: TObject);
 begin
-  showEditFinderTagsPanel( nil, frmMain );
+  TDarwinPanelUtil.showEditFinderTags( nil, frmMain );
 end;
 
 {$ENDIF}

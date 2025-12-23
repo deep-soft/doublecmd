@@ -51,9 +51,8 @@ uses
   uGtk2FixCursorPos,
   {$ENDIF}
   {$IFDEF darwin}
-  uAppleMagnifiedModeFix,
-  uMyDarwin,
-  uiCloudDriverConfig,
+  uDarwinApplication,
+  uiCloudDriveConfig,
   {$ENDIF}
   {$IFDEF LCLWIN32}
   uDClass,
@@ -162,8 +161,8 @@ begin
 {$ENDIF}
 
 {$IF DEFINED(darwin)}
-  FixMacFormatSettings;
-  setMacOSAppearance( gAppMode );
+  TDarwinApplicationUtil.fixFormatSettings;
+  TDarwinApplicationUtil.setTheme( gAppMode );
 {$ENDIF}
 
   // Use only current directory separator
@@ -218,7 +217,7 @@ begin
       LoadPixMapManager;
 {$IF DEFINED(DARWIN)}
       initCocoaModernFormConfig;
-      iCloudDriverConfigUtil.load;
+      iCloudDriveConfigUtil.load;
 {$ENDIF}
       Application.CreateForm(TfrmMain, frmMain); // main form
       Application.CreateForm(TdmComData, dmComData); // common data

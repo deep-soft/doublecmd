@@ -35,9 +35,9 @@ type
 
   TFinderEditorCloseHandler = procedure ( const cancel: Boolean; const tagNames: NSArray ) of object;
 
-  { uDarwinFinderUtil }
+  { TDarwinFinderUtil }
 
-  uDarwinFinderUtil = class
+  TDarwinFinderUtil = class
   strict private class var
     _menuTagRoundImages: TFinderTagMenuRoundImages;
   public
@@ -236,7 +236,7 @@ begin
 
   titleRect:= titleRectForBounds( cellFrame );
 
-  uDarwinFinderUtil.drawTagName( NSString(self.objectValue),
+  TDarwinFinderUtil.drawTagName( NSString(self.objectValue),
     TAG_TOKEN_FONT_SIZE, color, titleRect );
 end;
 
@@ -250,9 +250,9 @@ var
 begin
   finderTag:= TFinderTags.getTagOfName( self.stringValue );
   if finderTag <> nil then
-    color:= finderTag.color
+    color:= finderTag.editorColor
   else
-    color:= uDarwinFinderModelUtil.rectFinderTagNSColors[0];
+    color:= TDarwinFinderModelUtil.editorFinderTagNSColors[0];
 
   drawingRect:= self.drawingRectForBounds( cellFrame );
   path:= NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius(
@@ -529,25 +529,27 @@ var
 
   procedure drawTagColor;
   var
+    color: NSColor;
     finderTag: TFinderTag;
     rect: NSRect;
     path: NSBezierPath;
   begin
+    finderTag:= TFinderTags.getTagOfName( tagName );
+    color:= TDarwinFinderModelUtil.menuFinderTagNSColors[finderTag.colorIndex];
     rect:= cellRect;
     rect.size.width:= rect.size.height;
     rect:= NSInsetRect( rect, 5, 5 );
     if NOT newStyle then
       rect.origin.x:= rect.origin.x + 10;
-    finderTag:= TFinderTags.getTagOfName( tagName );
-    uDarwinFinderModelUtil.dotFinderTagNSColors[finderTag.colorIndex].set_;
+    rect:= NSInsetRect( rect, 0.5, 0.5 );
+    color.set_;
+    path:= NSBezierPath.bezierPathWithOvalInRect( rect );
     if finderTag.colorIndex <> 0 then begin
-      path:= NSBezierPath.bezierPathWithOvalInRect( rect );
       path.fill;
-    end else begin
-      rect:= NSInsetRect( rect, 0.5, 0.5 );
-      path:= NSBezierPath.bezierPathWithOvalInRect( rect );
-      path.stroke;
+      color:= color.blendedColorWithFraction_ofColor( 0.1, NSColor.textColor );
+      color.set_;
     end;
+    path.stroke;
   end;
 
   procedure drawTagName;
@@ -571,7 +573,7 @@ var
     end;
     rect.origin.y:= rect.origin.y + TAG_LIST_FONT_SIZE + 2;
 
-    uDarwinFinderUtil.drawTagName( tagName, TAG_LIST_FONT_SIZE, color, rect );
+    TDarwinFinderUtil.drawTagName( tagName, TAG_LIST_FONT_SIZE, color, rect );
   end;
 
 begin
@@ -618,7 +620,7 @@ begin
     titleString:= StrToNSString( formatString );
   end;
   panel.setTitle( titleString );
-  panel.setTagNames( uDarwinFinderModelUtil.getTagNamesOfFiles(urls) );
+  panel.setTagNames( TDarwinFinderModelUtil.getTagNamesOfFiles(urls) );
   Result:= panel;
 end;
 
@@ -869,9 +871,9 @@ begin
   _onClose( _cancel, tagNames );
 end;
 
-{ uDarwinFinderUtil }
+{ TDarwinFinderUtil }
 
-class procedure uDarwinFinderUtil.popoverFileTagsEditor(
+class procedure TDarwinFinderUtil.popoverFileTagsEditor(
   const paths: TStringArray; onClose: TFinderEditorCloseHandler;
   const positioningView: NSView ; const edge: NSRectEdge );
 var
@@ -882,7 +884,7 @@ begin
   panel.showPopover( positioningView, edge );
 end;
 
-class procedure uDarwinFinderUtil.popoverTagsSelector(
+class procedure TDarwinFinderUtil.popoverTagsSelector(
   const title: String; onClose: TFinderEditorCloseHandler;
   const positioningView: NSView; const edge: NSRectEdge);
 var
@@ -893,7 +895,7 @@ begin
   panel.showPopover( positioningView, edge );
 end;
 
-class function uDarwinFinderUtil.attachFinderTagsMenu( const paths: TStringArray;
+class function TDarwinFinderUtil.attachFinderTagsMenu( const paths: TStringArray;
   const lclMenu: TPopupMenu; const menuIndex: Integer ): Boolean;
 var
   menuView: TFinderFavoriteTagsMenuView;
@@ -902,7 +904,7 @@ var
 begin
   Result:= False;
 
-  favoriteTags:= uDarwinFinderModelUtil.favoriteTags;
+  favoriteTags:= TDarwinFinderModelUtil.favoriteTags;
   if favoriteTags = nil then
     Exit;
 
@@ -921,7 +923,7 @@ begin
   Result:= True;
 end;
 
-class procedure uDarwinFinderUtil.attachSearchForTagsMenu(const lclMenu: TMenu);
+class procedure TDarwinFinderUtil.attachSearchForTagsMenu(const lclMenu: TMenu);
   procedure setColorImage( const lclMenuItem: TMenuItem );
   var
     cocoaItem: NSMenuItem;
@@ -944,7 +946,7 @@ begin
   end;
 end;
 
-class procedure uDarwinFinderUtil.drawTagName( const tagName: NSString;
+class procedure TDarwinFinderUtil.drawTagName( const tagName: NSString;
   const fontSize: CGFloat; const color: NSColor; const rect: NSRect );
 var
   attributes: NSMutableDictionary;
@@ -967,7 +969,7 @@ begin
   attributes.release;
 end;
 
-class procedure uDarwinFinderUtil.initMenuRoundNSImages;
+class procedure TDarwinFinderUtil.initMenuRoundNSImages;
 var
   imageSize: NSSize;
   colors: TFinderTagNSColors;
@@ -982,8 +984,11 @@ var
     color.set_;
     rect.origin:= NSZeroPoint;
     rect.size:= imageSize;
+    rect:= NSInsetRect( rect, 1, 1 );
     path:= NSBezierPath.bezierPathWithOvalInRect( rect );
     path.fill;
+    color.blendedColorWithFraction_ofColor( 0.1, NSColor.textColor ).set_;
+    path.stroke;
   end;
 
   function createOneColorImage( const color: NSColor ): NSImage;
@@ -1011,7 +1016,7 @@ var
 
 begin
   imageSize:= NSMakeSize( FINDER_TAGS_MENU_ROUND_SIZE, FINDER_TAGS_MENU_ROUND_SIZE );
-  colors:= uDarwinFinderModelUtil.rectFinderTagNSColors;
+  colors:= TDarwinFinderModelUtil.menuFinderTagNSColors;
   count:= Length( colors );
   SetLength( _menuTagRoundImages, count );
   for i:= 0 to count-1 do begin
@@ -1071,6 +1076,7 @@ end;
 procedure TFinderFavoriteTagMenuItem.drawRect(dirtyRect: NSRect);
   procedure drawCircle;
   var
+    color: NSColor;
     rect: NSRect;
     path: NSBezierPath;
   begin
@@ -1078,13 +1084,22 @@ procedure TFinderFavoriteTagMenuItem.drawRect(dirtyRect: NSRect);
     if NOT _hover then
       rect:= NSInsetRect( rect, 2, 2 );
 
-    _finderTag.color.set_;
+    rect:= NSInsetRect( rect, 1, 1 );
     path:= NSBezierPath.bezierPathWithOvalInRect( rect );
-    path.fill;
+    color:= _finderTag.menuColor;
+    if _finderTag.colorIndex <> 0 then begin
+      color.set_;
+      path.fill;
+      color:= color.blendedColorWithFraction_ofColor( 0.1, NSColor.textColor );
+    end;
+
+    color.set_;
+    path.stroke;
   end;
 
   procedure drawState;
   var
+    color: NSColor;
     stateString: NSString;
     stateRect: NSRect;
     stateFontSize: CGFloat;
@@ -1111,9 +1126,13 @@ procedure TFinderFavoriteTagMenuItem.drawRect(dirtyRect: NSRect);
     if stateString = nil then
       Exit;
 
+    if _finderTag.colorIndex <> 0 then
+      color:= NSColor.whiteColor
+    else
+      color:= _finderTag.menuColor;
     attributes:= NSMutableDictionary.new;
     attributes.setValue_forKey( NSFont.systemFontOfSize(stateFontSize), NSFontAttributeName );
-    attributes.setValue_forKey( NSColor.whiteColor, NSForegroundColorAttributeName );
+    attributes.setValue_forKey( color, NSForegroundColorAttributeName );
 
     stateString.drawWithRect_options_attributes( stateRect, 0, attributes );
 
@@ -1179,7 +1198,7 @@ var
   begin
     Result:= TFinderFavoriteTagMenuItem.alloc.initWithFrame( itemRect );
     Result.setFinderTag( finderTag );
-    Result.setState( uDarwinFinderModelUtil.getTagStateForFiles(finderTag.name, _urls) );
+    Result.setState( TDarwinFinderModelUtil.getTagStateForFiles(finderTag.name, _urls) );
   end;
 
   procedure createSubviews;
@@ -1225,9 +1244,9 @@ var
 begin
   tagName:= tagMenuItem.finderTag.name;
   if tagMenuItem.state = selectionAll then
-    uDarwinFinderModelUtil.removeTagForFiles( _urls, tagName )
+    TDarwinFinderModelUtil.removeTagForFiles( _urls, tagName )
   else
-    uDarwinFinderModelUtil.addTagForFiles( _urls, tagName );
+    TDarwinFinderModelUtil.addTagForFiles( _urls, tagName );
   NSMenu(_lclMenu.Handle).cancelTracking;
 end;
 
@@ -1238,7 +1257,7 @@ begin
 end;
 
 initialization
-  uDarwinFinderUtil.initMenuRoundNSImages;
+  TDarwinFinderUtil.initMenuRoundNSImages;
 
 end.
 

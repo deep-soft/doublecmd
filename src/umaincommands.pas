@@ -30,7 +30,7 @@ uses
   Classes, SysUtils, ActnList, uFileView, uFileViewNotebook, uFileSourceOperation,
   uGlobs, uFileFunctions, uFormCommands, uFileSorting, uShellContextMenu, Menus, ufavoritetabs,ufile
 {$IFDEF DARWIN}
-  , uMyDarwin
+  , uDarwinFileView
 {$ENDIF}
   ;
 
@@ -385,6 +385,7 @@ type
    procedure cm_OpenDriveByIndex(const Params: array of string);
    procedure cm_AddPlugin(const Params: array of string);
    procedure cm_LoadList(const Params: array of string);
+   procedure cm_SetSortMode(const Params: array of string);
 
    // Internal commands
    procedure cm_ExecuteToolbarItem(const Params: array of string);
@@ -413,7 +414,7 @@ uses fOptionsPluginsBase, fOptionsPluginsDSX, fOptionsPluginsWCX,
      uHotDir, DCXmlConfig, dmCommonData, fOptionsFrame, foptionsDirectoryHotlist,
      fMainCommandsDlg, uConnectionManager, fOptionsFavoriteTabs, fTreeViewMenu,
      uArchiveFileSource, fOptionsHotKeys, fBenchmark, uAdministrator, uWcxArchiveFileSource,
-     uColumnsFileView
+     uColumnsFileView, uTypes
      ;
 
 resourcestring
@@ -1746,13 +1747,15 @@ end;
 
 procedure TMainCommands.cm_RenameTab(const Params: array of string);
 begin
-  DoRenameTab(frmMain.ActiveNotebook.ActivePage);
+  if Length(Params) > 0 then
+    frmMain.ActiveNotebook.ActivePage.PermanentTitle := Params[0]
+  else
+    DoRenameTab(frmMain.ActiveNotebook.ActivePage);
 end;
 
 procedure TMainCommands.cm_CloseTab(const Params: array of string);
 begin
-  with frmMain do
-    DoCloseTab(ActiveNotebook, ActiveNotebook.PageIndex);
+  frmMain.CloseActiveTab;
 end;
 
 { TMainCommands.cm_CloseAllTabs }
@@ -2229,7 +2232,7 @@ begin
   begin
     aFileView:= TBriefFileView.Create(ActiveNotebook.ActivePage, ActiveFrame);
     {$IFDEF DARWIN}
-    TBriefFileView(aFileView).OnDrawCell:= @DarwinFileViewDrawHelper.OnDrawCell;
+    TBriefFileView(aFileView).OnDrawCell:= @darwinFileViewDrawHandler.OnDrawCell;
     {$ENDIF}
     ActiveNotebook.ActivePage.FileView:= aFileView;
     ActiveFrame.SetFocus;
@@ -2244,7 +2247,7 @@ begin
   begin
     aFileView:= TBriefFileView.Create(LeftTabs.ActivePage, FrameLeft);
     {$IFDEF DARWIN}
-    TBriefFileView(aFileView).OnDrawCell:= @DarwinFileViewDrawHelper.OnDrawCell;
+    TBriefFileView(aFileView).OnDrawCell:= @darwinFileViewDrawHandler.OnDrawCell;
     {$ENDIF}
     LeftTabs.ActivePage.FileView:= aFileView;
   end;
@@ -2258,7 +2261,7 @@ begin
   begin
     aFileView:= TBriefFileView.Create(RightTabs.ActivePage, FrameRight);
     {$IFDEF DARWIN}
-    TBriefFileView(aFileView).OnDrawCell:= @DarwinFileViewDrawHelper.OnDrawCell;
+    TBriefFileView(aFileView).OnDrawCell:= @darwinFileViewDrawHandler.OnDrawCell;
     {$ENDIF}
     RightTabs.ActivePage.FileView:= aFileView;
   end;
@@ -2277,7 +2280,7 @@ begin
     else begin
       aFileView:= TColumnsFileView.Create(ActiveNotebook.ActivePage, ActiveFrame, AParam);
       {$IFDEF DARWIN}
-      TColumnsFileView(aFileView).OnDrawCell:= @DarwinFileViewDrawHelper.OnDrawCell;
+      TColumnsFileView(aFileView).OnDrawCell:= @darwinFileViewDrawHandler.OnDrawCell;
       {$ENDIF}
       ActiveNotebook.ActivePage.FileView:= aFileView;
       ActiveFrame.SetFocus;
@@ -2298,7 +2301,7 @@ begin
     else begin
       aFileView:= TColumnsFileView.Create(LeftTabs.ActivePage, FrameLeft, AParam);
       {$IFDEF DARWIN}
-      TColumnsFileView(aFileView).OnDrawCell:= @DarwinFileViewDrawHelper.OnDrawCell;
+      TColumnsFileView(aFileView).OnDrawCell:= @darwinFileViewDrawHandler.OnDrawCell;
       {$ENDIF}
       LeftTabs.ActivePage.FileView:= aFileView;
     end;
@@ -2318,7 +2321,7 @@ begin
     else begin
       aFileView:= TColumnsFileView.Create(RightTabs.ActivePage, FrameRight, AParam);
       {$IFDEF DARWIN}
-      TColumnsFileView(aFileView).OnDrawCell:= @DarwinFileViewDrawHelper.OnDrawCell;
+      TColumnsFileView(aFileView).OnDrawCell:= @darwinFileViewDrawHandler.OnDrawCell;
       {$ENDIF}
       RightTabs.ActivePage.FileView:= aFileView;
     end;
@@ -5667,6 +5670,60 @@ begin
     end;
     StringList.Free;
   end;
+end;
+
+procedure TMainCommands.cm_SetSortMode(const Params: array of string);
+var
+  Param, Value: String;
+  State: Boolean;
+begin
+  for Param in Params do
+  begin
+    if GetParamValue(Param, 'casesensitivity', Value) then
+    begin
+      if Value = 'notsensitive' then
+        gSortCaseSensitivity:= cstNotSensitive
+      else if Value = 'locale' then
+        gSortCaseSensitivity:= cstLocale
+      else if Value = 'charvalue' then
+        gSortCaseSensitivity:= cstCharValue;
+    end
+    else if GetParamValue(Param, 'foldermode', Value) then
+    begin
+      if Value = 'nameshowfirst' then
+        gSortFolderMode:= sfmSortNameShowFirst
+      else if Value = 'likefileshowfirst' then
+        gSortFolderMode:= sfmSortLikeFileShowFirst
+      else if Value = 'likefile' then
+        gSortFolderMode:= sfmSortLikeFile;
+    end
+    else if GetParamBoolValue(Param, 'natural', State) then
+      gSortNatural:= State
+    else if GetParamBoolValue(Param, 'special', State) then
+      gSortSpecial:= State
+    else if GetParamValue(Param, 'newfiles', Value) then
+    begin
+      if Value = 'top' then
+        gNewFilesPosition:= nfpTop
+      else if Value = 'topafterdirectories' then
+        gNewFilesPosition:= nfpTopAfterDirectories
+      else if Value = 'sortedposition' then
+        gNewFilesPosition:= nfpSortedPosition
+      else if Value = 'bottom' then
+        gNewFilesPosition:= nfpBottom;
+    end
+    else if GetParamValue(Param, 'updatedfiles', Value) then
+    begin
+      if Value = 'nochange' then
+        gUpdatedFilesPosition:= ufpNoChange
+      else if Value = 'sameasnewfiles' then
+        gUpdatedFilesPosition:= ufpSameAsNewFiles
+      else if Value = 'sortedposition' then
+        gUpdatedFilesPosition:= ufpSortedPosition;
+    end
+  end;
+  frmMain.ActiveFrame.Reload(True);
+  frmMain.NotActiveFrame.Reload(True);
 end;
 
 end.

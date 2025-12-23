@@ -1,4 +1,4 @@
-unit uiCloudDriver;
+unit uiCloudDrive;
 
 {$mode ObjFPC}{$H+}
 {$modeswitch objectivec2}
@@ -8,19 +8,20 @@ interface
 uses
   Classes, SysUtils, syncobjs, fgl, LazMethodList,
   Menus, Forms, Dialogs, System.UITypes,
-  uiCloudDriverConfig, uiCloudDriverUtil,
+  uiCloudDriveConfig, uiCloudDriveUtil,
   uFile, uDisplayFile,
   uFileSource, uFileSourceOperationTypes, uFileSourceManager,
   uFileSourceWatcher, uMountedFileSource, uVfsModule,
   uDCUtils, uLng, uGlobs,
-  uMyDarwin, uDarwinFSWatch,
-  CocoaAll, CocoaUtils;
+  uDarwinFSWatch, uDarwinSimpleFSWatch, uDarwinDC,
+  uDarwinFile, uDarwinImage,
+  CocoaAll, CocoaUtils, CocoaThemes;
 
 type
 
-  { TiCloudDriverFileSource }
+  { TiCloudDriveFileSource }
 
-  TiCloudDriverFileSource = class( TMountedFileSource )
+  TiCloudDriveFileSource = class( TMountedFileSource )
   private
     _appIcons: NSMutableDictionary;
   private
@@ -36,7 +37,7 @@ type
     function getAppIconByPath( const path: String ): NSImage;
     function getDefaultPointForPath( const path: String ): String; override;
   public
-    class function GetFileSource: TiCloudDriverFileSource;
+    class function GetFileSource: TiCloudDriveFileSource;
 
     function GetWatcher: TFileSourceWatcher; override;
     function GetProcessor: TFileSourceProcessor; override;
@@ -64,9 +65,9 @@ type
 
   TWatcherItems = specialize TFPGObjectList<TWatcherItem>;
 
-  { TiCloudDriverWatcher }
+  { TiCloudDriveWatcher }
 
-  TiCloudDriverWatcher = class( TDefaultFileSourceWatcher )
+  TiCloudDriveWatcher = class( TDefaultFileSourceWatcher )
   private
     _lockObject: TCriticalSection;
   private
@@ -79,8 +80,6 @@ type
     procedure destroyWatcher;
     function findWatch(const path: String; const event: TFSWatcherEvent): Integer;
   private
-    function toFileSourceEventCommon( event: TDarwinFSWatchEvent;
-      var fileSourceEvent: TFSWatcherEventData ): Boolean;
     function toFileSourceEvent( event: TDarwinFSWatchEvent;
       var fileSourceEvent: TFSWatcherEventData ): Boolean;
     procedure handleEventInMainThread;
@@ -95,16 +94,25 @@ type
     destructor Destroy; override;
   end;
   
-  { TiCloudDriverProcessor }
+  { TiCloudDriveProcessor }
 
-  TiCloudDriverProcessor = class( TMountedFileSourceProcessor )
+  TiCloudDriveProcessor = class( TMountedFileSourceProcessor )
   public
     procedure consultOperation(var params: TFileSourceConsultParams); override;
   end;
 
-  { TiCloudDriverUIHandler }
+  { TiCloudDriveUIHandler }
 
-  TiCloudDriverUIHandler = class( TFileSourceUIHandler )
+  TiCloudDriveUIHandler = class( TFileSourceUIHandler, ICocoaThemeObserver )
+  private
+    _downloadImage: NSImage;
+  private
+    procedure createImages;
+    procedure releaseImages;
+    procedure onThemeChanged;
+  public
+    constructor Create;
+    destructor Destroy; override;
     procedure draw( var params: TFileSourceUIParams ); override;
     function click( var params: TFileSourceUIParams): Boolean; override;
   end;
@@ -128,14 +136,13 @@ type
   end;
 
 var
-  iCloudDriverWatcher: TiCloudDriverWatcher;
-  iCloudDriverProcessor: TiCloudDriverProcessor;
-  iCloudDriverUIProcessor: TiCloudDriverUIHandler;
-  iCloudArrowDownImage: NSImage;
+  iCloudDriveWatcher: TiCloudDriveWatcher;
+  iCloudDriveProcessor: TiCloudDriveProcessor;
+  iCloudDriveUIProcessor: TiCloudDriveUIHandler;
 
-{ TiCloudDriverProcessor }
+{ TiCloudDriveProcessor }
 
-procedure TiCloudDriverProcessor.consultOperation( var params: TFileSourceConsultParams );
+procedure TiCloudDriveProcessor.consultOperation( var params: TFileSourceConsultParams );
 
   procedure confirmIfSeedFiles;
   var
@@ -146,8 +153,8 @@ procedure TiCloudDriverProcessor.consultOperation( var params: TFileSourceConsul
     if NOT TSeedFileUtil.isSeedFiles(params.files) then
       Exit;
     dlgResult:= MessageDlg(
-      rsiCloudDriverCopySeedFileConfirmDlgTitle,
-      rsiCloudDriverCopySeedFileConfirmDlgMessage,
+      rsiCloudDriveCopySeedFileConfirmDlgTitle,
+      rsiCloudDriveCopySeedFileConfirmDlgMessage,
       mtConfirmation,
       [mbCancel, mbYes],
       0 );
@@ -169,21 +176,21 @@ begin
   inherited consultOperation(params);
 end;
 
-{ TiCloudDriverWatcher }
+{ TiCloudDriveWatcher }
 
-procedure TiCloudDriverWatcher.createWatcher;
+procedure TiCloudDriveWatcher.createWatcher;
 begin
   if _watcher <> nil then
     Exit;
 
   _watcher:= TSimpleDarwinFSWatcher.Create(
-    uDCUtils.ReplaceTilde( iCloudDriverConfig.path.base ),
+    uDCUtils.ReplaceTilde( iCloudDriveConfig.path.base ),
     @handleEvent );
   _watcher.monitor.watchSubtree:= True;
   _watcher.Start;
 end;
 
-procedure TiCloudDriverWatcher.destroyWatcher;
+procedure TiCloudDriveWatcher.destroyWatcher;
 begin
   if _watcher = nil then
     Exit;
@@ -192,7 +199,7 @@ begin
   FreeAndNil( _watcher );
 end;
 
-function TiCloudDriverWatcher.findWatch(const path: String; const event: TFSWatcherEvent): Integer;
+function TiCloudDriveWatcher.findWatch(const path: String; const event: TFSWatcherEvent): Integer;
 var
   i: Integer;
   item: TWatcherItem;
@@ -213,64 +220,14 @@ begin
   end;
 end;
 
-// todo: refactor with TFileSystemWatcherImpl.handleFSEvent(event:TDarwinFSWatchEvent);
-function TiCloudDriverWatcher.toFileSourceEventCommon(event: TDarwinFSWatchEvent;
+function TiCloudDriveWatcher.toFileSourceEvent(event: TDarwinFSWatchEvent;
   var fileSourceEvent: TFSWatcherEventData ): Boolean;
 begin
-  Result:= False;
-  if [watch_file_name_change, watch_attributes_change] * gWatchDirs = [] then exit;
-  if event.isDropabled then exit;
-///  if (ecChildChanged in event.categories) and (not isWatchSubdir(event.watchPath) ) then exit;
-
-  fileSourceEvent.Path := event.watchPath;
-  fileSourceEvent.FileName := EmptyStr;
-  fileSourceEvent.NewFileName := EmptyStr;
-  fileSourceEvent.OriginalEvent := event;
-  fileSourceEvent.EventType := fswUnknownChange;
-
-  if TDarwinFSWatchEventCategory.ecRootChanged in event.categories then begin
-    fileSourceEvent.EventType := fswSelfDeleted;
-  end else if event.fullPath.Length >= event.watchPath.Length+2 then begin
-    // 1. file-level update only valid if there is a FileName,
-    //    otherwise keep directory-level update
-    // 2. the order of the following judgment conditions must be preserved
-    if (not (watch_file_name_change in gWatchDirs)) and
-       ([ecStructChanged, ecAttribChanged] * event.categories = [ecStructChanged])
-         then exit;
-    if (not (watch_attributes_change in gWatchDirs)) and
-       ([ecStructChanged, ecAttribChanged] * event.categories = [ecAttribChanged])
-         then exit;
-
-    fileSourceEvent.FileName := ExtractFileName( event.fullPath );
-
-    if TDarwinFSWatchEventCategory.ecRemoved in event.categories then
-      fileSourceEvent.EventType := fswFileDeleted
-    else if TDarwinFSWatchEventCategory.ecRenamed in event.categories then begin
-      if ExtractFilePath(event.fullPath)=ExtractFilePath(event.renamedPath) then begin
-        // fswFileRenamed only when FileName and NewFileName in the same dir
-        // otherwise keep fswUnknownChange
-        fileSourceEvent.EventType := fswFileRenamed;
-        fileSourceEvent.NewFileName := ExtractFileName( event.renamedPath );
-      end;
-    end else if TDarwinFSWatchEventCategory.ecCreated in event.categories then
-      fileSourceEvent.EventType := fswFileCreated
-    else if TDarwinFSWatchEventCategory.ecAttribChanged in event.categories then
-      fileSourceEvent.EventType := fswFileChanged
-    else
-      exit;
-  end;
-
-  Result:= True;
-end;
-
-function TiCloudDriverWatcher.toFileSourceEvent(event: TDarwinFSWatchEvent;
-  var fileSourceEvent: TFSWatcherEventData ): Boolean;
-begin
-  Result:= Self.toFileSourceEventCommon( event, fileSourceEvent );
+  Result:= TDarwinFSWatcherUtil.convertToFileSourceEvent( event, fileSourceEvent );
   if Result = false then
     Exit;
 
-  if TiCloudDriverFileSource.GetFileSource.getMountPointFromPath(event.fullPath)<>nil then begin
+  if TiCloudDriveFileSource.GetFileSource.getMountPointFromPath(event.fullPath)<>nil then begin
     fileSourceEvent.Path:= event.fullPath;
     fileSourceEvent.FileName:= '';
   end else begin
@@ -278,19 +235,19 @@ begin
   end;
 end;
 
-procedure TiCloudDriverWatcher.handleEventInMainThread;
+procedure TiCloudDriveWatcher.handleEventInMainThread;
 begin
   _currentItem.eventHandler( _currentFSEvent );
 end;
 
-procedure TiCloudDriverWatcher.handleEvent(event: TDarwinFSWatchEvent);
+procedure TiCloudDriveWatcher.handleEvent(event: TDarwinFSWatchEvent);
 var
   ok: Boolean;
   virtualPath: String;
   item: TWatcherItem;
   fileSourceEvent: TFSWatcherEventData;
 begin
-  virtualPath:= TiCloudDriverFileSource.GetFileSource.GetVirtualPath( event.fullPath );
+  virtualPath:= TiCloudDriveFileSource.GetFileSource.GetVirtualPath( event.fullPath );
   virtualPath:= ExtractFilePath( ExcludeTrailingPathDelimiter(virtualPath) );
   ok:= Self.toFileSourceEvent( event, fileSourceEvent );
   if NOT ok then
@@ -313,12 +270,12 @@ begin
   end;
 end;
 
-function TiCloudDriverWatcher.canWatch(const path: String): Boolean;
+function TiCloudDriveWatcher.canWatch(const path: String): Boolean;
 begin
   Result:= True;
 end;
 
-function TiCloudDriverWatcher.addWatch(const path: String;
+function TiCloudDriveWatcher.addWatch(const path: String;
   const filter: TFSWatchFilter; const event: TFSWatcherEvent;
   const UserData: Pointer): Boolean;
 var
@@ -342,7 +299,7 @@ begin
   end;
 end;
 
-procedure TiCloudDriverWatcher.removeWatch(const path: String; const event: TFSWatcherEvent);
+procedure TiCloudDriveWatcher.removeWatch(const path: String; const event: TFSWatcherEvent);
 var
   index: Integer;
 begin
@@ -360,13 +317,13 @@ begin
   end;
 end;
 
-constructor TiCloudDriverWatcher.Create;
+constructor TiCloudDriveWatcher.Create;
 begin
   _lockObject:= TCriticalSection.Create;;
   _watcherItems:= TWatcherItems.Create;
 end;
 
-destructor TiCloudDriverWatcher.Destroy;
+destructor TiCloudDriveWatcher.Destroy;
 begin
   destroyWatcher;
   FreeAndNil( _watcherItems );
@@ -524,9 +481,49 @@ begin
   Result:= aFile.Path + name;
 end;
 
-{ TiCloudDriverUIHandler }
+{ TiCloudDriveUIHandler }
 
-procedure TiCloudDriverUIHandler.draw( var params: TFileSourceUIParams );
+procedure TiCloudDriveUIHandler.createImages;
+var
+  tempImage: NSImage;
+begin
+  _downloadImage.release;
+  tempImage:= NSImage.alloc.initWithContentsOfFile( StrToNSString(mbExpandFileName(iCloudDriveConfig.icon.download)) );
+  tempImage.setSize( NSMakeSize(16,16) );
+  if TCocoaThemeServices.isDark then begin
+    _downloadImage:= TDarwinImageUtil.invertColor( tempImage );
+  end else begin
+    _downloadImage:= tempImage;
+  end;
+  _downloadImage.retain;
+  tempImage.release;
+end;
+
+procedure TiCloudDriveUIHandler.releaseImages;
+begin
+  _downloadImage.release;
+  _downloadImage:= nil;
+end;
+
+procedure TiCloudDriveUIHandler.onThemeChanged;
+begin
+  self.releaseImages;
+end;
+
+constructor TiCloudDriveUIHandler.Create;
+begin
+  Inherited;
+  TCocoaThemeServices.addObserver( self );
+end;
+
+destructor TiCloudDriveUIHandler.Destroy;
+begin
+  TCocoaThemeServices.removeObserver( self );
+  self.releaseImages;
+  Inherited;
+end;
+
+procedure TiCloudDriveUIHandler.draw( var params: TFileSourceUIParams );
 var
   graphicsContext: NSGraphicsContext;
 
@@ -534,9 +531,9 @@ var
   var
     image: NSImage;
     destRect: NSRect;
-    fs: TiCloudDriverFileSource;
+    fs: TiCloudDriveFileSource;
   begin
-    fs:= params.fs as TiCloudDriverFileSource;
+    fs:= params.fs as TiCloudDriveFileSource;
     image:= fs.getAppIconByPath( params.displayFile.FSFile.FullPath );
     if image = nil then
       Exit;
@@ -561,17 +558,15 @@ var
     if NOT TSeedFileUtil.isSeedFile(params.displayFile.FSFile) then
       Exit;
 
-    if iCloudArrowDownImage = nil then begin
-      iCloudArrowDownImage:= NSImage.alloc.initWithContentsOfFile( StrToNSString(mbExpandFileName(iCloudDriverConfig.icon.download)) );
-      iCloudArrowDownImage.setSize( NSMakeSize(16,16) );
-    end;
+    if _downloadImage = nil then
+      createImages;
 
-    destRect.size:= iCloudArrowDownImage.size;
-    destRect.origin.x:= params.drawingRect.Right - Round(iCloudArrowDownImage.size.width) - 8;
-    destRect.origin.y:= params.drawingRect.Top + (params.drawingRect.Height-Round(iCloudArrowDownImage.size.height))/2;
+    destRect.size:= _downloadImage.size;
+    destRect.origin.x:= params.drawingRect.Right - Round(_downloadImage.size.width) - 8;
+    destRect.origin.y:= params.drawingRect.Top + (params.drawingRect.Height-Round(_downloadImage.size.height))/2;
     params.drawingRect.Right:= Round(destRect.origin.x) - 4;
 
-    iCloudArrowDownImage.drawInRect_fromRect_operation_fraction_respectFlipped_hints(
+    _downloadImage.drawInRect_fromRect_operation_fraction_respectFlipped_hints(
       destRect,
       NSZeroRect,
       NSCompositeSourceOver,
@@ -598,7 +593,7 @@ begin
   end;
 end;
 
-function TiCloudDriverUIHandler.click(var params: TFileSourceUIParams): Boolean;
+function TiCloudDriveUIHandler.click(var params: TFileSourceUIParams): Boolean;
 var
   aFile: TFile;
 begin
@@ -619,76 +614,76 @@ begin
   Result:= True;
 end;
 
-{ TiCloudDriverFileSource }
+{ TiCloudDriveFileSource }
 
-constructor TiCloudDriverFileSource.Create;
+constructor TiCloudDriveFileSource.Create;
   procedure addApps;
   var
     i: Integer;
-    app: TiCloudDriverConfigAppItem;
+    app: TiCloudDriveConfigAppItem;
   begin
-    for i:=0 to Length(iCloudDriverConfig.apps)-1 do begin
-      app:= iCloudDriverConfig.apps[i];
+    for i:=0 to Length(iCloudDriveConfig.apps)-1 do begin
+      app:= iCloudDriveConfig.apps[i];
       self.mountAppPoint( app.app );
     end;
   end;
 begin
   inherited Create;
 
-  FCurrentAddress:= iCloudDriverConfig.scheme;
+  FCurrentAddress:= iCloudDriveConfig.scheme;
   _appIcons:= NSMutableDictionary.new;
   addApps;
-  self.mount( iCloudDriverConfig.path.driver, '/' );
+  self.mount( iCloudDriveConfig.path.drive, '/' );
 end;
 
-class function TiCloudDriverFileSource.IsSupportedPath(const Path: String): Boolean;
+class function TiCloudDriveFileSource.IsSupportedPath(const Path: String): Boolean;
 begin
-  Result:= Path.StartsWith( iCloudDriverConfig.scheme );
+  Result:= Path.StartsWith( iCloudDriveConfig.scheme );
 end;
 
-destructor TiCloudDriverFileSource.Destroy;
+destructor TiCloudDriveFileSource.Destroy;
 begin
   _appIcons.release;
   inherited Destroy;
 end;
 
-procedure TiCloudDriverFileSource.addAppIcon( const path: String; const appName: String );
+procedure TiCloudDriveFileSource.addAppIcon( const path: String; const appName: String );
 var
   image: NSImage;
 begin
-  image:= iCloudDriverUtil.createAppImage( appName );
+  image:= iCloudDriveUtil.createAppImage( appName );
   if image = nil then
     Exit;
   _appIcons.setValue_forKey( image, StrToNSString(path) );
   image.release;
 end;
 
-procedure TiCloudDriverFileSource.mountAppPoint( const appName: String );
+procedure TiCloudDriveFileSource.mountAppPoint( const appName: String );
 var
   path: String;
 begin
-  path:= uDCUtils.ReplaceTilde(iCloudDriverConfig.path.base) + '/' + appName + '/Documents/';
+  path:= uDCUtils.ReplaceTilde(iCloudDriveConfig.path.base) + '/' + appName + '/Documents/';
   self.mount( path );
   self.addAppIcon( path, appName );
 end;
 
-function TiCloudDriverFileSource.getAppIconByPath(const path: String): NSImage;
+function TiCloudDriveFileSource.getAppIconByPath(const path: String): NSImage;
 begin
   Result:= _appIcons.valueForKey( StrToNSString(path) );
 end;
 
-function TiCloudDriverFileSource.GetUIHandler: TFileSourceUIHandler;
+function TiCloudDriveFileSource.GetUIHandler: TFileSourceUIHandler;
 begin
-  Result:= iCloudDriverUIProcessor;
+  Result:= iCloudDriveUIProcessor;
 end;
 
-class function TiCloudDriverFileSource.GetMainIcon(out Path: String): Boolean;
+class function TiCloudDriveFileSource.GetMainIcon(out Path: String): Boolean;
 begin
-  Path:= iCloudDriverConfig.icon.main;
+  Path:= iCloudDriveConfig.icon.main;
   Result:= True;
 end;
 
-procedure TiCloudDriverFileSource.downloadAction(Sender: TObject);
+procedure TiCloudDriveFileSource.downloadAction(Sender: TObject);
 var
   item: TMenuItem absolute Sender;
   files: TFiles;
@@ -699,71 +694,71 @@ begin
   TSeedFileUtil.downloadOrEvict( Self, files );
 end;
 
-function TiCloudDriverFileSource.getDefaultPointForPath(const path: String): String;
+function TiCloudDriveFileSource.getDefaultPointForPath(const path: String): String;
 begin
-  Result:= getMacOSDisplayNameFromPath( path );
+  Result:= TDarwinFileUtil.getDisplayName( path );
 end;
 
-class function TiCloudDriverFileSource.GetFileSource: TiCloudDriverFileSource;
+class function TiCloudDriveFileSource.GetFileSource: TiCloudDriveFileSource;
 var
   aFileSource: IFileSource;
 begin
-  aFileSource := FileSourceManager.Find(TiCloudDriverFileSource, iCloudDriverConfig.scheme );
+  aFileSource := FileSourceManager.Find(TiCloudDriveFileSource, iCloudDriveConfig.scheme );
   if not Assigned(aFileSource) then
-    Result:= TiCloudDriverFileSource.Create
+    Result:= TiCloudDriveFileSource.Create
   else
-    Result:= aFileSource as TiCloudDriverFileSource;
+    Result:= aFileSource as TiCloudDriveFileSource;
 end;
 
-function TiCloudDriverFileSource.GetWatcher: TFileSourceWatcher;
+function TiCloudDriveFileSource.GetWatcher: TFileSourceWatcher;
 begin
-  Result:= iCloudDriverWatcher;
+  Result:= iCloudDriveWatcher;
 end;
 
-function TiCloudDriverFileSource.GetProcessor: TFileSourceProcessor;
+function TiCloudDriveFileSource.GetProcessor: TFileSourceProcessor;
 begin
-  Result:= iCloudDriverProcessor;
+  Result:= iCloudDriveProcessor;
 end;
 
-function TiCloudDriverFileSource.GetRootDir(sPath: String): String;
+function TiCloudDriveFileSource.GetRootDir(sPath: String): String;
 var
   path: String;
   displayName: String;
 begin
-  path:= uDCUtils.ReplaceTilde( iCloudDriverConfig.path.driver );
-  displayName:= getMacOSDisplayNameFromPath( path );
+  path:= uDCUtils.ReplaceTilde( iCloudDriveConfig.path.drive );
+  displayName:= TDarwinFileUtil.getDisplayName( path );
   Result:= PathDelim + displayName + PathDelim;
 end;
 
-function TiCloudDriverFileSource.IsSystemFile(aFile: TFile): Boolean;
+function TiCloudDriveFileSource.IsSystemFile(aFile: TFile): Boolean;
 begin
   Result:= inherited;
   if Result then
     Result:= NOT TSeedFileUtil.isSeedFile( aFile );
 end;
 
-function TiCloudDriverFileSource.IsPathAtRoot(Path: String): Boolean;
+function TiCloudDriveFileSource.IsPathAtRoot(Path: String): Boolean;
 var
   iCloudPath: String;
   testPath: String;
 begin
   Result:= inherited;
   if NOT Result then begin
-    iCloudPath:= uDCUtils.ReplaceTilde( iCloudDriverConfig.path.driver );
+    iCloudPath:= uDCUtils.ReplaceTilde( iCloudDriveConfig.path.drive );
     testPath:= ExcludeTrailingPathDelimiter( Path );
     Result:= ( testPath=iCloudPath );
   end;
 end;
 
-function TiCloudDriverFileSource.GetDisplayFileName(aFile: TFile): String;
+function TiCloudDriveFileSource.GetDisplayFileName(aFile: TFile): String;
 begin
   if aFile.Name = '..' then
     Result:= Inherited
   else
-    Result:= getMacOSDisplayNameFromPath( aFile.FullPath );
+    Result:= TDarwinFileUtil.getDisplayName( aFile.FullPath );
 end;
 
-function TiCloudDriverFileSource.QueryContextMenu(AFiles: TFiles; var AMenu: TPopupMenu): Boolean;
+function TiCloudDriveFileSource.QueryContextMenu(AFiles: TFiles; var AMenu: TPopupMenu): Boolean;
 var
   menuItem: TMenuItem;
 begin
@@ -774,9 +769,9 @@ begin
   menuItem:= TMenuItem.Create( AMenu );
 
   if TSeedFileUtil.isSeedFiles(AFiles) then
-    menuItem.Caption:= rsMnuiCloudDriverDownloadNow
+    menuItem.Caption:= rsMnuiCloudDriveDownloadNow
   else
-    menuItem.Caption:= rsMnuiCloudDriverRemoveDownload;
+    menuItem.Caption:= rsMnuiCloudDriveRemoveDownload;
   menuItem.OnClick:= @self.downloadAction;
   menuItem.Tag:= PtrInt( AFiles );
   AMenu.Items.Insert(0, menuItem);
@@ -789,16 +784,15 @@ begin
 end;
 
 initialization
-  iCloudDriverWatcher:= TiCloudDriverWatcher.Create;
-  iCloudDriverProcessor:= TiCloudDriverProcessor.Create;
-  iCloudDriverUIProcessor:= TiCloudDriverUIHandler.Create;
-  RegisterVirtualFileSource( 'iCloud', TiCloudDriverFileSource, True );
+  iCloudDriveWatcher:= TiCloudDriveWatcher.Create;
+  iCloudDriveProcessor:= TiCloudDriveProcessor.Create;
+  iCloudDriveUIProcessor:= TiCloudDriveUIHandler.Create;
+  RegisterVirtualFileSource( 'iCloud', TiCloudDriveFileSource, True );
 
 finalization
-  FreeAndNil( iCloudDriverWatcher );
-  FreeAndNil( iCloudDriverProcessor );
-  FreeAndNil( iCloudDriverUIProcessor );
-  iCloudArrowDownImage.release;
+  FreeAndNil( iCloudDriveWatcher );
+  FreeAndNil( iCloudDriveProcessor );
+  FreeAndNil( iCloudDriveUIProcessor );
 
 end.
 

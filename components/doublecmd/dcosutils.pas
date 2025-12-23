@@ -49,6 +49,7 @@ const
   fmOpenSync    = $10000;
   fmOpenDirect  = $20000;
   fmOpenNoATime = $40000;
+  fmOpenSpecial = $80000;
 
 {$IF DEFINED(UNIX)}
   ERROR_NOT_SAME_DEVICE = ESysEXDEV;
@@ -181,6 +182,8 @@ function MapFile(const sFileName : String; out FileMapRec : TFileMapRec) : Boole
    @param(FileMapRec TFileMapRec structure)
 }
 procedure UnMapFile(var FileMapRec : TFileMapRec);
+
+function NormalizeFileName(const Source: String): String;
 
 {en
    Convert from console to UTF8 encoding.
@@ -335,6 +338,9 @@ uses
 {$ENDIF}
 {$IF DEFINED(UNIX)}
   Unix, dl,
+{$ENDIF}
+{$IF DEFINED(DARWIN)}
+  LazFileUtils,
 {$ENDIF}
   DCStrUtils, LazUTF8;
 
@@ -845,6 +851,17 @@ begin
 end;
 {$ENDIF}  
 
+function NormalizeFileName(const Source: String): String; inline;
+{$IF DEFINED(DARWIN)}
+begin
+  Result:= GetDarwinNormalizedFileName(Source);
+end;
+{$ELSE}
+begin
+  Result:= Source;
+end;
+{$ENDIF}
+
 function ConsoleToUTF8(const Source: String): RawByteString;
 {$IFDEF MSWINDOWS}
 begin
@@ -874,6 +891,8 @@ begin
   end;
 end;
 {$ELSE}
+var
+  Info: BaseUnix.Stat;
 begin
   repeat
     Result:= fpOpen(UTF8ToSys(FileName), AccessModes[Mode and 3] or
@@ -882,6 +901,18 @@ begin
   if Result <> feInvalidHandle then
   begin
     FileCloseOnExec(Result);
+    if (Mode and fmOpenSpecial = 0) then
+    begin
+      if fpFStat(Result, Info) = 0 then
+      begin
+        if FPS_ISFIFO(Info.st_mode) then
+        begin
+          FileClose(Result);
+          errno:= ESysEINVAL;
+          Exit(feInvalidHandle);
+        end;
+      end;
+    end;
 {$IF DEFINED(DARWIN)}
     if (Mode and (fmOpenSync or fmOpenDirect) <> 0) then
     begin
@@ -1605,8 +1636,16 @@ begin
   Result := mbFileGetAttr(Path) <> faInvalidAttributes;
 end;
 
-function mbCompareFileNames(const FileName1, FileName2: String): Boolean; inline;
-{$IF DEFINED(WINDOWS) OR DEFINED(DARWIN)}
+function mbCompareFileNames(const FileName1, FileName2: String): Boolean;
+{$IF DEFINED(DARWIN)}
+begin
+  if (Length(FileName1) = 0) or (Length(FileName2) = 0) then
+    Result:= (FileName1 = FileName2)
+  else begin
+    Result:= CompareFilenamesIgnoreCase(FileName1, FileName2) = 0;
+  end;
+end;
+{$ELSEIF DEFINED(MSWINDOWS)}
 begin
   Result:= (UnicodeCompareText(CeUtf8ToUtf16(FileName1), CeUtf8ToUtf16(FileName2)) = 0);
 end;

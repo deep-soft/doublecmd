@@ -34,7 +34,7 @@ uses
     {$IF DEFINED(UNIX)}
     , DCFileAttributes
       {$IFDEF DARWIN}
-      , MacOSAll
+      , MacOSAll, uDarwinFile
       {$ENDIF}
     {$ENDIF}
     ;
@@ -196,9 +196,7 @@ uses
   {$ENDIF}
   {$IF DEFINED(UNIX)}
   , BaseUnix, Unix, uMyUnix, dl
-    {$IF DEFINED(DARWIN)}
-  , CocoaAll, uMyDarwin
-    {$ELSEIF NOT DEFINED(HAIKU)}
+    {$IF NOT DEFINED(DARWIN) and NOT DEFINED(HAIKU)}
   , uGio, uClipboard, uXdg, uKde
     {$ENDIF}
     {$IF DEFINED(LINUX)}
@@ -217,7 +215,7 @@ begin
 end;
 {$ELSEIF DEFINED(DARWIN)}
 begin
-  LinkTarget:= ResolveAliasFile(FileName);
+  LinkTarget:= TDarwinFileUtil.resolveAlias(FileName);
   if mbCompareFileNames(FileName, LinkTarget) then
     Result:= False
   else begin

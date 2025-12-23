@@ -361,7 +361,7 @@ msgstr ""
 
 #: tfrmchecksumcalc.rghashalgorithm.caption
 msgid "Algorithm"
-msgstr ""
+msgstr "算法"
 
 #: tfrmchecksumverify.btnclose.caption
 msgctxt "TFRMCHECKSUMVERIFY.BTNCLOSE.CAPTION"
@@ -3369,7 +3369,7 @@ msgstr ""
 
 #: tfrmmaskinputdlg.lblattributes.caption
 msgid "Attri&butes:"
-msgstr ""
+msgstr "屬性 (&B):"
 
 #: tfrmmaskinputdlg.lblprompt.caption
 msgid "Input Mask:"
@@ -3378,6 +3378,64 @@ msgstr "輸入遮罩"
 #: tfrmmaskinputdlg.lblsearchtemplate.caption
 msgid "O&r select predefined selection type:"
 msgstr "選擇預先定義好的類型 (&R) :"
+
+#: tfrmmasterkey.btntest.caption
+msgid "Test"
+msgstr "測試"
+
+#: tfrmmasterkey.caption
+msgid "Create Key"
+msgstr "建立密鑰"
+
+#: tfrmmasterkey.gbkeytransform.caption
+msgid "Key transformation"
+msgstr "密鑰轉換"
+
+#: tfrmmasterkey.gbmasterkey.caption
+msgctxt "tfrmmasterkey.gbmasterkey.caption"
+msgid "Main Password"
+msgstr "主密碼"
+
+#: tfrmmasterkey.lblfooter.caption
+msgid "The more iterations, the harder are dictionary and guessing attacks, but also password store loading/saving takes more time."
+msgstr "迭代次數越多，字典攻擊和猜測攻擊就越難，但密碼儲存的載入/保存也需要更多時間。"
+
+#: tfrmmasterkey.lblfunction.caption
+msgid "&Key derivation function:"
+msgstr "密鑰轉換函數 (&K):"
+
+#: tfrmmasterkey.lblheader.caption
+msgid "The key is transformed using a key derivation function. This adds a work factor and makes dictionary and guessing attacks harder."
+msgstr "密鑰透過密鑰轉換函數進行轉換。這增加了工作量，使字典攻擊和猜測攻擊更加困難。"
+
+#: tfrmmasterkey.lbliterations.caption
+msgid "&Iterations:"
+msgstr "迭代次數 (&I):"
+
+#: tfrmmasterkey.lblmemory.caption
+msgid "&Memory:"
+msgstr "記憶體 (&M):"
+
+#: tfrmmasterkey.lblparallelism.caption
+msgid "&Parallelism:"
+msgstr "平行 (&P):"
+
+#: tfrmmasterkey.lblpassword.caption
+msgid "Pass&word:"
+msgstr "密碼 (&W):"
+
+#: tfrmmasterkey.lblrepeat.caption
+msgid "&Repeat password:"
+msgstr "重複密碼 (&R):"
+
+#: tfrmmasterkey.lbltext.caption
+msgid "Specify a new key, which will be used to encrypt the password store."
+msgstr "指定一個新密鑰，該密鑰將用於加密密碼儲存。"
+
+#: tfrmmasterkey.lblunit.caption
+msgctxt "tfrmmasterkey.lblunit.caption"
+msgid "MB"
+msgstr ""
 
 #: tfrmmkdir.caption
 msgid "Create new directory"
@@ -3478,7 +3536,7 @@ msgstr "副檔名"
 #: tfrmmultirename.actanynamemask.caption
 msgctxt "tfrmmultirename.actanynamemask.caption"
 msgid "Filename"
-msgstr ""
+msgstr "檔案名稱"
 
 #: tfrmmultirename.actclearextmask.caption
 msgctxt "tfrmmultirename.actclearextmask.caption"
@@ -3526,15 +3584,15 @@ msgstr "刪除"
 
 #: tfrmmultirename.actdropdownpresetlist.caption
 msgid "Drop Down Presets List"
-msgstr ""
+msgstr "下拉預設列表"
 
 #: tfrmmultirename.acteditnames.caption
 msgid "Edit Names..."
-msgstr ""
+msgstr "編輯名稱..."
 
 #: tfrmmultirename.acteditnewnames.caption
 msgid "Edit Current New Names..."
-msgstr ""
+msgstr "編輯目前新名稱..."
 
 #: tfrmmultirename.actextextmask.caption
 msgctxt "tfrmmultirename.actextextmask.caption"
@@ -3553,69 +3611,69 @@ msgstr "編輯 (&E)"
 
 #: tfrmmultirename.actinvokerelativepath.caption
 msgid "Invoke Relative Path Menu"
-msgstr ""
+msgstr "呼叫相對路徑選單"
 
 #: tfrmmultirename.actloadlastpreset.caption
 msgid "Load Last Preset"
-msgstr ""
+msgstr "載入上次預設"
 
 #: tfrmmultirename.actloadnamesfromclipboard.caption
 msgid "Load Names from Clipboard"
-msgstr ""
+msgstr "從剪貼簿載入名稱"
 
 #: tfrmmultirename.actloadnamesfromfile.caption
 msgid "Load Names from File..."
-msgstr ""
+msgstr "從檔案載入名稱..."
 
 #: tfrmmultirename.actloadpreset.caption
 msgid "Load Preset by Name or Index"
-msgstr ""
+msgstr "按名稱或索引載入預設"
 
 #: tfrmmultirename.actloadpreset1.caption
 msgid "Load Preset 1"
-msgstr ""
+msgstr "載入預設 1"
 
 #: tfrmmultirename.actloadpreset2.caption
 msgid "Load Preset 2"
-msgstr ""
+msgstr "載入預設 2"
 
 #: tfrmmultirename.actloadpreset3.caption
 msgid "Load Preset 3"
-msgstr ""
+msgstr "載入預設 3"
 
 #: tfrmmultirename.actloadpreset4.caption
 msgid "Load Preset 4"
-msgstr ""
+msgstr "載入預設 4"
 
 #: tfrmmultirename.actloadpreset5.caption
 msgid "Load Preset 5"
-msgstr ""
+msgstr "載入預設 5"
 
 #: tfrmmultirename.actloadpreset6.caption
 msgid "Load Preset 6"
-msgstr ""
+msgstr "載入預設 6"
 
 #: tfrmmultirename.actloadpreset7.caption
 msgid "Load Preset 7"
-msgstr ""
+msgstr "載入預設 7"
 
 #: tfrmmultirename.actloadpreset8.caption
 msgid "Load Preset 8"
-msgstr ""
+msgstr "載入預設 8"
 
 #: tfrmmultirename.actloadpreset9.caption
 msgid "Load Preset 9"
-msgstr ""
+msgstr "載入預設 9"
 
 #: tfrmmultirename.actnameextmask.caption
 msgctxt "tfrmmultirename.actnameextmask.caption"
 msgid "Filename"
-msgstr ""
+msgstr "檔案名稱"
 
 #: tfrmmultirename.actnamenamemask.caption
 msgctxt "tfrmmultirename.actnamenamemask.caption"
 msgid "Filename"
-msgstr ""
+msgstr "檔案名稱"
 
 #: tfrmmultirename.actplgnextmask.caption
 msgctxt "tfrmmultirename.actplgnextmask.caption"
@@ -3654,11 +3712,11 @@ msgstr "另存新檔 (A)..."
 
 #: tfrmmultirename.actshowpresetsmenu.caption
 msgid "Show Preset Menu"
-msgstr ""
+msgstr "顯示預設選單"
 
 #: tfrmmultirename.actsortpresets.caption
 msgid "Sort"
-msgstr ""
+msgstr "排序"
 
 #: tfrmmultirename.acttimeextmask.caption
 msgctxt "tfrmmultirename.acttimeextmask.caption"
@@ -3672,7 +3730,7 @@ msgstr "時間"
 
 #: tfrmmultirename.actviewrenamelogfile.caption
 msgid "View Rename Log File"
-msgstr ""
+msgstr "查看重新命名日誌文件"
 
 #: tfrmmultirename.caption
 msgctxt "tfrmmultirename.caption"
@@ -3695,7 +3753,7 @@ msgstr "記錄結果(&L)"
 
 #: tfrmmultirename.cblogappend.caption
 msgid "Append"
-msgstr ""
+msgstr "追加"
 
 #: tfrmmultirename.cbonlyfirst.caption
 msgid "1x"
@@ -3703,7 +3761,7 @@ msgstr ""
 
 #: tfrmmultirename.cbonlyfirst.hint
 msgid "Replace only once per file"
-msgstr ""
+msgstr "每個檔案僅替換一次"
 
 #: tfrmmultirename.cbregexp.caption
 msgctxt "TFRMMULTIRENAME.CBREGEXP.CAPTION"
@@ -3716,7 +3774,7 @@ msgstr ""
 
 #: tfrmmultirename.cbrepext.hint
 msgid "Replace also in file extensions"
-msgstr ""
+msgstr "同時在檔案副檔名中替換"
 
 #: tfrmmultirename.cbusesubs.caption
 msgid "&Use substitution"
@@ -3810,11 +3868,11 @@ msgstr "檔案路徑"
 #: tfrmmultirenamewait.caption
 msgctxt "tfrmmultirenamewait.caption"
 msgid "Double Commander"
-msgstr "Double Commander"
+msgstr ""
 
 #: tfrmmultirenamewait.lblmessage.caption
 msgid "Click OK when you have closed the editor to load the changed names!"
-msgstr ""
+msgstr "關閉編輯器後，按一下“確定”以載入更改後的名稱！"
 
 #: tfrmopenwith.caption
 msgid "Choose an application"
@@ -7217,7 +7275,7 @@ msgstr "檔案名稱"
 #: tfrmoptionspluginsdsx.lblplugindescription.caption
 msgctxt "tfrmoptionspluginsdsx.lblplugindescription.caption"
 msgid "Searc&h plugins allow one to use alternative search algorithms or external tools (like \"locate\", etc.)"
-msgstr "搜尋插件可允許使用其他替代搜尋演算法或外部工具搜尋 (像 \"locate\" 等)"
+msgstr "搜尋插件可允許使用其他替代搜尋算法或外部工具搜尋 (像 \"locate\" 等)"
 
 #: tfrmoptionspluginsdsx.stgplugins.columns[0].title.caption
 msgctxt "tfrmoptionspluginsdsx.stgplugins.columns[0].title.caption"
@@ -10248,6 +10306,7 @@ msgid "KB"
 msgstr ""
 
 #: ulng.rsdefaultpersonalizedabbrevmega
+msgctxt "ulng.rsdefaultpersonalizedabbrevmega"
 msgid "MB"
 msgstr ""
 
@@ -10990,11 +11049,13 @@ msgstr ""
 msgid "By command name;By shortcut key (grouped);By shortcut key (one per row)"
 msgstr ""
 
-#: ulng.rsiclouddrivercopyseedfileconfirmdlgmessage
+#: ulng.rsiclouddrivecopyseedfileconfirmdlgmessage
+msgctxt "ulng.rsiclouddrivecopyseedfileconfirmdlgmessage"
 msgid "It is recommended to download the files first. Otherwise, what is copied is not the content of the files, but the corresponding placeholder files, which will result in hidden files with the .iCloud extension."
 msgstr "建議先完成档案下載後再操作。否則，複製的不是档案本身的內容，而是對應的佔位符档案，這只會複製以.iCloud為擴展名的隱藏档案。"
 
-#: ulng.rsiclouddrivercopyseedfileconfirmdlgtitle
+#: ulng.rsiclouddrivecopyseedfileconfirmdlgtitle
+msgctxt "ulng.rsiclouddrivecopyseedfileconfirmdlgtitle"
 msgid "The operation may contain files that were not downloaded, continue anyway?"
 msgstr "操作可能包含未下載的档案，仍然繼續嗎？"
 
@@ -11165,13 +11226,13 @@ msgstr "切換水平/垂直分隔顯示模式"
 msgid "HorzSplit"
 msgstr "水平分隔"
 
-#: ulng.rsmfstbiiclouddrivertips
-msgctxt "ulng.rsmfstbiiclouddrivertips"
+#: ulng.rsmfstbiiclouddrivetips
+msgctxt "ulng.rsmfstbiiclouddrivetips"
 msgid "iCloud Drive"
 msgstr "iCloud雲碟"
 
-#: ulng.rsmfstbiiclouddrivertitle
-msgctxt "ulng.rsmfstbiiclouddrivertitle"
+#: ulng.rsmfstbiiclouddrivetitle
+msgctxt "ulng.rsmfstbiiclouddrivetitle"
 msgid "iCloud Drive"
 msgstr "iCloud雲碟"
 
@@ -11321,11 +11382,13 @@ msgstr "退出"
 msgid "Extract here..."
 msgstr "解壓縮到此處..."
 
-#: ulng.rsmnuiclouddriverdownloadnow
+#: ulng.rsmnuiclouddrivedownloadnow
+msgctxt "ulng.rsmnuiclouddrivedownloadnow"
 msgid "Download Now"
 msgstr "現在下載"
 
-#: ulng.rsmnuiclouddriverremovedownload
+#: ulng.rsmnuiclouddriveremovedownload
+msgctxt "ulng.rsmnuiclouddriveremovedownload"
 msgid "Remove Download"
 msgstr "移除下載項"
 
@@ -12110,6 +12173,16 @@ msgstr "無效的引用"
 msgid "Invalid selection."
 msgstr "無效的選擇"
 
+#: ulng.rsmsgkeytransformerror
+#, object-pascal-format
+msgid "The key transformation failed (error code %d)!"
+msgstr ""
+
+#: ulng.rsmsgkeytransformtime
+#, object-pascal-format
+msgid "The key transformation took %f seconds."
+msgstr ""
+
 #: ulng.rsmsgloadingfilelist
 msgid "Loading file list..."
 msgstr "載入檔案清單..."
@@ -12211,11 +12284,12 @@ msgid "Wipe directory %s"
 msgstr ""
 
 #: ulng.rsmsgmasterpassword
-msgid "Master Password"
+msgctxt "ulng.rsmsgmasterpassword"
+msgid "Main Password"
 msgstr "主要密碼"
 
 #: ulng.rsmsgmasterpasswordenter
-msgid "Please enter the master password:"
+msgid "Please enter the main password:"
 msgstr "請輸入主要密碼:"
 
 #: ulng.rsmsgnewfile

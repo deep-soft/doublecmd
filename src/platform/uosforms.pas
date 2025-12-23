@@ -147,7 +147,7 @@ uses
   {$IF DEFINED(DARWIN)}
   , LCLStrConsts
   , BaseUnix, Errors, fFileProperties
-  , uQuickLook, uOpenDocThumb, uMyDarwin, uDefaultTerminal
+  , uQuickLook, uOpenDocThumb, uDarwinApplication, uDarwinFile, uDefaultTerminal
   {$ELSEIF DEFINED(UNIX)}
   , BaseUnix, Errors, fFileProperties, uJpegThumb, uOpenDocThumb
     {$IF NOT DEFINED(HAIKU)}
@@ -720,7 +720,7 @@ begin
   {$ENDIF}
 
   {$IF DEFINED(DARWIN)}
-  if HasMountURL then
+  if TDarwinFileUtil.isMountSupported then
   begin
     with frmMain do
     begin
@@ -787,7 +787,7 @@ begin
     ShellContextMenu.OnClose := CloseEvent;
     frmMain.ActiveFrame.FileSource.QueryContextMenu(contextFiles, TPopupMenu(ShellContextMenu));
     // Show context menu
-    MacosServiceMenuHelper.PopUp( ShellContextMenu, rsMacOSMenuServices, getFilepaths(contextFiles) );
+    TDarwinApplicationUtil.popUpMenuWithServiceSubmenu( ShellContextMenu, rsMacOSMenuServices, getFilepaths(contextFiles) );
   finally
     // Free created menu
     FreeAndNil(ShellContextMenu);
@@ -1071,7 +1071,7 @@ begin
   if ShowInputQuery(Application.Title, rsMsgURL, False, Address) then
   begin
   {$IF DEFINED(DARWIN)}
-    MountNetworkDrive(Address);
+    TDarwinFileUtil.mount(Address);
   {$ELSE}
     ChooseFileSource(frmMain.ActiveFrame, Address);
   {$ENDIF}

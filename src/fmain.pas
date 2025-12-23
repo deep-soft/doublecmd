@@ -57,7 +57,8 @@ uses
   , Glib2, Gtk2
   {$ELSEIF DEFINED(DARWIN)}
   , CocoaConfig
-  , uMyDarwin
+  , uDarwinApplication
+  , uDarwinFileView
   {$ENDIF}
   , Types, LMessages;
 
@@ -231,6 +232,7 @@ type
     actConfigToolbars: TAction;
     actDebugShowCommandParameters: TAction;
     actOpenDriveByIndex: TAction;
+    actSetSortMode: TAction;
     btnF10: TSpeedButton;
     btnF3: TSpeedButton;
     btnF4: TSpeedButton;
@@ -683,6 +685,9 @@ type
     procedure seLogWindowSpecialLineColors(Sender: TObject; Line: integer;
       var Special: boolean; var FG, BG: TColor);
 
+    procedure CloseActiveTabAsync(Data: PtrInt);
+    procedure CloseActiveTab;
+
     procedure FileViewFreeAsync(Data: PtrInt);
     function FileViewAutoSwitch(FileSource: IFileSource; var FileView: TFileView; Reason: TChangePathReason; const NewPath: String): Boolean;
     function FileViewBeforeChangePath(FileView: TFileView; NewFileSource: IFileSource; Reason: TChangePathReason; const NewPath : String): Boolean;
@@ -896,7 +901,6 @@ type
     procedure OnNSServiceOpenWithNewTab( filenames:TStringList );
     function NSServiceMenuIsReady(): boolean;
     function NSServiceMenuGetFilenames(): TStringArray;
-    procedure NSThemeChangedHandler();
     {$ENDIF}
     procedure LoadWindowState;
     procedure SaveWindowState;
@@ -1257,8 +1261,8 @@ begin
   ThemeServices.OnThemeChange:= @AppThemeChange;
 
 {$IF DEFINED(DARWIN)}
-  InitNSServiceProvider( @OnNSServiceOpenWithNewTab, @NSServiceMenuIsReady, @NSServiceMenuGetFilenames );
-  InitNSThemeChangedObserver( @NSThemeChangedHandler );
+  TDarwinApplicationUtil.initServiceProvider( @OnNSServiceOpenWithNewTab, @NSServiceMenuIsReady, @NSServiceMenuGetFilenames );
+  TDarwinFileViewUtil.init( @ActiveNotebook, @ActiveFrame );
 {$ENDIF}
 end;
 
@@ -2962,7 +2966,7 @@ constructor TfrmMain.Create(TheOwner: TComponent);
   begin
     CocoaConfigMenu.appMenu.aboutItem:= mnuHelpAbout;
     CocoaConfigMenu.appMenu.preferencesItem:= mnuConfigOptions;
-    CocoaConfigMenu.appMenu.onCreate:= @onMainMenuCreate;
+    CocoaConfigMenu.appMenu.onCreate:= @darwinOnMainMenuCreate;
   end;
 
   procedure setMacOSDockMenu();
@@ -4541,6 +4545,20 @@ begin
   end;
 end;
 
+procedure TfrmMain.CloseActiveTabAsync(Data: PtrInt);
+begin
+  commands.DoCloseTab(ActiveNotebook, ActiveNotebook.PageIndex);
+end;
+
+procedure TfrmMain.CloseActiveTab;
+begin
+  // neither LCL nor WidgetSet prefers the App to destroy components during event handling.
+  // if DC closes the tab during event handling, LCL will output the following warning:
+  // WARNING: TDrawGridEx.Destroy with LCLRefCount>0. Hint: Maybe the component is processing an event?
+  // some WidgetSets may even cause unpredictable issues due to dangling references.
+  Application.QueueAsyncCall(@CloseActiveTabAsync, 0);
+end;
+
 procedure TfrmMain.FileViewFreeAsync(Data: PtrInt);
 var
   FileView: TFileView absolute Data;
@@ -4966,16 +4984,16 @@ end;
 
 function CompareDrives(Item1, Item2: Pointer): Integer;
 var
-  driver1: PDrive absolute Item1;
-  driver2: PDrive absolute Item2;
+  drive1: PDrive absolute Item1;
+  drive2: PDrive absolute Item2;
 begin
-  if driver1 = driver2 then
+  if drive1 = drive2 then
     Exit(0);
-  if driver1^.Path = PathDelim then
+  if drive1^.Path = PathDelim then
     Exit(-1);
-  if driver2^.Path = PathDelim then
+  if drive2^.Path = PathDelim then
     Exit(1);
-  Result := CompareText(driver1^.DisplayName, driver2^.DisplayName);
+  Result := CompareText(drive1^.DisplayName, drive2^.DisplayName);
 end;
 
 procedure TfrmMain.UpdateDiskCount;
@@ -5150,12 +5168,12 @@ begin
   if sType = 'columns' then begin
     Result := TColumnsFileView.Create(Page, AConfig, ANode, FileViewFlags);
     {$IFDEF DARWIN}
-    TColumnsFileView(Result).OnDrawCell:= @DarwinFileViewDrawHelper.OnDrawCell;
+    TColumnsFileView(Result).OnDrawCell:= @darwinFileViewDrawHandler.OnDrawCell;
     {$ENDIF}
   end else if sType = 'brief' then begin
     Result := TBriefFileView.Create(Page, AConfig, ANode, FileViewFlags);
     {$IFDEF DARWIN}
-    TBriefFileView(Result).OnDrawCell:= @DarwinFileViewDrawHelper.OnDrawCell;
+    TBriefFileView(Result).OnDrawCell:= @darwinFileViewDrawHandler.OnDrawCell;
     {$ENDIF}
   end else if sType = 'thumbnails' then
     Result := TThumbFileView.Create(Page, AConfig, ANode, FileViewFlags)
@@ -6404,11 +6422,6 @@ begin
   FreeAndNil( files );
   Result:= filenames;
 end;
-
-procedure TfrmMain.NSThemeChangedHandler;
-begin
-  ThemeServices.IntfDoOnThemeChange;
-end;
 {$ENDIF}
 
 procedure TfrmMain.LoadWindowState;
@@ -7370,7 +7383,7 @@ end;
 
 procedure TfrmMain.OpenNewWindow(Sender: TObject);
 begin
-  uMyDarwin.openNewInstance;
+  TDarwinApplicationUtil.openNewInstance;
 end;
 {$ENDIF}
 

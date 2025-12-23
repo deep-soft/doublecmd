@@ -16,9 +16,49 @@ unit uDarwinIO;
 interface
 
 uses
-  Classes, SysUtils,
+  Classes, SysUtils, UnixType,
   MacOSAll, CocoaAll, CocoaUtils,
-  uMyDarwin, uLog;
+  uDarwinFile, uLog;
+
+// TDarwinAarch64Statfs is the workaround for the bug of FPC.
+// TDarwinAarch64Statfs and the related codes can be removed after FPC 3.3.1
+// see also: https://gitlab.com/freepascal.org/fpc/source/-/issues/39873
+
+// copied from ptypes.inc and modified fstypename only
+{$if defined(cpuarm) or defined(cpuaarch64) or defined(iphonesim)}
+     { structure used on iPhoneOS and available on Mac OS X 10.6 and later }
+
+const MFSTYPENAMELEN = 16;
+
+type
+
+  TDarwinAarch64Statfs = record
+    bsize : cuint32;
+    iosize : cint32;
+    blocks : cuint64;
+    bfree : cuint64;
+    bavail : cuint64;
+    files : cuint64;
+    ffree : cuint64;
+    fsid : fsid_t;
+    owner : uid_t;
+    ftype : cuint32;
+    fflags : cuint32;
+    fssubtype : cuint32;
+    fstypename : array[0..(MFSTYPENAMELEN)-1] of char;
+    mountpoint : array[0..(PATH_MAX)-1] of char;
+    mntfromname : array[0..(PATH_MAX)-1] of char;
+    reserved: array[0..7] of cuint32;
+  end;
+
+  type TDarwinStatfs = TDarwinAarch64Statfs;
+
+{$else}
+
+  type TDarwinStatfs = TStatFs;
+
+{$endif}
+
 
 type
   io_object_t = mach_port_t;
@@ -335,7 +375,7 @@ end;
 function TDarwinIOVolumns.getDisplayName(const fs: PDarwinStatfs): String;
 begin
   if fs^.mountpoint = PathDelim then begin
-    Result:= getMacOSDisplayNameFromPath( PathDelim );
+    Result:= TDarwinFileUtil.getDisplayName( PathDelim );
     if Result = EmptyStr then
       Result:= 'System';
   end else begin

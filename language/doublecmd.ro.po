@@ -3414,6 +3414,65 @@ msgstr "Introduceți masca:"
 msgid "O&r select predefined selection type:"
 msgstr "Sau selectează tip selecție p&redefinit:"
 
+#: tfrmmasterkey.btntest.caption
+msgid "Test"
+msgstr ""
+
+#: tfrmmasterkey.caption
+msgid "Create Key"
+msgstr ""
+
+#: tfrmmasterkey.gbkeytransform.caption
+msgid "Key transformation"
+msgstr ""
+
+#: tfrmmasterkey.gbmasterkey.caption
+#, fuzzy
+msgctxt "tfrmmasterkey.gbmasterkey.caption"
+msgid "Main Password"
+msgstr "Parolă"
+
+#: tfrmmasterkey.lblfooter.caption
+msgid "The more iterations, the harder are dictionary and guessing attacks, but also password store loading/saving takes more time."
+msgstr ""
+
+#: tfrmmasterkey.lblfunction.caption
+msgid "&Key derivation function:"
+msgstr ""
+
+#: tfrmmasterkey.lblheader.caption
+msgid "The key is transformed using a key derivation function. This adds a work factor and makes dictionary and guessing attacks harder."
+msgstr ""
+
+#: tfrmmasterkey.lbliterations.caption
+msgid "&Iterations:"
+msgstr ""
+
+#: tfrmmasterkey.lblmemory.caption
+msgid "&Memory:"
+msgstr ""
+
+#: tfrmmasterkey.lblparallelism.caption
+msgid "&Parallelism:"
+msgstr ""
+
+#: tfrmmasterkey.lblpassword.caption
+msgid "Pass&word:"
+msgstr ""
+
+#: tfrmmasterkey.lblrepeat.caption
+msgid "&Repeat password:"
+msgstr ""
+
+#: tfrmmasterkey.lbltext.caption
+msgid "Specify a new key, which will be used to encrypt the password store."
+msgstr ""
+
+#: tfrmmasterkey.lblunit.caption
+msgctxt "tfrmmasterkey.lblunit.caption"
+msgid "MB"
+msgstr ""
+
 #: tfrmmkdir.caption
 msgid "Create new directory"
 msgstr "Creează dosar nou"
@@ -10322,6 +10381,7 @@ msgid "KB"
 msgstr ""
 
 #: ulng.rsdefaultpersonalizedabbrevmega
+msgctxt "ulng.rsdefaultpersonalizedabbrevmega"
 msgid "MB"
 msgstr ""
 
@@ -11068,11 +11128,13 @@ msgstr ""
 msgid "By command name;By shortcut key (grouped);By shortcut key (one per row)"
 msgstr ""
 
-#: ulng.rsiclouddrivercopyseedfileconfirmdlgmessage
+#: ulng.rsiclouddrivecopyseedfileconfirmdlgmessage
+msgctxt "ulng.rsiclouddrivecopyseedfileconfirmdlgmessage"
 msgid "It is recommended to download the files first. Otherwise, what is copied is not the content of the files, but the corresponding placeholder files, which will result in hidden files with the .iCloud extension."
 msgstr ""
 
-#: ulng.rsiclouddrivercopyseedfileconfirmdlgtitle
+#: ulng.rsiclouddrivecopyseedfileconfirmdlgtitle
+msgctxt "ulng.rsiclouddrivecopyseedfileconfirmdlgtitle"
 msgid "The operation may contain files that were not downloaded, continue anyway?"
 msgstr ""
 
@@ -11247,13 +11309,13 @@ msgstr ""
 msgid "HorzSplit"
 msgstr ""
 
-#: ulng.rsmfstbiiclouddrivertips
-msgctxt "ulng.rsmfstbiiclouddrivertips"
+#: ulng.rsmfstbiiclouddrivetips
+msgctxt "ulng.rsmfstbiiclouddrivetips"
 msgid "iCloud Drive"
 msgstr ""
 
-#: ulng.rsmfstbiiclouddrivertitle
-msgctxt "ulng.rsmfstbiiclouddrivertitle"
+#: ulng.rsmfstbiiclouddrivetitle
+msgctxt "ulng.rsmfstbiiclouddrivetitle"
 msgid "iCloud Drive"
 msgstr ""
 
@@ -11405,11 +11467,13 @@ msgstr "Scoate"
 msgid "Extract here..."
 msgstr ""
 
-#: ulng.rsmnuiclouddriverdownloadnow
+#: ulng.rsmnuiclouddrivedownloadnow
+msgctxt "ulng.rsmnuiclouddrivedownloadnow"
 msgid "Download Now"
 msgstr ""
 
-#: ulng.rsmnuiclouddriverremovedownload
+#: ulng.rsmnuiclouddriveremovedownload
+msgctxt "ulng.rsmnuiclouddriveremovedownload"
 msgid "Remove Download"
 msgstr ""
 
@@ -12190,6 +12254,16 @@ msgstr "Citare nevalidă"
 msgid "Invalid selection."
 msgstr "Selecția nu este validă."
 
+#: ulng.rsmsgkeytransformerror
+#, object-pascal-format
+msgid "The key transformation failed (error code %d)!"
+msgstr ""
+
+#: ulng.rsmsgkeytransformtime
+#, object-pascal-format
+msgid "The key transformation took %f seconds."
+msgstr ""
+
 #: ulng.rsmsgloadingfilelist
 msgid "Loading file list..."
 msgstr "Se încarcă lista de fișiere..."
@@ -12291,11 +12365,12 @@ msgid "Wipe directory %s"
 msgstr "Șterge definitiv dosarul %s"
 
 #: ulng.rsmsgmasterpassword
-msgid "Master Password"
+msgctxt "ulng.rsmsgmasterpassword"
+msgid "Main Password"
 msgstr "Parolă"
 
 #: ulng.rsmsgmasterpasswordenter
-msgid "Please enter the master password:"
+msgid "Please enter the main password:"
 msgstr "Introduceți parola:"
 
 #: ulng.rsmsgnewfile

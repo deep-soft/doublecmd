@@ -174,7 +174,7 @@ uses
   , uFontConfig, uMimeActions, uMimeType, uGVolume
 {$ENDIF}
 {$IFDEF DARWIN}
-  , uMyDarwin
+  , uDarwinFile
 {$ENDIF}
 {$IFDEF LINUX}
   , uUDisks2
@@ -503,7 +503,7 @@ begin
       Result := fpSystemStatus('pumount ' + Drive^.DeviceId) = 0;
     if not Result then
 {$ELSEIF DEFINED(DARWIN)}
-    Result := unmountAndEject( Drive^.Path );
+    Result := TDarwinFileUtil.unmountAndEject( Drive^.Path );
     if not Result then
 {$ENDIF}
     Result := fpSystemStatus('umount ' + Drive^.Path) = 0;
@@ -525,7 +525,7 @@ begin
     Result := uUDisks2.Eject(Drive^.DeviceId);
   if not Result then
 {$ELSEIF DEFINED(DARWIN)}
-  Result := unmountAndEject( Drive^.Path );
+  Result := TDarwinFileUtil.unmountAndEject( Drive^.Path );
   if not Result then
 {$ENDIF}
   Result := fpSystemStatus('eject ' + Drive^.DeviceId) = 0;

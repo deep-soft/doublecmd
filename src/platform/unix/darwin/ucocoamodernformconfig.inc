@@ -10,7 +10,8 @@ uses
   LCLType, Forms, Menus,
   fMain, uDCUtils, uLng,
   uFileView, uBriefFileView, uColumnsFileView, uThumbFileView,
-  uMyDarwin, uDarwinUtil, uDarwinFinder, uDarwinFinderModel, uDarwinFileView,
+  uDarwinUtil, uDarwinApplication, uDarwinFile,
+  uDarwinFinder, uDarwinFinderModel, uDarwinFileView, uDarwinPanel,
   CocoaAll, CocoaConfig, CocoaToolBar, Cocoa_Extra;
 
 procedure initCocoaModernFormConfig;
@@ -68,27 +69,27 @@ end;
 
 procedure airdropAction( const Sender: id );
 begin
-  showMacOSAirDropDialog;
+  TDarwinPanelUtil.showAirDrop;
 end;
 
 procedure quickLookAction( const Sender: id );
 begin
-  showQuickLookPanel;
+  TDarwinPanelUtil.showQuickLook;
 end;
 
 procedure editTagAction( const Sender: id );
 begin
-  showEditFinderTagsPanel( Sender, frmMain );
+  TDarwinPanelUtil.showEditFinderTags( Sender, frmMain );
 end;
 
 procedure finderRevealAction( const Sender: id );
 begin
-  performMacOSService( 'Finder/Reveal' );
+  TDarwinApplicationUtil.performService( 'Finder/Reveal' );
 end;
 
 procedure finderInfoAction( const Sender: id );
 begin
-  performMacOSService( 'Finder/Show Info' );
+  TDarwinApplicationUtil.performService( 'Finder/Show Info' );
 end;
 
 procedure compareAction( const Sender: id );
@@ -120,6 +121,8 @@ const
     '~/Library',
     '/Applications',
 
+    '~/Library/Saved Searches',
+
     '~/.Trash'
   );
 
@@ -138,7 +141,6 @@ type
     procedure showFinderTagSelectorPanel( Sender: TObject );
     procedure onFinderTagSelectorPanelClose( const cancel: Boolean; const tagNames: NSArray );
     procedure searchOneFinderTagAction( Sender: TObject );
-    procedure onSearchFinderTagComplete( const searchName: String; const files: TStringArray );
   end;
 
 var
@@ -175,7 +177,7 @@ end;
 
 procedure TToolBarMenuHandler.showFinderTagSelectorPanel(Sender: TObject);
 begin
-  uDarwinFinderUtil.popoverTagsSelector(
+  TDarwinFinderUtil.popoverTagsSelector(
     rsMFSTBISearchCombinedTags,
     @self.onFinderTagSelectorPanelClose,
     NSView(frmMain.Handle) , NSMaxYEdge );
@@ -188,7 +190,7 @@ begin
     Exit;
   if tagNames.count = 0 then
     Exit;
-  uDarwinFinderModelUtil.searchFilesForTagNames( tagNames, @self.onSearchFinderTagComplete );
+  TDarwinFinderModelUtil.searchFilesForTagNames( tagNames, @darwinSearchResultHandler.onSearchFinderTagComplete );
 end;
 
 procedure TToolBarMenuHandler.searchOneFinderTagAction( Sender: TObject );
@@ -197,13 +199,7 @@ var
   tagName: NSString;
 begin
   tagName:= StringToNSString( menuItem.Caption );
-  uDarwinFinderModelUtil.searchFilesForTagName( tagName, @self.onSearchFinderTagComplete );
-end;
-
-procedure TToolBarMenuHandler.onSearchFinderTagComplete(
-  const searchName: String; const files: TStringArray);
-begin
-  uDarwinFileViewUtil.addSearchTagResultPage( searchName, files );
+  TDarwinFinderModelUtil.searchFilesForTagName( tagName, @darwinSearchResultHandler.onSearchFinderTagComplete );
 end;
 
 procedure onGetFolderMenu( const menu: TMenu );
@@ -218,7 +214,7 @@ var
     cocoaItem: NSMenuItem;
     cocoaImage: NSImage;
   begin
-    folderName:= getMacOSDisplayNameFromPath( COMMON_FOLDERS[tag] );
+    folderName:= TDarwinFileUtil.getDisplayName( COMMON_FOLDERS[tag] );
     lclItem:= TMenuItem.Create( menu );
     lclItem.Caption:= folderName;
     lclItem.onClick:= @toolBarMenuHandler.goToFolder;
@@ -245,6 +241,8 @@ begin
   newItem('wrench.and.screwdriver.fill');
   newItem('l.circle');
   newItem('a.circle');
+  items.AddSeparator;
+  newItem('folder.fill.badge.gearshape');
   items.AddSeparator;
   newItem('trash');
 end;
@@ -338,14 +336,14 @@ var
     tagName: NSString;
     menuItem: TMenuItem;
   begin
-    tagNames:= uDarwinFinderModelUtil.getSidebarTagNames;
+    tagNames:= TDarwinFinderModelUtil.getSidebarTagNames;
     for tagName in tagNames do begin
       menuItem:= TMenuItem.Create( menu );
       menuItem.Caption:= tagName.UTF8String;
       menuItem.OnClick:= @toolBarMenuHandler.searchOneFinderTagAction;
       items.Add( menuItem );
     end;
-    uDarwinFinderUtil.attachSearchForTagsMenu( menu );
+    TDarwinFinderUtil.attachSearchForTagsMenu( menu );
   end;
 
   procedure createCombinedTagMenuItem;
@@ -377,7 +375,7 @@ end;
 
 procedure iCloudAction( const Sender: id );
 begin
-  uDarwinFileViewUtil.addiCloudDriverPage;
+  TDarwinFileViewUtil.addiCloudDrivePage;
 end;
 
 procedure networkAction( const Sender: id );
@@ -402,7 +400,7 @@ end;
 
 procedure privilegeAction( const Sender: id );
 begin
-  openSystemSecurityPreferences_PrivacyAllFiles;
+  TDarwinApplicationUtil.openSystemSecurityPreferences_PrivacyAllFiles;
 end;
 
 const
@@ -445,8 +443,8 @@ const
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: False;
     iconName: 'cloud';
-    title: rsMFSTBIiCloudDriverTitle;
-    tips: rsMFSTBIiCloudDriverTips;
+    title: rsMFSTBIiCloudDriveTitle;
+    tips: rsMFSTBIiCloudDriveTips;
     bordered: True;
     onAction: @iCloudAction;
   );

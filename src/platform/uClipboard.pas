@@ -616,17 +616,20 @@ var
   hGlobalBuffer: HGLOBAL;
   pBuffer: LPVOID;
   PreferredEffect: DWORD;
+  {
   dataObj: IDataObject;
   Medium: TSTGMedium;
   ChosenFormat: TFormatETC;
   hr: HRESULT;
   HasVirtualFiles: Boolean;
+  }
 begin
   filenames := nil;
   Result := False;
-  HasVirtualFiles := False;
+  // HasVirtualFiles := False;
   ClipboardOp := ClipboardCopy;
 
+  {
   // Try to get IDataObject from clipboard for virtual file support
   hr := OleGetClipboard(dataObj);
   if Succeeded(hr) and Assigned(dataObj) then
@@ -734,8 +737,9 @@ begin
       dataObj := nil;
     end;
   end;
+  }
 
-  // Fallback to standard CF_HDROP
+  // Use standard CF_HDROP
   if OpenClipboard(0) = False then Exit;
 
   try
@@ -770,9 +774,9 @@ begin
     filenames := uOleDragDrop.TFileDropTarget.GetDropFilenames(hGlobalBuffer);
     if Assigned(filenames) and (filenames.Count > 0) then
     begin
-      // Check if first file exists - if not, likely lazy materialization
+      // Check if first entry exists - if not, likely lazy materialization
       // Use shell paste which handles this properly
-      if not mbFileExists(filenames[0]) then
+      if not mbFileSystemEntryExists(filenames[0]) then
       begin
         with frmMain do
         begin

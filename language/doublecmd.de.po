@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Double Commander 1.1.0 alpha\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-11-15 11:15+0300\n"
-"PO-Revision-Date: 2025-10-04 20:41+0200\n"
+"PO-Revision-Date: 2025-11-26 11:39+0100\n"
 "Last-Translator:  ㋡  <braass@mail.de>\n"
 "Language-Team: Deutsch <braass@mail.de>\n"
 "Language: de\n"
@@ -3331,6 +3331,64 @@ msgstr "Eingabemaske:"
 #: tfrmmaskinputdlg.lblsearchtemplate.caption
 msgid "O&r select predefined selection type:"
 msgstr "Ode&r vordefinierten Auswahltyp wählen:"
+
+#: tfrmmasterkey.btntest.caption
+msgid "Test"
+msgstr "Test"
+
+#: tfrmmasterkey.caption
+msgid "Create Key"
+msgstr "Schlüssel erstellen"
+
+#: tfrmmasterkey.gbkeytransform.caption
+msgid "Key transformation"
+msgstr "Transformation der Schlüssel"
+
+#: tfrmmasterkey.gbmasterkey.caption
+msgctxt "tfrmmasterkey.gbmasterkey.caption"
+msgid "Main Password"
+msgstr "Hauptpasswort"
+
+#: tfrmmasterkey.lblfooter.caption
+msgid "The more iterations, the harder are dictionary and guessing attacks, but also password store loading/saving takes more time."
+msgstr "Je mehr Wiederholungen, desto schwieriger sind Wörterbuch- und Brute-Force-Angriffe, aber das Laden/Speichern des Passwortspeichers dauert auch länger."
+
+#: tfrmmasterkey.lblfunction.caption
+msgid "&Key derivation function:"
+msgstr "Schlüsselableitungsfunktion:"
+
+#: tfrmmasterkey.lblheader.caption
+msgid "The key is transformed using a key derivation function. This adds a work factor and makes dictionary and guessing attacks harder."
+msgstr "Der Schlüssel wird mithilfe einer Schlüsselableitungsfunktion transformiert. Dies erhöht den Arbeitsaufwand und erschwert Wörterbuch- und Brute-Force-Angriffe."
+
+#: tfrmmasterkey.lbliterations.caption
+msgid "&Iterations:"
+msgstr "Wiederholungen:"
+
+#: tfrmmasterkey.lblmemory.caption
+msgid "&Memory:"
+msgstr "Speicher:"
+
+#: tfrmmasterkey.lblparallelism.caption
+msgid "&Parallelism:"
+msgstr "Parallelität (Übereinstimmung):"
+
+#: tfrmmasterkey.lblpassword.caption
+msgid "Pass&word:"
+msgstr "Pass&wort:"
+
+#: tfrmmasterkey.lblrepeat.caption
+msgid "&Repeat password:"
+msgstr "Passwort wiederholen:"
+
+#: tfrmmasterkey.lbltext.caption
+msgid "Specify a new key, which will be used to encrypt the password store."
+msgstr "Geben Sie einen neuen Schlüssel an, der zum Verschlüsseln des Passwortspeichers verwendet wird."
+
+#: tfrmmasterkey.lblunit.caption
+msgctxt "tfrmmasterkey.lblunit.caption"
+msgid "MB"
+msgstr "MB"
 
 #: tfrmmkdir.caption
 msgid "Create new directory"
@@ -9999,6 +10057,7 @@ msgid "KB"
 msgstr "KB"
 
 #: ulng.rsdefaultpersonalizedabbrevmega
+msgctxt "ulng.rsdefaultpersonalizedabbrevmega"
 msgid "MB"
 msgstr "MB"
 
@@ -10746,11 +10805,13 @@ msgstr "Keine Kombination mit [Eingabetaste]"
 msgid "By command name;By shortcut key (grouped);By shortcut key (one per row)"
 msgstr "Nach Befehlsname;Nach Tastaturkürzel (gruppiert);Nach Tastaturkürzel (einer pro Zeile)"
 
-#: ulng.rsiclouddrivercopyseedfileconfirmdlgmessage
+#: ulng.rsiclouddrivecopyseedfileconfirmdlgmessage
+msgctxt "ulng.rsiclouddrivecopyseedfileconfirmdlgmessage"
 msgid "It is recommended to download the files first. Otherwise, what is copied is not the content of the files, but the corresponding placeholder files, which will result in hidden files with the .iCloud extension."
 msgstr "Die Dateien sollten zuerst heruntergeladen werden. Andernfalls wird nicht der Inhalt der Dateien kopiert, sondern nur die jeweiligen Platzhalter-Dateien, was dann versteckte Dateien mit der Erweiterung ».iCloud« ergibt."
 
-#: ulng.rsiclouddrivercopyseedfileconfirmdlgtitle
+#: ulng.rsiclouddrivecopyseedfileconfirmdlgtitle
+msgctxt "ulng.rsiclouddrivecopyseedfileconfirmdlgtitle"
 msgid "The operation may contain files that were not downloaded, continue anyway?"
 msgstr "Der Vorgang könnte Dateien enthalten, die noch nicht heruntergeladen wurden, trotzdem fortfahren?"
 
@@ -10921,13 +10982,13 @@ msgstr "Horizontal geteilt ein- und ausschalten"
 msgid "HorzSplit"
 msgstr "Horizontal geteilt"
 
-#: ulng.rsmfstbiiclouddrivertips
-msgctxt "ulng.rsmfstbiiclouddrivertips"
+#: ulng.rsmfstbiiclouddrivetips
+msgctxt "ulng.rsmfstbiiclouddrivetips"
 msgid "iCloud Drive"
 msgstr "iCloud Drive ist der Cloud-Speicher von Apple. Vergleichbar mit z.B. Dropbox, OneDrive oder Google Drive"
 
-#: ulng.rsmfstbiiclouddrivertitle
-msgctxt "ulng.rsmfstbiiclouddrivertitle"
+#: ulng.rsmfstbiiclouddrivetitle
+msgctxt "ulng.rsmfstbiiclouddrivetitle"
 msgid "iCloud Drive"
 msgstr "iCloud Drive"
 
@@ -11077,11 +11138,13 @@ msgstr "Auswerfen"
 msgid "Extract here..."
 msgstr "Archiv hier entpacken …"
 
-#: ulng.rsmnuiclouddriverdownloadnow
+#: ulng.rsmnuiclouddrivedownloadnow
+msgctxt "ulng.rsmnuiclouddrivedownloadnow"
 msgid "Download Now"
 msgstr "Jetzt downloaden"
 
-#: ulng.rsmnuiclouddriverremovedownload
+#: ulng.rsmnuiclouddriveremovedownload
+msgctxt "ulng.rsmnuiclouddriveremovedownload"
 msgid "Remove Download"
 msgstr "Download entfernen"
 
@@ -11887,6 +11950,16 @@ msgstr "Ungültige Anführungszeichen"
 msgid "Invalid selection."
 msgstr "Ungültige Auswahl."
 
+#: ulng.rsmsgkeytransformerror
+#, object-pascal-format
+msgid "The key transformation failed (error code %d)!"
+msgstr "Transformation der Schlüssel fehlgeschlagen (Fehlercode %d)!"
+
+#: ulng.rsmsgkeytransformtime
+#, object-pascal-format
+msgid "The key transformation took %f seconds."
+msgstr "Transformation der Schlüssel dauerte %f Sekunden."
+
 #: ulng.rsmsgloadingfilelist
 msgid "Loading file list..."
 msgstr "Dateiliste laden …"
@@ -11988,12 +12061,13 @@ msgid "Wipe directory %s"
 msgstr "Verzeichnis %s gründlich löschen"
 
 #: ulng.rsmsgmasterpassword
-msgid "Master Password"
-msgstr "Master-Passwort"
+msgctxt "ulng.rsmsgmasterpassword"
+msgid "Main Password"
+msgstr "Hauptpasswort"
 
 #: ulng.rsmsgmasterpasswordenter
-msgid "Please enter the master password:"
-msgstr "Bitte Master-Passwort eingeben:"
+msgid "Please enter the main password:"
+msgstr "Bitte Hauptpasswort eingeben:"
 
 #: ulng.rsmsgnewfile
 msgid "New file"

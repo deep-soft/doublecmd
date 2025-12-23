@@ -5,7 +5,7 @@ object frmMasterKey: TfrmMasterKey
   Width = 480
   AutoSize = True
   BorderStyle = bsDialog
-  Caption = 'Create Master Key'
+  Caption = 'Create Key'
   ChildSizing.LeftRightSpacing = 12
   ChildSizing.TopBottomSpacing = 12
   ClientHeight = 494
@@ -26,7 +26,7 @@ object frmMasterKey: TfrmMasterKey
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
     BorderSpacing.Top = 12
-    Caption = 'Master key'
+    Caption = 'Main Password'
     ChildSizing.LeftRightSpacing = 12
     ChildSizing.TopBottomSpacing = 10
     ChildSizing.VerticalSpacing = 6
@@ -42,7 +42,7 @@ object frmMasterKey: TfrmMasterKey
       Height = 25
       Top = 10
       Width = 243
-      Caption = '&Master password:'
+      Caption = 'Pass&word:'
     end
     object edtPassword: TEdit
       Left = 255
@@ -84,6 +84,7 @@ object frmMasterKey: TfrmMasterKey
     Width = 456
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
+    BorderSpacing.Top = 6
     Caption = 'Key transformation'
     ChildSizing.LeftRightSpacing = 12
     ChildSizing.TopBottomSpacing = 12
@@ -100,7 +101,7 @@ object frmMasterKey: TfrmMasterKey
       Top = 12
       Width = 428
       Anchors = [akTop, akLeft, akRight]
-      Caption = 'The master key is transformed using a key derivation function. This adds a work factor and makes dictionary and guessing attacks harder.'
+      Caption = 'The key is transformed using a key derivation function. This adds a work factor and makes dictionary and guessing attacks harder.'
       WordWrap = True
     end
     object pnlKeyTransform: TPanel
@@ -138,14 +139,12 @@ object frmMasterKey: TfrmMasterKey
         Top = 12
         Width = 161
         ItemHeight = 17
-        ItemIndex = 0
         Items.Strings = (
           'Argon2d'
           'Argon2id'
         )
         Style = csDropDownList
         TabOrder = 0
-        Text = 'Argon2d'
       end
       object lblIterations: TLabel
         Left = 0
@@ -160,7 +159,7 @@ object frmMasterKey: TfrmMasterKey
         Top = 49
         Width = 161
         MaxValue = 64
-        MinValue = 2
+        MinValue = 1
         TabOrder = 1
         Value = 4
       end
@@ -186,7 +185,7 @@ object frmMasterKey: TfrmMasterKey
           Height = 25
           Top = 0
           Width = 65
-          MaxValue = 1024
+          MaxValue = 2048
           MinValue = 64
           TabOrder = 0
           Value = 64
@@ -261,7 +260,7 @@ object frmMasterKey: TfrmMasterKey
     Height = 17
     Top = 12
     Width = 441
-    Caption = 'Specify a new master key, which will be used to encrypt the password store.'
+    Caption = 'Specify a new key, which will be used to encrypt the password store.'
   end
   object pnlButtons: TButtonPanel
     AnchorSideTop.Control = gbKeyTransform
@@ -276,6 +275,7 @@ object frmMasterKey: TfrmMasterKey
     OKButton.Name = 'OKButton'
     OKButton.DefaultCaption = True
     OKButton.Enabled = False
+    OKButton.OnClick = OKButtonClick
     HelpButton.Name = 'HelpButton'
     HelpButton.DefaultCaption = True
     CloseButton.Name = 'CloseButton'
