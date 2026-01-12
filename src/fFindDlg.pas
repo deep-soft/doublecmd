@@ -400,12 +400,14 @@ implementation
 
 uses
   LCLProc, LCLType, LConvEncoding, StrUtils, HelpIntfs, fViewer, fMain,
-  uLng, uGlobs, uShowForm, uDCUtils, uFileSourceUtil, uOfficeXML,
-  uSearchResultFileSource, uFile, uFileProperty, uColumnsFileView,
-  uFileViewNotebook, uKeyboard, uOSUtils, uArchiveFileSourceUtil,
+  uLng, uGlobs, uShowForm, uDCUtils, uOfficeXML,
+   uFile, uFileProperty, uColumnsFileView,
+  uFileViewNotebook, uKeyboard, uOSUtils,
   DCOSUtils, uRegExprA, uRegExprW, uDebug, uShowMsg, uConvEncoding,
-  uColumns, uFileFunctions, uFileSorting, uWcxArchiveFileSource,
-  DCConvertEncoding, WcxPlugin, fChooseEncoding, dmCommonData
+  uColumns, uFileFunctions, uFileSorting,
+  DCConvertEncoding, WcxPlugin, fChooseEncoding, dmCommonData,
+  uLocalFileSource, uWcxArchiveFileSource, uSearchResultFileSource,
+  uFileSourceUtil, uArchiveFileSourceUtil
 {$IFDEF DARKWIN}
   , uDarkStyle
 {$ENDIF}
@@ -525,7 +527,7 @@ begin
       LoadPlugins;
       ClearFilter;
       // SetWindowCaption(wcs_NewSearch);
-      cmbFindPathStart.Text := FileView.CurrentPath;
+      cmbFindPathStart.Text := FileView.CurrentRealPath;
 
       // Get paths of selected files, if any.
       FSelectedFiles.Clear;
@@ -540,6 +542,9 @@ begin
         finally
           FreeAndNil(ASelectedFiles);
         end;
+
+      (FileView.FileSource as ILocalFileSource).AddSearchPath(
+        FileView.CurrentRealPath, FSelectedFiles );
 
       FindInArchive(FileView);
 

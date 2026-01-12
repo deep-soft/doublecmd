@@ -4840,6 +4840,9 @@ begin
         ANoteBook.Hint := FileView.CurrentPath;
       end;
 
+      if Assigned(onFileViewUpdated) then
+        onFileViewUpdated(FileView);
+
       {if (fspDirectAccess in FileView.FileSource.GetProperties) then
         begin
           if gTermWindow and Assigned(Cons) then
@@ -5167,14 +5170,8 @@ begin
     FileViewFlags := [fvfDelayLoadingFiles];
   if sType = 'columns' then begin
     Result := TColumnsFileView.Create(Page, AConfig, ANode, FileViewFlags);
-    {$IFDEF DARWIN}
-    TColumnsFileView(Result).OnDrawCell:= @darwinFileViewDrawHandler.OnDrawCell;
-    {$ENDIF}
   end else if sType = 'brief' then begin
     Result := TBriefFileView.Create(Page, AConfig, ANode, FileViewFlags);
-    {$IFDEF DARWIN}
-    TBriefFileView(Result).OnDrawCell:= @darwinFileViewDrawHandler.OnDrawCell;
-    {$ENDIF}
   end else if sType = 'thumbnails' then
     Result := TThumbFileView.Create(Page, AConfig, ANode, FileViewFlags)
   else begin
@@ -6578,7 +6575,8 @@ begin
         if Pos(Address, DrivesList[I]^.Path) = 1 then
           Exit(I);
       end
-      else begin
+      else if (DrivesList[I]^.DriveType <> dtSpecial) and Address.IsEmpty then
+      begin
         DrivePath := UTF8UpperCase(DrivesList[I]^.Path);
         DrivePathLen := UTF8Length(DrivePath);
         if (DrivePathLen > LongestPathLen) and IsInPath(DrivePath, Path, True, True) then

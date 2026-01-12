@@ -9812,7 +9812,6 @@ msgid "Paint"
 msgstr "繪圖"
 
 #: tfrmviewer.btnpenwidth.caption
-#, fuzzy
 msgctxt "tfrmviewer.btnpenwidth.caption"
 msgid "1"
 msgstr "1"
@@ -11093,6 +11092,20 @@ msgstr ""
 msgid "Assign tags to %d items"
 msgstr "將標籤分配給%d個項目"
 
+#: ulng.rsmacosconnectserverprompt
+msgid ""
+"URL:\n"
+"(eg. smb://server/share; https://dav.server.com; nfs://server/path)\n"
+" "
+msgstr ""
+"URL:\n"
+"(範例：smb://server/share; https://dav.server.com; nfs://server/path)\n"
+" "
+
+#: ulng.rsmacosconnectservertitle
+msgid "SMB / Samba / WebDAV / NFS ..."
+msgstr ""
+
 #: ulng.rsmarkminus
 msgid "Unselect mask"
 msgstr "取消選擇遮罩"
@@ -11207,6 +11220,26 @@ msgstr "在「訪達」中訪問文件"
 #: ulng.rsmfstbifinderrevealtitle
 msgid "Finder"
 msgstr "訪達"
+
+#: ulng.rsmfstbigobackwardtips
+msgctxt "ulng.rsmfstbigobackwardtips"
+msgid "Backward"
+msgstr "向後"
+
+#: ulng.rsmfstbigobackwardtitle
+msgctxt "ulng.rsmfstbigobackwardtitle"
+msgid "Backward"
+msgstr "向後"
+
+#: ulng.rsmfstbigoforwardtips
+msgctxt "ulng.rsmfstbigoforwardtips"
+msgid "Forward"
+msgstr "前進"
+
+#: ulng.rsmfstbigoforwardtitle
+msgctxt "ulng.rsmfstbigoforwardtitle"
+msgid "Forward"
+msgstr "前進"
 
 #: ulng.rsmfstbigotips
 msgctxt "ulng.rsmfstbigotips"
@@ -14121,7 +14154,7 @@ msgstr ""
 #: ulng.rssimplewordfilename
 msgctxt "ulng.rssimplewordfilename"
 msgid "Filename"
-msgstr ""
+msgstr "檔案名稱"
 
 #: ulng.rssimplewordfiles
 msgid "files"

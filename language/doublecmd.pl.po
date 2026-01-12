@@ -10820,6 +10820,17 @@ msgstr "Lista okien \"Znajdź pliki\""
 msgid "Assign tags to %d items"
 msgstr ""
 
+#: ulng.rsmacosconnectserverprompt
+msgid ""
+"URL:\n"
+"(eg. smb://server/share; https://dav.server.com; nfs://server/path)\n"
+" "
+msgstr ""
+
+#: ulng.rsmacosconnectservertitle
+msgid "SMB / Samba / WebDAV / NFS ..."
+msgstr ""
+
 #: ulng.rsmarkminus
 msgid "Unselect mask"
 msgstr "Maska odznaczania"
@@ -10938,6 +10949,26 @@ msgstr ""
 
 #: ulng.rsmfstbifinderrevealtitle
 msgid "Finder"
+msgstr ""
+
+#: ulng.rsmfstbigobackwardtips
+msgctxt "ulng.rsmfstbigobackwardtips"
+msgid "Backward"
+msgstr ""
+
+#: ulng.rsmfstbigobackwardtitle
+msgctxt "ulng.rsmfstbigobackwardtitle"
+msgid "Backward"
+msgstr ""
+
+#: ulng.rsmfstbigoforwardtips
+msgctxt "ulng.rsmfstbigoforwardtips"
+msgid "Forward"
+msgstr ""
+
+#: ulng.rsmfstbigoforwardtitle
+msgctxt "ulng.rsmfstbigoforwardtitle"
+msgid "Forward"
 msgstr ""
 
 #: ulng.rsmfstbigotips

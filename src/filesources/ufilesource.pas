@@ -56,6 +56,7 @@ type
     col: Integer;
     row: Integer;
     drawingRect: TRect;
+    decorationRect: TRect;
 
     case Byte of
       0: (
@@ -71,7 +72,7 @@ type
 
   TFileSourceUIHandler = class
     procedure draw( var params: TFileSourceUIParams ); virtual; abstract;
-    function click( var  params: TFileSourceUIParams ): Boolean; virtual; abstract;
+    function click( var params: TFileSourceUIParams ): Boolean; virtual; abstract;
   end;
 
   TFileSourceField = record
