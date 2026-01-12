@@ -185,8 +185,10 @@ jobs:
 #        ref: 'fixes_4'
 
     - name: Build and install Lazarus
+      shell: bash
       run: |
-        make all install
+        make all;
+        sudo make install;
 
     - name: Create Lazarus config
       shell: bash
