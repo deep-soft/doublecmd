@@ -1,5 +1,5 @@
 name: 0-build-snapshot-mac
-# 2025-06-08 20:40
+# 2026-01-12 08:00
 
 on:
 # if: ${{ inputs.lazarus-install.deep-soft }}
@@ -49,7 +49,7 @@ env:
 
 jobs:
   build-mac:
-    runs-on: macos-13
+    runs-on: macos-14
     steps:
 
     - name: show public IP
@@ -59,7 +59,7 @@ jobs:
         echo "IP[$public_ip]"
 
     - name: Checkout source
-      uses: deep-soft/checkout@v4
+      uses: deep-soft/checkout@v6
       with:
         fetch-depth: 0
 
@@ -178,10 +178,10 @@ jobs:
 #        lazarus-version: "stable"
 
     - name: Get Lazarus source
-      uses: deep-soft/checkout@v4
+      uses: deep-soft/checkout@v6
       with:
         repository: 'fpc/Lazarus'
-        ref: "${{ env.LAZARUS_MAC_REF }}"
+#        ref: "${{ env.LAZARUS_MAC_REF }}"
 #        ref: 'fixes_4'
 
     - name: Build and install Lazarus
@@ -196,7 +196,7 @@ jobs:
         sudo sed -i -e "s|_PPCARCH_|fpc|g; s|/Developer/lazarus|/usr/local/share/lazarus|g" /etc/lazarus/environmentoptions.xml;
 
     - name: Checkout source
-      uses: deep-soft/checkout@v4
+      uses: deep-soft/checkout@v6
       with:
         fetch-depth: 0
 
