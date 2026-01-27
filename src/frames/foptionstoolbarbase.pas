@@ -283,6 +283,9 @@ uses
   {$IFDEF MSWINDOWS}
   uTotalCommander,
   {$ENDIF}
+  {$IFDEF DARWIN}
+  CocoaConfig,
+  {$ENDIF}
   uVariableMenuSupport, uComponentsSignature, fEditSearch, fMainCommandsDlg,
   uFileProcs, uDebug, DCOSUtils, uShowMsg, DCStrUtils, uLng, uOSForms, uDCUtils,
   uPixMapManager, uKASToolItemsExtended, fMain, uSpecialDir, dmHelpManager,
@@ -1041,6 +1044,9 @@ procedure TfrmOptionsToolbarBase.btnOpenFileClick(Sender: TObject);
 begin
   OpenDialog.DefaultExt:= EmptyStr;
   OpenDialog.Filter:= EmptyStr;
+{$if lcl_fullversion >= 4990000}
+  OpenDialog.OptionsEx:= [ofShowsFilePackagesSwitch];
+{$endif}
   if edtExternalCommand.Text<>'' then OpenDialog.InitialDir:=ExtractFilePath(edtExternalCommand.Text);
   if OpenDialog.Execute then
   begin
@@ -1057,8 +1063,14 @@ var
 begin
   MaybeResultingOutputPath := edtStartPath.Text;
   if MaybeResultingOutputPath = '' then MaybeResultingOutputPath := frmMain.ActiveFrame.CurrentPath;
+  {$IFDEF DARWIN}
+  CocoaConfigFileDialog.selectDirectory.allowsFilePackagesContents:= True;
+  {$ENDIF}
   if SelectDirectory(rsSelectDir, MaybeResultingOutputPath, MaybeResultingOutputPath, False) then
     edtStartPath.Text := GetToolbarFilenameToSave(tpmeStartingPath, MaybeResultingOutputPath);
+  {$IFDEF DARWIN}
+  CocoaConfigFileDialog.selectDirectory.allowsFilePackagesContents:= False;
+  {$ENDIF}
 end;
 
 { TfrmOptionsToolbarBase.btnSuggestionTooltipClick }

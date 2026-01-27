@@ -146,7 +146,7 @@ type
     tmRenameFile: TTimer;
     FMouseRename: Boolean;
     FMouseFocus: Boolean;
-{$IFNDEF LCLWIN32}
+{$IF NOT (DEFINED(LCLWIN32) and DEFINED(LCLCOCOA))}
     FMouseEnter: Boolean;
 {$ENDIF}
     procedure AfterChangePath; override;
@@ -895,7 +895,10 @@ end;
 procedure TFileViewWithMainCtrl.MainControlEnter(Sender: TObject);
 begin
   Active := True;
-{$IFNDEF LCLWIN32}
+  {$IFDEF LCLCOCOA}
+  FMouseRename := gInplaceRename;
+  {$ENDIF}
+{$IF NOT (DEFINED(LCLWIN32) and DEFINED(LCLCOCOA))}
   FMouseEnter:= ssLeft in GetKeyShiftStateEx;
 {$ENDIF}
 end;
@@ -962,9 +965,12 @@ begin
   if not AtFileList then
     Exit;
 
-{$IF DEFINED(LCLWIN32) OR DEFINED(LCLCOCOA)}
+{$IF DEFINED(LCLWIN32)}
   FMouseFocus:= MainControl.Focused;
   SetFocus;
+{$ELSEIF DEFINED(LCLCOCOA)}
+  FMouseFocus:= MainControl.Focused;
+  MainControl.Invalidate;
 {$ELSE}
   FMouseFocus := not FMouseEnter;
   FMouseEnter := False;
@@ -1282,7 +1288,7 @@ begin
   AFile := FFiles[FHintFileIndex];
   if AFile.FSFile.Name = '..' then Exit;
 
-  HintInfo^.HintStr:= AFile.FSFile.Name;
+  HintInfo^.HintStr:= FileSource.GetFileName( AFile.FSFile );
   sHint:= GetFileInfoToolTip(FileSource, AFile.FSFile);
   if (sHint <> EmptyStr) then
     HintInfo^.HintStr:= HintInfo^.HintStr + LineEnding + sHint;
@@ -1468,9 +1474,6 @@ begin
     end;
     inherited SetFocus;
     MainControl.SetFocus;
-    {$IFDEF LCLCOCOA}
-    Active := true;
-    {$ENDIF}
   end;
 end;
 
@@ -1683,7 +1686,9 @@ begin
 
   // OnEnter don't called automatically (bug?)
   // TODO: Check on which widgetset/OS this is needed.
+  {$IF NOT DEFINED(LCLCOCOA)}
   FMainControl.OnEnter(Self);
+  {$ENDIF}
 end;
 
 procedure TFileViewWithMainCtrl.edtRenameButtonClick(Sender: TObject);

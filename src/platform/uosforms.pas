@@ -128,14 +128,14 @@ function DarkStyle: Boolean;
 implementation
 
 uses
-  ExtDlgs, LCLProc, Menus, Graphics, InterfaceBase, WSForms, LCLIntf,
-  fMain, uConnectionManager, uShowMsg, uLng, uDCUtils, uDebug
+  ExtDlgs, LCLProc, Menus, Dialogs, Graphics, InterfaceBase, WSForms, LCLIntf,
+  LCLVersion, fMain, uConnectionManager, uShowMsg, uLng, uDCUtils, uDebug
   {$IF DEFINED(MSWINDOWS)}
   , LCLStrConsts, ComObj, ActiveX, DCOSUtils, uOSUtils, uFileSystemFileSource
   , uTotalCommander, FileUtil, Windows, ShlObj, uShlObjAdditional
   , uWinNetFileSource, uVfsModule, uMyWindows, DCStrUtils, uOleDragDrop
   , uDCReadRSVG, uFileSourceUtil, uGdiPlusJPEG, uListGetPreviewBitmap
-  , Dialogs, Clipbrd, JwaDbt, uThumbnailProvider, uShellFolder
+  , Clipbrd, JwaDbt, uThumbnailProvider, uShellFolder
   , uRecycleBinFileSource, uWslFileSource, uDCReadHEIF, uDCReadJXL
   , uDCReadWIC, uShellFileSource, uPixMapManager
     {$IF DEFINED(DARKWIN)}
@@ -965,6 +965,9 @@ begin
     begin
       opdDialog := TOpenPictureDialog.Create(Owner);
       opdDialog.InitialDir:=ExtractFileDir(sFileName);
+{$if lcl_fullversion >= 4990000}
+      opdDialog.OptionsEx:= [ofShowsFilePackagesSwitch];
+{$endif}
 {$IFDEF MSWINDOWS}
       opdDialog.Filter:= sFilter;
 {$ENDIF}

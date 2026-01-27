@@ -7,7 +7,7 @@ interface
 
 uses
   Classes, SysUtils, syncobjs, fgl, LazMethodList,
-  Menus, Forms, Dialogs, System.UITypes,
+  Graphics, Menus, Forms, Dialogs, System.UITypes,
   uiCloudDriveConfig, uiCloudDriveUtil,
   uFile, uDisplayFile,
   uFileSource, uFileSourceOperationTypes, uFileSourceManager,
@@ -42,6 +42,7 @@ type
     function GetWatcher: TFileSourceWatcher; override;
     function GetProcessor: TFileSourceProcessor; override;
     function GetUIHandler: TFileSourceUIHandler; override;
+    function GetCustomIcon(const path: String; const iconSize: Integer): TBitmap; override;
     class function GetMainIcon(out Path: String): Boolean; override;
 
     function GetRootDir(sPath : String): String; override;
@@ -80,6 +81,7 @@ type
   private
     procedure createWatcher;
     procedure destroyWatcher;
+    procedure tryDestroyWatcher( data: PtrInt );
     function findWatch(const path: String; const event: TFSWatcherEvent): Integer;
   private
     function toFileSourceEvent( event: TDarwinFSWatchEvent;
@@ -201,6 +203,17 @@ begin
   FreeAndNil( _watcher );
 end;
 
+procedure TiCloudDriveWatcher.tryDestroyWatcher( data: PtrInt );
+begin
+  _lockObject.Acquire;
+  try
+    if _watcherItems.Count = 0 then
+      destroyWatcher;
+  finally
+    _lockObject.Release;
+  end;
+end;
+
 function TiCloudDriveWatcher.findWatch(const path: String; const event: TFSWatcherEvent): Integer;
 var
   i: Integer;
@@ -313,7 +326,7 @@ begin
 
     _watcherItems.Delete( index );
     if _watcherItems.count = 0 then
-      destroyWatcher;
+      Application.QueueAsyncCall( @tryDestroyWatcher, PtrInt(self) );
   finally
     _lockObject.Release;
   end;
@@ -327,6 +340,7 @@ end;
 
 destructor TiCloudDriveWatcher.Destroy;
 begin
+  application.RemoveAsyncCalls( self );
   destroyWatcher;
   FreeAndNil( _watcherItems );
   FreeAndNil( _lockObject );
@@ -501,18 +515,12 @@ end;
 
 procedure TiCloudDriveUIHandler.createImages;
 var
-  tempImage: NSImage;
+  path: String;
 begin
   _downloadImage.release;
-  tempImage:= NSImage.alloc.initWithContentsOfFile( StrToNSString(mbExpandFileName(iCloudDriveConfig.icon.download)) );
-  tempImage.setSize( NSMakeSize(16,16) );
-  if TCocoaThemeServices.isDark then begin
-    _downloadImage:= TDarwinImageUtil.invertColor( tempImage );
-  end else begin
-    _downloadImage:= tempImage;
-  end;
+  path:= mbExpandFileName(iCloudDriveConfig.icon.download);
+  _downloadImage:= TDarwinImageUtil.getBestFromFileContentWithSize( path, 16, True );
   _downloadImage.retain;
-  tempImage.release;
 end;
 
 procedure TiCloudDriveUIHandler.releaseImages;
@@ -700,9 +708,29 @@ begin
   Result:= iCloudDriveUIProcessor;
 end;
 
+function TiCloudDriveFileSource.GetCustomIcon(
+  const path: String;
+  const iconSize: Integer ): TBitmap;
+var
+  realPath: String;
+  iconPath: String;
+  image: NSImage;
+begin
+  Result:= nil;
+  if path = GetRootDir(path) then begin
+    TiCloudDriveFileSource.GetMainIcon( iconPath );
+    Result:= darwinImageCacheForPath.copyImageForFileContent( iconPath, iconSize );
+  end else begin
+    realPath:= self.GetRealPath( path );
+    image:= getAppIconByPath( realPath );
+    if image <> nil then
+      Result:= darwinImageCacheForPath.copyImageForNSImage( realPath, image );
+  end;
+end;
+
 class function TiCloudDriveFileSource.GetMainIcon(out Path: String): Boolean;
 begin
-  Path:= iCloudDriveConfig.icon.main;
+  Path:= mbExpandFileName( iCloudDriveConfig.icon.main );
   Result:= True;
 end;
 

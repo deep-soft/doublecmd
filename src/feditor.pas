@@ -248,7 +248,7 @@ implementation
 {$R *.lfm}
 
 uses
-  Clipbrd, dmCommonData, dmHigh, SynEditTypes, LCLType, LConvEncoding,
+  Clipbrd, Dialogs, dmCommonData, dmHigh, SynEditTypes, LCLType, LConvEncoding,
   uLng, uShowMsg, uGlobs, fOptions, DCClassesUtf8, uAdministrator, uHighlighters,
   uOSUtils, uConvEncoding, fOptionsToolsEditor, uDCUtils, uClipboard, uFindFiles,
   DCOSUtils
@@ -1040,7 +1040,10 @@ var
 begin
   FormCloseQuery(Self, CanClose);
   if not CanClose then Exit;
-  dmComData.OpenDialog.Filter:= AllFilesMask;
+  dmComData.OpenDialog.Filter:= EmptyStr;
+{$if lcl_fullversion >= 4990000}
+  dmComData.OpenDialog.OptionsEx:= [ofAllowsFilePackagesContents];
+{$endif}
   if not dmComData.OpenDialog.Execute then Exit;
   if OpenFile(dmComData.OpenDialog.FileName) then
     UpdateStatus;
@@ -1068,7 +1071,10 @@ var
   Highlighter: TSynCustomHighlighter;
 begin
   dmComData.SaveDialog.FileName := FileName;
-  dmComData.SaveDialog.Filter:= AllFilesMask; // rewrite for highlighter
+  dmComData.SaveDialog.Filter:= EmptyStr; // rewrite for highlighter
+{$if lcl_fullversion >= 4990000}
+  dmComData.SaveDialog.OptionsEx:= [ofAllowsFilePackagesContents];
+{$endif}
   if not dmComData.SaveDialog.Execute then
     Exit;
 

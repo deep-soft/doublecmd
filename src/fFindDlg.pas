@@ -408,8 +408,11 @@ uses
   DCConvertEncoding, WcxPlugin, fChooseEncoding, dmCommonData,
   uLocalFileSource, uWcxArchiveFileSource, uSearchResultFileSource,
   uFileSourceUtil, uArchiveFileSourceUtil
-{$IFDEF DARKWIN}
+{$IFDEF DARkWIN}
   , uDarkStyle
+{$ENDIF}
+{$IFDEF DARWIN}
+  , CocoaConfig
 {$ENDIF}
   ;
 
@@ -1169,8 +1172,14 @@ begin
   S := cmbFindPathStart.Text;
   AFolder:= ExtractFilePath(ExcludeTrailingBackslash(S));
   if not mbDirectoryExists(AFolder) then AFolder := EmptyStr;
+  {$IFDEF DARWIN}
+  CocoaConfigFileDialog.selectDirectory.allowsFilePackagesContents:= True;
+  {$ENDIF}
   if SelectDirectory(rsFindWhereBeg, AFolder, S, gShowSystemFiles) then
     cmbFindPathStart.Text := S;
+  {$IFDEF DARWIN}
+  CocoaConfigFileDialog.selectDirectory.allowsFilePackagesContents:= False;
+  {$ENDIF}
 end;
 
 { TfrmFindDlg.btnNewSearchKeyDown }
@@ -2043,7 +2052,7 @@ begin
 
   // Create search result file source.
   // Currently only searching FileSystem is supported.
-  SearchResultFS := TSearchResultFileSource.Create;
+  SearchResultFS := TSearchResultFileSource.Create( rsSearchResult );
   SearchResultFS.AddList(FileList, FFileSource);
 
   // Add new tab for search results.

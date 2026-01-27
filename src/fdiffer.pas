@@ -305,7 +305,7 @@ implementation
 uses
   Math, LCLType, LazFileUtils, LConvEncoding, SynEditTypes, uHash, uLng, uGlobs,
   uShowMsg, DCClassesUtf8, dmCommonData, uDCUtils, uConvEncoding, uAdministrator,
-  LCLStrConsts, uFileProcs
+  LCLVersion, LCLStrConsts, uFileProcs
 {$IFDEF DARWIN}
   ,uDarwinApplication
 {$ENDIF}
@@ -491,7 +491,10 @@ end;
 procedure TfrmDiffer.actOpenLeftExecute(Sender: TObject);
 begin
   dmComData.OpenDialog.FileName:= edtFileNameLeft.Text;
-  dmComData.OpenDialog.Filter:= AllFilesMask;
+  dmComData.OpenDialog.Filter:= EmptyStr;
+{$if lcl_fullversion >= 4990000}
+  dmComData.OpenDialog.OptionsEx:= [ofAllowsFilePackagesContents];
+{$endif}
   if dmComData.OpenDialog.Execute then
   begin
     edtFileNameLeft.Text:= dmComData.OpenDialog.FileName;
@@ -502,7 +505,10 @@ end;
 procedure TfrmDiffer.actOpenRightExecute(Sender: TObject);
 begin
   dmComData.OpenDialog.FileName:= edtFileNameRight.Text;
-  dmComData.OpenDialog.Filter:= AllFilesMask;
+  dmComData.OpenDialog.Filter:= EmptyStr;
+{$if lcl_fullversion >= 4990000}
+  dmComData.OpenDialog.OptionsEx:= [ofAllowsFilePackagesContents];
+{$endif}
   if dmComData.OpenDialog.Execute then
   begin
     edtFileNameRight.Text:= dmComData.OpenDialog.FileName;
@@ -545,6 +551,10 @@ end;
 procedure TfrmDiffer.actSaveLeftAsExecute(Sender: TObject);
 begin
   dmComData.SaveDialog.FileName:= edtFileNameLeft.FileName;
+  dmComData.SaveDialog.Filter:= EmptyStr;
+{$if lcl_fullversion >= 4990000}
+  dmComData.SaveDialog.OptionsEx:= [ofAllowsFilePackagesContents];
+{$endif}
   if dmComData.SaveDialog.Execute then
   begin
     PushPop(FElevate);
@@ -560,6 +570,10 @@ end;
 procedure TfrmDiffer.actSaveRightAsExecute(Sender: TObject);
 begin
   dmComData.SaveDialog.FileName:= edtFileNameRight.FileName;
+  dmComData.SaveDialog.Filter:= EmptyStr;
+{$if lcl_fullversion >= 4990000}
+  dmComData.SaveDialog.OptionsEx:= [ofAllowsFilePackagesContents];
+{$endif}
   if dmComData.SaveDialog.Execute then
   begin
     PushPop(FElevate);
