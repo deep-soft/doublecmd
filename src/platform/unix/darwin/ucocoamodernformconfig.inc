@@ -9,13 +9,13 @@ uses
   Classes, SysUtils,
   LCLType, Forms, Menus,
   fMain, fEditor, fDiffer,
-  uHotkeyManager, uGlobs, uLng, uDCUtils,
+  uHotkeyManager, uEarlyConfig, uGlobs, uLng, uDCUtils,
   uFileView, uBriefFileView, uColumnsFileView, uThumbFileView,
   uFileSystemFileSource,
   uDarwinApplication, uDarwinPanel, uDarwinFile, uDarwinUtil,
   uDarwinFinder, uDarwinFinderModel,
   uDarwinFileView, uDarwinFileViewHistory,
-  CocoaAll, CocoaConfig, CocoaToolBar, Cocoa_Extra,
+  CocoaAll, CocoaConfig, CocoaToolBar, CocoaThemes, Cocoa_Extra,
   LResources, uTranslator, Translations;
 
 procedure initCocoaModernFormConfig;
@@ -95,11 +95,15 @@ end;
 
 procedure initCocoaModernFormConfig;
 begin
+  if gModernUI = false then
+    Exit;
+
   if NSAppKitVersionNumber < NSAppKitVersionNumber11_0 then
     Exit;
 
   fMain.onFileViewUpdated:= @onFileViewUpdated;
   toolBarMenuHandler:= TToolBarMenuHandler.Create;
+  TCocoaThemeServices.addObserver( toolBarMenuHandler );
   doInitConfig;
 end;
 

@@ -46,25 +46,30 @@ type
   TDarwinImageCacheManager = class( ICocoaThemeObserver )
   private
     _lockObject: TCriticalSection;
-    _images: TFPDataHashTable;
+    _images: TFPObjectHashTable;
   public
     constructor Create;
     destructor Destroy; override;
 
     procedure onThemeChanged;
 
-    function copyIconForFileExt(
+    function copyBitmapForFileExt(
       const path: String;
       const size: Integer ): TBitmap;
 
-    function copyImageForFileContent(
+    function copyBitmapForFileContent(
       const path: String;
       const size: Integer;
       const autoDark: Boolean = False ): TBitmap;
 
-    function copyImageForNSImage(
+    function copyBitmapForNSImage(
       const key: String;
       const image: NSImage ): TBitmap;
+
+    function getNSImageForFileContent(
+      const path: String;
+      const size: Integer;
+      const autoDark: Boolean = False ): NSImage;
   end;
 
 var
@@ -72,6 +77,31 @@ var
   darwinImageCacheForExt: TDarwinImageCacheManager;
 
 implementation
+
+type
+  
+  { TNSImageCacheItem }
+
+  TNSImageCacheItem = class
+  private
+    _image: NSImage;
+  public
+    constructor Create( const image: NSImage );
+    destructor Destroy; override;
+  end;
+
+{ TNSImageCacheItem }
+
+constructor TNSImageCacheItem.Create( const image: NSImage );
+begin
+  _image:= image;
+  _image.retain;
+end;
+
+destructor TNSImageCacheItem.Destroy;
+begin
+  _image.release;
+end;
 
 class function TDarwinImageUtil.filt(
   const filterName: NSString;
@@ -223,11 +253,13 @@ end;
 constructor TDarwinImageCacheManager.Create;
 begin
   _lockObject:= TCriticalSection.Create;;
-  _images:= TFPDataHashTable.Create;
+  _images:= TFPObjectHashTable.Create;
+  TCocoaThemeServices.addObserver( self );
 end;
 
 destructor TDarwinImageCacheManager.Destroy;
 begin
+  TCocoaThemeServices.removeObserver( self );
   FreeAndNil( _images );
   FreeAndNil( _lockObject );
 end;
@@ -242,7 +274,7 @@ begin
   end;
 end;
 
-function TDarwinImageCacheManager.copyIconForFileExt(
+function TDarwinImageCacheManager.copyBitmapForFileExt(
   const path: String;
   const size: Integer ): TBitmap;
 var
@@ -259,7 +291,7 @@ begin
 
   _lockObject.Acquire;
   try
-    bitmap:= _images[ext];
+    bitmap:= TBitmap(_images[ext]);
     if _images[ext] = nil then begin
       bitmap:= TDarwinImageUtil.getBitmapForExt( ext, size );
       _images[ext]:= bitmap;
@@ -274,7 +306,7 @@ begin
   end;
 end;
 
-function TDarwinImageCacheManager.copyImageForFileContent(
+function TDarwinImageCacheManager.copyBitmapForFileContent(
   const path: String;
   const size: Integer;
   const autoDark: Boolean = False ): TBitmap;
@@ -286,7 +318,7 @@ begin
 
   _lockObject.Acquire;
   try
-    bitmap:= _images[path];
+    bitmap:= TBitmap(_images[path]);
     if _images[path] = nil then begin
       image:= TDarwinImageUtil.getBestFromFileContentWithSize( path, size, autoDark );
       bitmap:= TDarwinImageUtil.toBitmap( image );
@@ -302,7 +334,7 @@ begin
   end;
 end;
 
-function TDarwinImageCacheManager.copyImageForNSImage(
+function TDarwinImageCacheManager.copyBitmapForNSImage(
   const key: String;
   const image: NSImage ): TBitmap;
 var
@@ -312,7 +344,7 @@ begin
 
   _lockObject.Acquire;
   try
-    bitmap:= _images[key];
+    bitmap:= TBitmap(_images[key]);
     if _images[key] = nil then begin
       bitmap:= TDarwinImageUtil.toBitmap( image );
       _images[key]:= bitmap;
@@ -327,16 +359,40 @@ begin
   end;
 end;
 
+function TDarwinImageCacheManager.getNSImageForFileContent(
+  const path: String;
+  const size: Integer;
+  const autoDark: Boolean = False ): NSImage;
+var
+  item: TNSImageCacheItem;
+  image: NSImage;
+  key: String;
+begin
+  Result:= nil;
+  key:= 'NSImage:' + path;
+
+  _lockObject.Acquire;
+  try
+    item:= TNSImageCacheItem(_images[key]);
+    if _images[key] = nil then begin
+      image:= TDarwinImageUtil.getBestFromFileContentWithSize( path, size, autoDark );
+      item:= TNSImageCacheItem.Create( image );
+      _images[key]:= item;
+    end;
+  finally
+    _lockObject.Release;
+  end;
+
+  if Assigned( item ) then
+    Result:= item._image;
+end;
+
 initialization
   darwinImageCacheForPath:= TDarwinImageCacheManager.Create;
-  TCocoaThemeServices.addObserver( darwinImageCacheForPath );
   darwinImageCacheForExt:= TDarwinImageCacheManager.Create;
-  TCocoaThemeServices.addObserver( darwinImageCacheForExt );
 
 finalization
-  TCocoaThemeServices.removeObserver( darwinImageCacheForPath );
   FreeAndNil( darwinImageCacheForPath );
-  TCocoaThemeServices.removeObserver( darwinImageCacheForExt );
   FreeAndNil( darwinImageCacheForExt );
 
 end.

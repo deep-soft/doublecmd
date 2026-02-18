@@ -58,11 +58,11 @@ begin
   try
     Target:= TLazIntfImage.Create(ASource.Width, ASource.Height, [riqfRGB, riqfAlpha]);
     try
-{$if lcl_fullversion < 2020000}
-      Target.CreateData;
-{$endif}
-      Target.CopyPixels(Source);
-      BitmapAssign(ATarget, Target);
+      if (not Target.DataDescription.IsEqual(Source.DataDescription)) or (ASource <> ATarget) then
+      begin
+        Target.CopyPixels(Source);
+        BitmapAssign(ATarget, Target);
+      end;
     finally
       Target.Free;
     end;

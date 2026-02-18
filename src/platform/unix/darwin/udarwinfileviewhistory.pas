@@ -8,8 +8,7 @@ interface
 uses
   SysUtils, Classes, Graphics,
   uFile, uFileSource, uFileSystemFileSource, uSearchResultFileSource, uiCloudDrive,
-  uFileView, uPixMapManager,
-  uGlobs,
+  uFileView, uPixMapManager, uDCUtils, uGlobs,
   uDarwinUtil, uDarwinImage, uDarwinFile,
   CocoaAll;
 
@@ -24,36 +23,119 @@ type
     class function calcTag(const fsIndex: Integer; const pathIndex: Integer): Integer; inline;
     class function getIcon(const fs: IFileSource; const path: String): NSImage;
     class function getDisplayName(const fs: IFileSource; const path: String): String;
-    class procedure addMenuItem(
-      const menu: NSMenu;
-      const fileView: TFileView;
-      const fsIndex: Integer;
-      const pathIndex: Integer );
   public
-    class function createBackwardMenu(
+    class function createHistoryMenu(
+      const direction: Boolean;
+      const popupView: NSView;
       const fileView: TFileView;
-      const onAction: TGotoHistoryAction ): NSMenu;
-    class function createForwardMenu(
-      const fileView: TFileView;
-      const onAction: TGotoHistoryAction ): NSMenu;
+      const onAction: TGotoHistoryAction;
+      const firstCount: Integer ): NSMenu;
   end;
 
 implementation
 
-const
-  MAX_MENU_COUNT = 20;
-
 type
-  
-  { TMenuItem }
 
-  THistoryMenu = objcclass( NSMenu )
+  { THistoryMenuDelegate }
+
+  THistoryMenuDelegate = objcclass( NSObject, NSMenuDelegateProtocol )
   private
-    onAction: TGotoHistoryAction;
-    procedure dcItemAction( const sender: id ); message 'dcItemAction:';
+    loaded: Boolean;
+  private
+    procedure menuNeedsUpdate (menu: NSMenu);
   end;
 
-{ TMenuItem }
+  { THistoryMenu }
+
+  THistoryMenu = objcclass( NSMenu )
+  public
+    procedure dealloc; override;
+  private
+    direction: Boolean;
+    popupView: NSView;
+    fileView: TFileView;
+    onAction: TGotoHistoryAction;
+    firstCount: Integer;
+
+    procedure addMenuItem(
+      const fsIndex: Integer;
+      const pathIndex: Integer ); message 'dcAddMenuItem::';
+    procedure addShowAllMenuItem; message 'dcAddShowAllMenuItem';
+
+    procedure loadBackwardMenu( const maxMenuCount: Integer ); message 'loadBackwardMenu:';
+    procedure loadForwardMenu( const maxMenuCount: Integer ); message 'loadForwardMenu:';
+
+    procedure dcItemAction( const sender: id ); message 'dcItemAction:';
+    procedure dcFirstLoad; message 'dcFirstLoad';
+    procedure dcShowAll( const sender: id ); message 'dcShowAll:';
+  end;
+
+{ THistoryMenuDelgate }
+
+procedure THistoryMenuDelegate.menuNeedsUpdate(menu: NSMenu);
+begin
+  if self.loaded then
+    Exit;
+  THistoryMenu(menu).dcFirstLoad;
+  self.loaded:= True
+end;
+
+{ THistoryMenu }
+
+procedure THistoryMenu.dealloc;
+begin
+  self.delegate.release;
+  self.setDelegate( nil );
+  Inherited;
+end;
+
+procedure THistoryMenu.addMenuItem(
+  const fsIndex: Integer;
+  const pathIndex: Integer );
+var
+  fs: IFileSource;
+  menuItem: NSMenuItem;
+  tag: Integer;
+  path: String;
+  displayName: String;
+  image: NSImage;
+begin
+  fs:= self.fileView.FileSources[fsIndex];
+  tag:= TDarwinFileViewHistoryUtil.calcTag( fsIndex, pathIndex );
+  path:= self.fileView.Path[fsIndex, pathIndex];
+
+  displayName:= TDarwinFileViewHistoryUtil.getDisplayName( fs, path );
+  image:= TDarwinFileViewHistoryUtil.getIcon( fs, path );
+
+  menuItem:= NSMenuItem.new;
+  menuItem.setTitle( StringToNSString(displayName) );
+  menuItem.setImage( image );
+  menuItem.setTag( tag );
+  menuItem.setTarget( self );
+  menuItem.setAction( ObjCSelector('dcItemAction:') );
+
+  self.addItem( menuItem );
+  menuItem.release;
+end;
+
+procedure THistoryMenu.addShowAllMenuItem;
+var
+  menuItem: NSMenuItem;
+  image: NSImage;
+begin
+  image:= darwinImageCacheForPath.getNSImageForFileContent(
+    mbExpandFileName('$COMMANDER_PATH/pixmaps/macOS/chevron-down-2.png'),
+    gIconsInMenusSize,
+    True );
+  menuItem:= NSMenuItem.new;
+  menuItem.setTitle( NSString.string_ );
+  menuItem.setImage( image );
+  menuItem.setTarget( self );
+  menuItem.setAction( ObjCSelector('dcShowAll:') );
+
+  self.addItem( menuItem );
+  menuItem.release;
+end;
 
 procedure THistoryMenu.dcItemAction(const sender: id);
 var
@@ -66,9 +148,100 @@ begin
   fsIndex:= item.tag >> 16;
   pathIndex := item.tag and $FFFF;
   onAction( fsIndex, pathIndex );
-  Writeln( '++++ click: ', item.tag );
 end;
 
+procedure THistoryMenu.dcFirstLoad;
+begin
+  if self.direction then
+    self.loadBackwardMenu( self.firstCount )
+  else
+    self.loadForwardMenu( self.firstCount );
+end;
+
+procedure THistoryMenu.dcShowAll(const sender: id);
+var
+  menu: NSMenu;
+begin
+  menu:= TDarwinFileViewHistoryUtil.createHistoryMenu(
+    self.direction,
+    nil,
+    self.fileView,
+    self.onAction,
+    MaxInt );
+  menu.popUpMenuPositioningItem_atLocation_inView(
+    nil, NSMakePoint(0,2), self.popupView );
+  menu.release;
+end;
+
+procedure THistoryMenu.loadBackwardMenu( const maxMenuCount: Integer );
+var
+  fsIndex: Integer;
+  count: Integer = 0;
+
+  procedure addHistory;
+  var
+    pathIndex: Integer;
+  begin
+    fsIndex:= self.fileView.CurrentFileSourceIndex;
+    for pathIndex:= self.fileView.CurrentPathIndex-1 downto 0 do begin
+      if count >= maxMenuCount then
+        Exit;
+      self.addMenuItem( fsIndex, pathIndex );
+      inc( count );
+    end;
+
+    Dec( fsIndex );
+    while fsIndex >= 0 do begin
+      for pathIndex:= self.fileView.PathsCount[fsIndex]-1 downto 0 do begin
+        if count >= maxMenuCount then
+          Exit;
+        self.addMenuItem( fsIndex, pathIndex );
+        inc( count );
+      end;
+      Dec( fsIndex );
+    end;
+  end;
+
+begin
+  addHistory;
+  if fsIndex >= 0 then
+    self.addShowAllMenuItem;
+end;
+
+procedure THistoryMenu.loadForwardMenu( const maxMenuCount: Integer );
+var
+  fsIndex: Integer;
+  count: Integer = 0;
+
+  procedure addHistory;
+  var
+    pathIndex: Integer;
+  begin
+    fsIndex:= self.fileView.CurrentFileSourceIndex;
+    for pathIndex:= self.fileView.CurrentPathIndex+1 to fileView.PathsCount[fsIndex]-1 do begin
+      if count >= maxMenuCount then
+        Exit;
+      self.addMenuItem( fsIndex, pathIndex );
+      inc( count );
+    end;
+
+    Inc( fsIndex );
+    while fsIndex < self.fileView.FileSourcesCount do begin
+      for pathIndex:= 0 to self.fileView.PathsCount[fsIndex]-1 do begin
+        if count >= maxMenuCount then
+          Exit;
+        self.addMenuItem( fsIndex, pathIndex );
+        inc( count );
+      end;
+      Inc( fsIndex );
+    end;
+  end;
+
+begin
+  addHistory;
+  if fsIndex < self.fileView.FileSourcesCount then
+    self.addShowAllMenuItem;
+end;
 
 { TDarwinFileViewHistoryUtil }
 
@@ -123,127 +296,27 @@ begin
   Result:= path;
 end;
 
-class procedure TDarwinFileViewHistoryUtil.addMenuItem(
-  const menu: NSMenu;
+class function TDarwinFileViewHistoryUtil.createHistoryMenu(
+  const direction: Boolean;
+  const popupView: NSView;
   const fileView: TFileView;
-  const fsIndex: Integer;
-  const pathIndex: Integer );
+  const onAction: TGotoHistoryAction;
+  const firstCount: Integer ): NSMenu;
 var
-  fs: IFileSource;
-  menuItem: NSMenuItem;
-  tag: Integer;
-  path: String;
-  displayName: String;
-  image: NSImage;
-begin
-  fs:= fileView.FileSources[fsIndex];
-  tag:= calcTag(fsIndex,pathIndex);
-  path:= fileView.Path[fsIndex, pathIndex];
-
-  displayName:= TDarwinFileViewHistoryUtil.getDisplayName( fs, path );
-  image:= TDarwinFileViewHistoryUtil.getIcon( fs, path );
-
-  menuItem:= NSMenuItem.new;
-  menuItem.setTitle( StringToNSString(displayName) );
-  menuItem.setImage( image );
-  menuItem.setTag( tag );
-  menuItem.setTarget( menu );
-  menuItem.setAction( ObjCSelector('dcItemAction:') );
-
-  menu.addItem( menuItem );
-  menuItem.release;
-end;
-
-class function TDarwinFileViewHistoryUtil.createBackwardMenu(
-  const fileView: TFileView;
-  const onAction: TGotoHistoryAction ): NSMenu;
-var
-  fsIndex: Integer;
   menu: THistoryMenu;
-  count: Integer = 0;
-
-  procedure addHistory;
-  var
-    pathIndex: Integer;
-  begin
-    fsIndex:= fileView.CurrentFileSourceIndex;
-    for pathIndex:= fileView.CurrentPathIndex-1 downto 0 do begin
-      addMenuItem( menu, fileView, fsIndex, pathIndex );
-      inc( count );
-      if count >= MAX_MENU_COUNT then
-        Exit;
-    end;
-
-    Dec( fsIndex );
-    while fsIndex >= 0 do begin
-      for pathIndex:= fileView.PathsCount[fsIndex]-1 downto 0 do begin
-        addMenuItem( menu, fileView, fsIndex, pathIndex );
-        inc( count );
-        if count >= MAX_MENU_COUNT then
-          Exit;
-      end;
-      Dec( fsIndex );
-    end;
-  end;
-
+  delegate: THistoryMenuDelegate;
 begin
   menu:= THistoryMenu.new;
+  menu.direction:= direction;
+  menu.popupView:= popupView;
+  menu.fileView:= fileView;
   menu.onAction:= onAction;
+  menu.firstCount:= firstCount;
 
-  addHistory;
+  delegate:= THistoryMenuDelegate.new;
+  menu.setDelegate( delegate );
 
-  if menu.numberOfItems = 0 then begin
-    menu.release;
-    Result:= nil;
-  end else begin
-    Result:= menu;
-  end;
-end;
-
-class function TDarwinFileViewHistoryUtil.createForwardMenu(
-  const fileView: TFileView;
-  const onAction: TGotoHistoryAction ): NSMenu;
-var
-  fsIndex: Integer;
-  menu: THistoryMenu;
-  count: Integer = 0;
-
-  procedure addHistory;
-  var
-    pathIndex: Integer;
-  begin
-    fsIndex:= fileView.CurrentFileSourceIndex;
-    for pathIndex:= fileView.CurrentPathIndex+1 to fileView.PathsCount[fsIndex]-1 do begin
-      addMenuItem( menu, fileView, fsIndex, pathIndex );
-      inc( count );
-      if count >= MAX_MENU_COUNT then
-        Exit;
-    end;
-
-    Inc( fsIndex );
-    while fsIndex < fileView.FileSourcesCount do begin
-      for pathIndex:= 0 to fileView.PathsCount[fsIndex]-1 do begin
-        addMenuItem( menu, fileView, fsIndex, pathIndex );
-        inc( count );
-        if count >= MAX_MENU_COUNT then
-          Exit;
-      end;
-      Inc( fsIndex );
-    end;
-  end;
-
-begin
-  menu:= THistoryMenu.new;
-  menu.onAction:= onAction;
-
-  addHistory;
-
-  if menu.numberOfItems = 0 then begin
-    menu.release;
-    Result:= nil;
-  end else begin
-    Result:= menu;
-  end;
+  Result:= menu;
 end;
 
 end.

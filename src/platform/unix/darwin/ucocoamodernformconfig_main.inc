@@ -39,6 +39,49 @@ begin
   end;
 end;
 
+procedure updateHistoryToolbarMenu(
+  const item: NSToolbarItem;
+  const direction: Boolean;
+  const hasHistory: Boolean );
+var
+  menu: NSMenu;
+begin
+  assert( Assigned(item), 'Toolbar Menu Item Not Found' );
+  item.setEnabled( hasHistory );
+  if hasHistory then begin
+    menu:= TDarwinFileViewHistoryUtil.createHistoryMenu(
+      direction,
+      TCocoaToolBarUtils.getNSView(item),
+      frmMain.ActiveFrame,
+      @goToHistoryAction,
+      5 );
+  end else begin
+    menu:= nil;
+  end;
+  NSMenuToolbarItem(item).setMenu( menu );
+  menu.release;
+end;
+
+procedure updateGoBackwardToolbarMenu;
+var
+  item: NSToolbarItem;
+  hasHistory: Boolean;
+begin
+  item:= TCocoaToolBarUtils.findItemByIdentifier( frmMain, 'MainForm.GoBackward' );
+  hasHistory:= frmMain.ActiveFrame.hasPrevHistory;
+  updateHistoryToolbarMenu( item, True, hasHistory );
+end;
+
+procedure updateGoForwardToolbarMenu;
+var
+  item: NSToolbarItem;
+  hasHistory: Boolean;
+begin
+  item:= TCocoaToolBarUtils.findItemByIdentifier( frmMain, 'MainForm.GoForward' );
+  hasHistory:= frmMain.ActiveFrame.hasNextHistory;
+  updateHistoryToolbarMenu( item, False, hasHistory );
+end;
+
 procedure onFileViewUpdated( const fileView: TFileView );
 
   procedure updateShowMode;
@@ -57,38 +100,6 @@ procedure onFileViewUpdated( const fileView: TFileView );
       itemGroupWrapper.lclSetSelectedIndex( 0 )
     else if fileView is TThumbFileView then
       itemGroupWrapper.lclSetSelectedIndex( 2 );
-  end;
-
-  procedure updateBackward;
-  var
-    item: NSToolbarItem;
-    menu: NSMenu;
-  begin
-    item:= TCocoaToolBarUtils.findItemByIdentifier( frmMain, 'MainForm.GoBackward' );
-    if NOT Assigned(item) then
-      Exit;
-    item.setEnabled( fileView.hasPrevHistory );
-    menu:= TDarwinFileViewHistoryUtil.createBackwardMenu(
-      frmMain.ActiveFrame,
-      @goToHistoryAction );
-    NSMenuToolbarItem(item).setMenu( menu );
-    menu.release;
-  end;
-
-  procedure updateForward;
-  var
-    item: NSToolbarItem;
-    menu: NSMenu;
-  begin
-    item:= TCocoaToolBarUtils.findItemByIdentifier( frmMain, 'MainForm.GoForward' );
-    if NOT Assigned(item) then
-      Exit;
-    item.setEnabled( fileView.hasNextHistory );
-    menu:= TDarwinFileViewHistoryUtil.createForwardMenu(
-      frmMain.ActiveFrame,
-      @goToHistoryAction );
-    NSMenuToolbarItem(item).setMenu( menu );
-    menu.release;
   end;
 
   procedure updateRelyOnFileSystem;
@@ -115,8 +126,8 @@ procedure onFileViewUpdated( const fileView: TFileView );
 
 begin
   updateShowMode;
-  updateBackward;
-  updateForward;
+  updateGoBackwardToolbarMenu;
+  updateGoForwardToolbarMenu;
   updateRelyOnFileSystem;
 end;
 
@@ -187,7 +198,7 @@ type
 
   { TToolBarMenuHandler }
 
-  TToolBarMenuHandler = class
+  TToolBarMenuHandler = class( ICocoaThemeObserver )
   public
     procedure showHotlist( Sender: TObject );
     procedure showFavoriteTabs( Sender: TObject );
@@ -198,6 +209,8 @@ type
     procedure showFinderTagSelectorPanel( Sender: TObject );
     procedure onFinderTagSelectorPanelClose( const cancel: Boolean; const tagNames: NSArray );
     procedure searchOneFinderTagAction( Sender: TObject );
+
+    procedure onThemeChanged;
   end;
 
 var
@@ -257,6 +270,12 @@ var
 begin
   tagName:= StringToNSString( menuItem.Caption );
   TDarwinFinderModelUtil.searchFilesForTagName( tagName, @darwinSearchResultHandler.onSearchFinderTagComplete );
+end;
+
+procedure TToolBarMenuHandler.onThemeChanged;
+begin
+  updateGoBackwardToolbarMenu;
+  updateGoForwardToolbarMenu;
 end;
 
 procedure onGetFolderMenu( const menu: TMenu );
