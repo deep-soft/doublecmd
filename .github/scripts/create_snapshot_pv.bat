@@ -1,4 +1,4 @@
-:: 2023-08-06 09:00
+:: 2026-04-08 15:50
 
 rem test if DC_VER already set
 if .%DC_VER%==. goto Set_DC_VER
@@ -35,8 +35,10 @@ git log -n 10 --format="%%h %%al %%ai%%n%%s%%n" > %PACK_DIR%\changelog.txt
 
 rem Get libraries
 pushd install
-curl -o windows.7z -L https://github.com/doublecmd/snapshots/raw/main/windows.7z
-rem alternate version 20230730 # https://github.com/deep-soft/rustdesk-sciter-helpers/releases/download/doublecmd-helpers/doublecmd-lib-windows.7z
+curl -o windows.7z -L https://github.com/doublecmd/external/raw/main/windows.7z
+rem alternate version 20230730 # https://github.com/deep-soft/rustdesk-sciter-helpers/releases/download/doublecmd-helpers/doublecmd-lib-windows.7z-2023
+rem alternate version 20260207 # https://github.com/deep-soft/rustdesk-sciter-helpers/releases/download/doublecmd-helpers/doublecmd-lib-windows.7z
+if not exist windows.7z curl -o windows.7z -L https://github.com/deep-soft/rustdesk-sciter-helpers/releases/download/doublecmd-helpers/doublecmd-lib-windows.7z
 "%ProgramFiles%\7-Zip\7z.exe" x windows.7z
 del /Q windows.7z
 popd
