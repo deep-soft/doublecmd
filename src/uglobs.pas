@@ -341,6 +341,7 @@ var
   gNewFilesPosition: TNewFilesPosition;
   gUpdatedFilesPosition: TUpdatedFilesPosition;
   gLynxLike:Boolean;
+  gForceFunctionKey:Boolean;
   gFirstTextSearch: Boolean;
 
   { File views page }
@@ -658,6 +659,7 @@ var
   { Editor }
   gEditWaitTime: Integer;
   gEditorSynEditOptions: TSynEditorOptions;
+  gEditorSynEditSpecialChars: TSynVisibleSpecialChars;
   gEditorSynEditTabWidth,
   gEditorSynEditRightEdge,
   gEditorSynEditBlockIndent: Integer;
@@ -1783,6 +1785,7 @@ begin
   gRunTermParams := RunTermParams;
   gOnlyOneAppInstance := False;
   gLynxLike := True;
+  gForceFunctionKey:= False;
   gSortCaseSensitivity := cstNotSensitive;
   gSortNatural := False;
   gSortSpecial := False;
@@ -2204,6 +2207,7 @@ begin
   { Editor }
   gEditWaitTime := 2000;
   gEditorSynEditOptions := SYNEDIT_DEFAULT_OPTIONS;
+  gEditorSynEditSpecialChars := [vscSpace, vscTabAtLast];
   gEditorSynEditTabWidth := 8;
   gEditorSynEditRightEdge := 80;
   gEditorSynEditBlockIndent := 2;
@@ -2715,6 +2719,7 @@ begin
 
       gOnlyOneAppInstance := GetValue(Node, 'OnlyOneAppInstance', gOnlyOneAppInstance);
       gLynxLike := GetValue(Node, 'LynxLike', gLynxLike);
+      gForceFunctionKey := GetValue(Node, 'ForceFunctionKey', gForceFunctionKey);
       if LoadedConfigVersion < 5 then
       begin
         if GetValue(Node, 'SortCaseSensitive', False) = False then
@@ -3209,6 +3214,10 @@ begin
       gCustomIcons := TCustomIconsMode(GetValue(Node, 'CustomIcons', Integer(gCustomIcons)));
       gIconsInMenus := GetAttr(Node, 'ShowInMenus/Enabled', gIconsInMenus);
       gIconsInMenusSize := GetValue(Node, 'ShowInMenus/Size', gIconsInMenusSize);
+      if gIconsInMenus then
+        Application.ShowMenuGlyphs:= sbgAlways
+      else
+        Application.ShowMenuGlyphs:= sbgNever;
       Application.ShowButtonGlyphs := TApplicationShowGlyphs(GetValue(Node, 'ShowButtonGlyphs', Integer(Application.ShowButtonGlyphs)));
     end;
 
@@ -3267,6 +3276,7 @@ begin
     begin
       gEditWaitTime := GetValue(Node, 'EditWaitTime', gEditWaitTime);
       gEditorSynEditOptions := TSynEditorOptions(GetValue(Node, 'SynEditOptions', Integer(gEditorSynEditOptions)));
+      gEditorSynEditSpecialChars := TSynVisibleSpecialChars(GetValue(Node, 'SynEditSpecialChars', Integer(gEditorSynEditSpecialChars)));
       gEditorSynEditTabWidth := GetValue(Node, 'SynEditTabWidth', gEditorSynEditTabWidth);
       gEditorSynEditRightEdge := GetValue(Node, 'SynEditRightEdge', gEditorSynEditRightEdge);
       gEditorSynEditBlockIndent := GetValue(Node, 'SynEditBlockIndent', gEditorSynEditBlockIndent);
@@ -3477,6 +3487,7 @@ begin
 
     SetValue(Node, 'OnlyOneAppInstance', gOnlyOneAppInstance);
     SetValue(Node, 'LynxLike', gLynxLike);
+    SetValue(Node, 'ForceFunctionKey', gForceFunctionKey);
     SetValue(Node, 'FileSizeFormat', Ord(gFileSizeFormat));
     SetValue(Node, 'OperationSizeFormat', Ord(gOperationSizeFormat));
     SetValue(Node, 'HeaderSizeFormat', Ord(gHeaderSizeFormat));
@@ -3860,6 +3871,7 @@ begin
     Node := FindNode(Root, 'Editor',True);
     SetValue(Node, 'EditWaitTime', gEditWaitTime);
     SetValue(Node, 'SynEditOptions', Integer(gEditorSynEditOptions));
+    SetValue(Node, 'SynEditSpecialChars', Integer(gEditorSynEditSpecialChars));
     SetValue(Node, 'SynEditTabWidth', gEditorSynEditTabWidth);
     SetValue(Node, 'SynEditRightEdge', gEditorSynEditRightEdge);
     SetValue(Node, 'SynEditBlockIndent', gEditorSynEditBlockIndent);

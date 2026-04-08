@@ -367,7 +367,7 @@ procedure TfrmOptionsFileAssoc.UpdateEnabledButtons;
 begin
   if (lbFileTypes.Items.Count = 0) or (lbFileTypes.ItemIndex = -1) then
   begin
-    sbtnIcon.Enabled := False;
+    gbIcon.Enabled := False;
     btnInsertExt.Enabled := False;
     btnAddExt.Enabled := False;
     btnInsertAct.Enabled := False;
@@ -375,11 +375,11 @@ begin
   end
   else
   begin
+    gbIcon.Enabled := True;
     btnInsertExt.Enabled := (lbExts.Items.Count > 0);
     btnAddExt.Enabled := True;
     btnInsertAct.Enabled := (lbExts.Items.Count > 0) and (lbActions.ItemIndex <> -1);
     btnAddAct.Enabled := btnInsertExt.Enabled;
-    sbtnIcon.Enabled := btnInsertExt.Enabled;
   end;
 
   btnRemoveExt.Enabled := ((lbExts.Items.Count <> 0) and (lbExts.ItemIndex <> -1));
@@ -619,7 +619,8 @@ end;
 { TfrmOptionsFileAssoc.lbFileTypesDrawItem }
 procedure TfrmOptionsFileAssoc.lbFileTypesDrawItem(Control: TWinControl; Index: integer; ARect: TRect; State: TOwnerDrawState);
 var
-  iDrawTop: integer;
+  iDrawTop: Integer;
+  AStyle: TTextStyle;
 begin
   with (Control as TListBox) do
   begin
@@ -644,13 +645,16 @@ begin
       Canvas.FillRect(ARect);
     end;
 
+    AStyle:= Canvas.TextStyle;
+    AStyle.Layout:= tlCenter;
+    Canvas.TextRect(ARect, gIconsSize + 6, 0, Items[Index], AStyle);
+
     if (Canvas.Locked = False) and (Assigned(Items.Objects[Index])) then
     begin
-      iDrawTop := ARect.Top + ((lbFileTypes.ItemHeight - gIconsSize) div 2);
-      Canvas.Draw(ARect.Left + 2, iDrawTop, TBitmap(Items.Objects[Index]));
+      iDrawTop := ARect.Top + ((ARect.Height - gIconsSize) div 2);
+      ARect:= Classes.Bounds(ARect.Left + 2, iDrawTop, gIconsSize, gIconsSize);
+      Canvas.StretchDraw(ARect, TBitmap(Items.Objects[Index]));
     end;
-    iDrawTop := ARect.Top + ((lbFileTypes.ItemHeight - Canvas.TextHeight(Items[Index])) div 2);
-    Canvas.TextOut(ARect.Left + gIconsSize + 6, iDrawTop, Items[Index]);
   end;
 end;
 

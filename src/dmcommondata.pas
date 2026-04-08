@@ -30,6 +30,10 @@ uses
 
 type
 
+  { TImageList }
+
+  TImageList = class(Controls.TImageList);
+
   { TdmComData }
 
   TdmComData = class(TDataModule)
@@ -51,7 +55,7 @@ var
 implementation
 
 uses
-  LCLVersion, Graphics, uPixMapManager, uGlobs;
+  LCLVersion, Graphics, uPixMapManager, uGlobs, uDCUtils;
 
 {$R *.lfm}
 
@@ -149,7 +153,9 @@ procedure TdmComData.LoadImages(Images: TImageList; const ANames: array of Strin
 var
   I: Integer;
   AName: String;
+  AFactor: Double;
   AResolutions: array of Integer;
+  AResolutions2: array of Integer;
   ABitmaps: array of TCustomBitmap;
 begin
   Images.Clear;
@@ -160,19 +166,34 @@ begin
   AResolutions[1]:= 24; // AdjustIconSize(24, 96);
   AResolutions[2]:= 32; // AdjustIconSize(32, 96);
 
-  if gToolIconsSize >= 48 then
+  if not (gToolIconsSize in [16, 24, 32]) then
   begin
     SetLength(ABitmaps, 4);
     SetLength(AResolutions, 4);
     AResolutions[3]:= gToolIconsSize;
   end;
 
-  Images.RegisterResolutions(AResolutions);
+  AResolutions2:= Copy(AResolutions);
+  AFactor:= findScaleFactorByFirstForm;
+
+  if (AFactor > 1.0) then
+  begin
+    for I:= 0 to High(AResolutions2) do
+    begin
+      AResolutions2[I]:= Round(AResolutions2[I] * AFactor);
+    end;
+  end;
+
+  I:= AResolutions2[0];
+  Images.SetWidthHeight(I, I);
+  Images.RegisterResolutions(AResolutions2);
 
   for AName in ANames do
   begin
     for I:= 0 to High(AResolutions) do
     begin
+      // GetThemeIcon takes into account
+      // CanvasScaleFactor, so use original icon size here
       ABitmaps[I]:= PixMapManager.GetThemeIcon(AName, AResolutions[I]);
       if (ABitmaps[I] = nil) then ABitmaps[I]:= TBitmap.Create;
     end;
