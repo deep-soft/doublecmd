@@ -1,6 +1,6 @@
 name: 0-build-snapshot-lin
 # 0-build-snapshot-lin.yml
-# 2026-04-08 15:10
+# 2025-04-20 01:20
 
 on:
 # if: ${{ inputs.lazarus-install.deep-soft }}
@@ -164,48 +164,44 @@ jobs:
         mv ${{ env.ZIP_RELEASE_ARCHIVE }} ../
         ls -l ../${{ env.ZIP_RELEASE_ARCHIVE }}
 
-    - name: Get Lazarus source
-      uses: deep-soft/checkout@v6
-      with:
-        repository: 'fpc/Lazarus'
+#    - name: Get Lazarus source
+#      uses: deep-soft/checkout@v4
+#      with:
+#        repository: 'fpc/Lazarus'
 
-##    - name: Set version to Install Free Pascal
-##      shell: bash
-##      run: |
-##        echo "LAZARUS_VERSION=stable" >> $GITHUB_ENV
-##        if [[ "${{ inputs.LAZARUS_VERSION }}" != "" ]]; then
-##          LAZARUS_VERSION="${{ inputs.LAZARUS_VERSION }}";
-##        else
-##          LAZARUS_VERSION="stable";
-##        fi
-##        echo "LAZARUS_VERSION=$LAZARUS_VERSION"
-##        echo "LAZARUS_VERSION=$LAZARUS_VERSION" >> $GITHUB_ENV
-##
-##    - name: Install Free Pascal
-##      uses: deep-soft/lazarus-install@master
-##      with:
-##        lazarus-version: "${{ env.LAZARUS_VERSION }}"
-###        lazarus-version: "stable"
-
-    - name: Build and install Lazarus
-      run: |
-        make all install
-
-    - name: Create Lazarus config
+    - name: Set version to Install Free Pascal
       shell: bash
       run: |
-        sudo mkdir -p /etc/lazarus;
-        sudo cp tools/install/macosx/environmentoptions.xml /etc/lazarus/environmentoptions.xml;
-        # sudo sed -i -e "s|_PPCARCH_|fpc|g; s|/Developer/lazarus|/usr/local/share/lazarus|g" /etc/lazarus/environmentoptions.xml;
-        sudo sed -i -e "s|__LAZARUSDIR__|/usr/local/share/lazarus|g" /etc/lazarus/environmentoptions.xml
+        echo "LAZARUS_VERSION=stable" >> $GITHUB_ENV
+        if [[ "${{ inputs.LAZARUS_VERSION }}" != "" ]]; then
+          LAZARUS_VERSION="${{ inputs.LAZARUS_VERSION }}";
+        else
+          LAZARUS_VERSION="stable";
+        fi
+        echo "LAZARUS_VERSION=$LAZARUS_VERSION"
+        echo "LAZARUS_VERSION=$LAZARUS_VERSION" >> $GITHUB_ENV
+
+    - name: Install Free Pascal
+      uses: deep-soft/lazarus-install@master
+      with:
+        lazarus-version: "${{ env.LAZARUS_VERSION }}"
+#        lazarus-version: "stable"
+
+#    - name: Build and install Lazarus
+#      run: |
+#        make all install
+
+#    - name: Create Lazarus config
+#      shell: bash
+#      run: |
+#        sudo mkdir -p /etc/lazarus;
+#        sudo cp tools/install/macosx/environmentoptions.xml /etc/lazarus/environmentoptions.xml;
+#        sudo sed -i -e "s|_PPCARCH_|fpc|g; s|/Developer/lazarus|/usr/local/share/lazarus|g" /etc/lazarus/environmentoptions.xml;
 
 #    - name: Checkout source
 #      uses: deep-soft/checkout@v4
 #      with:
 #        fetch-depth: 0
-
-###    - name: Build packages
-###      run: ./.github/scripts/create_snapshot.lnx
 
     - name: Build packages
       shell: bash
@@ -295,4 +291,3 @@ jobs:
           ${{ env.ZIP_ALL }}
           ${{ env.INFO_FILE }}
 # Archive - ZIP_ALL end
-
