@@ -1,6 +1,6 @@
 name: 0-build-snapshot-lin
 # 0-build-snapshot-lin.yml
-# 2025-04-20 01:20
+# 2026-04-08 16:10
 
 on:
 # if: ${{ inputs.lazarus-install.deep-soft }}
@@ -22,7 +22,7 @@ on:
         required: true
         default: false
       LAZARUS_VERSION:
-        description: LAZARUS_VERSION (default stable, try 3.0RC2)
+        description: LAZARUS_VERSION (default stable, try 4.6)
         default: 'stable'
         required: true
 
@@ -182,7 +182,7 @@ jobs:
         echo "LAZARUS_VERSION=$LAZARUS_VERSION" >> $GITHUB_ENV
 
     - name: Install Free Pascal
-      uses: deep-soft/lazarus-install@master
+      uses: deep-soft/lazarus-install@lin
       with:
         lazarus-version: "${{ env.LAZARUS_VERSION }}"
 #        lazarus-version: "stable"
