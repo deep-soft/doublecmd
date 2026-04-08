@@ -1,5 +1,5 @@
 name: 0-build-snapshot-win
-# 2025-04-20 01:20
+# 2026-06-08 15:20
 
 on:
   workflow_dispatch:
@@ -18,7 +18,7 @@ on:
         default: false
         required: true
       LAZARUS_VERSION:
-        description: LAZARUS_VERSION (default stable, try 3.0RC2)
+        description: LAZARUS_VERSION (default stable, try 4.6)
         default: 'stable'
         required: true
 
