@@ -3,7 +3,7 @@
    -------------------------------------------------------------------------
    General icons loaded at launch based on screen resolution
 
-   Copyright (C) 2009-2025 Alexander Koblov (alexx2000@mail.ru)
+   Copyright (C) 2009-2026 Alexander Koblov (alexx2000@mail.ru)
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,20 +30,18 @@ uses
 
 type
 
-  { TImageList }
-
-  TImageList = class(Controls.TImageList);
-
   { TdmComData }
 
   TdmComData = class(TDataModule)
     ilEditorImages: TImageList;
     ilViewerImages: TImageList;
     ImageList: TImageList;
+    ilButtons: TImageList;
     OpenDialog: TOpenDialog;
     SaveDialog: TSaveDialog;
     procedure DataModuleCreate(Sender: TObject);
   private
+    procedure LoadIcons(Images: TImageList; const ANames: array of String);
     procedure LoadImages(Images: TImageList; const ANames: array of String);
   public
     { public declarations }
@@ -55,7 +53,7 @@ var
 implementation
 
 uses
-  LCLVersion, Graphics, uPixMapManager, uGlobs, uDCUtils;
+  LCLVersion, Graphics, Generics.Collections, uPixMapManager, uGlobs, uDCUtils;
 
 {$R *.lfm}
 
@@ -138,14 +136,56 @@ const
     'choose-encoding'
   );
 
+  ButtonNames: array[0..3] of String = (
+    'list-add',
+    'choose-filter',
+    'choose-variable',
+    'open-picture-dialog'
+  );
+
+type
+  TIntegerArrayHelper = specialize TArrayHelper<Integer>;
+
 { TdmComData }
 
 procedure TdmComData.DataModuleCreate(Sender: TObject);
 begin
   if Assigned(PixMapManager) then
   begin
+    LoadIcons(ilButtons, ButtonNames);
     LoadImages(ilViewerImages, ViewerNames);
     LoadImages(ilEditorImages, EditorNames);
+  end;
+end;
+
+procedure TdmComData.LoadIcons(Images: TImageList; const ANames: array of String);
+var
+  AName: String;
+  ASize: Integer;
+  AFactor: Double;
+  ABitmap: TCustomBitmap;
+begin
+  Images.Clear;
+  ASize:= Images.Width;
+  AFactor:= findScaleFactorByFirstForm;
+
+  if (AFactor > 1.0) then
+  begin
+    ASize:= Round(ASize * AFactor);
+  end;
+
+  Images.RegisterResolutions([ASize]);
+
+  for AName in ANames do
+  begin
+    // GetThemeIcon takes into account
+    // CanvasScaleFactor, so use original icon size here
+    ABitmap:= PixMapManager.GetThemeIcon(ittInternal, AName, Images.Width);
+    if (ABitmap = nil) then ABitmap:= TBitmap.Create;
+
+    Images.AddMultipleResolutions([ABitmap]);
+
+    ABitmap.Free;
   end;
 end;
 
@@ -171,6 +211,7 @@ begin
     SetLength(ABitmaps, 4);
     SetLength(AResolutions, 4);
     AResolutions[3]:= gToolIconsSize;
+    TIntegerArrayHelper.Sort(AResolutions);
   end;
 
   AResolutions2:= Copy(AResolutions);
@@ -184,8 +225,6 @@ begin
     end;
   end;
 
-  I:= AResolutions2[0];
-  Images.SetWidthHeight(I, I);
   Images.RegisterResolutions(AResolutions2);
 
   for AName in ANames do
