@@ -31,10 +31,15 @@ var
 
 type
 
+  { TCocoaViewerFormHandler }
+
   TCocoaViewerFormHandler = class( TViewerFormHandler )
     procedure onShowModeChanged(
       const viewer: TfrmViewer;
       const mode: TViewerShowMode ); override;
+    procedure onGifStateChanged(
+      const viewer: TfrmViewer;
+      const states: TViewerGifStates); override;
   end;
 
 function getCurrentViewerForm: TfrmViewer;
@@ -180,6 +185,42 @@ begin
     form.cm_MirrorHorz( [] );
 end;
 
+procedure viewerGifMoveAction( const Sender: id );
+var
+  form: TfrmViewer;
+begin
+  form:= getCurrentViewerForm;
+  if Assigned(form) then
+    form.btnGifMoveClick( nil );
+end;
+
+procedure viewerGifPrevAction( const Sender: id );
+var
+  form: TfrmViewer;
+begin
+  form:= getCurrentViewerForm;
+  if Assigned(form) then
+    form.btnPrevGifFrameClick( nil );
+end;
+
+procedure viewerGifNextAction( const Sender: id );
+var
+  form: TfrmViewer;
+begin
+  form:= getCurrentViewerForm;
+  if Assigned(form) then
+    form.btnNextGifFrameClick( nil );
+end;
+
+procedure viewerGifExportAction( const Sender: id );
+var
+  form: TfrmViewer;
+begin
+  form:= getCurrentViewerForm;
+  if Assigned(form) then
+    form.btnGifToBmpClick( nil );
+end;
+
 procedure onViewerGetPenWidthMenu( const menu: TMenu );
 var
   i: Integer;
@@ -208,7 +249,7 @@ const
     identifier: 'ViewerForm.Prev';
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: True;
-    iconName: 'arrow.left';
+    iconName: 'chevron.left';
     title: 'Prev';
     tips: 'Prev';
     bordered: True;
@@ -219,7 +260,7 @@ const
     identifier: 'ViewerForm.Next';
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: True;
-    iconName: 'arrow.right';
+    iconName: 'chevron.right';
     title: 'Next';
     tips: 'Next';
     bordered: True;
@@ -319,44 +360,48 @@ const
     identifier: 'ViewerForm.GifMove';
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: False;
-    iconName: 'play.circle';
+    appValidates: True;
+    iconName: 'play.fill';
     title: '';
     tips: '';
     bordered: True;
-    onAction: nil;
+    onAction: @viewerGifMoveAction;
   );
 
   viewerGifPrevItemConfig: TCocoaConfigToolBarItem = (
     identifier: 'ViewerForm.GifPrev';
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: False;
-    iconName: 'arrow.left.circle';
+    appValidates: True;
+    iconName: 'arrow.left';
     title: 'GifPrev';
     tips: 'GifPrev';
     bordered: True;
-    onAction: nil;
+    onAction: @viewerGifPrevAction;
   );
 
   viewerGifNextItemConfig: TCocoaConfigToolBarItem = (
     identifier: 'ViewerForm.GifNext';
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: False;
-    iconName: 'arrow.right.circle';
+    appValidates: True;
+    iconName: 'arrow.right';
     title: 'GifNext';
     tips: 'GifNext';
     bordered: True;
-    onAction: nil;
+    onAction: @viewerGifNextAction;
   );
 
   viewerGifExportItemConfig: TCocoaConfigToolBarItem = (
     identifier: 'ViewerForm.GifExport';
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: False;
-    iconName: 'arrow.down.circle';
+    appValidates: True;
+    iconName: 'arrow.down.circle.fill';
     title: 'GifExport';
     tips: 'GifExport';
     bordered: True;
-    onAction: nil;
+    onAction: @viewerGifExportAction;
   );
 
   viewerHighLightItemConfig: TCocoaConfigToolBarItem = (
@@ -610,5 +655,55 @@ begin
     viewerAttachImageToolBar( viewer )
   else
     viewerDeattachImageToolBar( viewer )
+end;
+
+procedure TCocoaViewerFormHandler.onGifStateChanged(
+  const viewer: TfrmViewer;
+  const states: TViewerGifStates);
+var
+  moveEnabled: Boolean;
+  prevEnabled: Boolean;
+  nextEnabled: Boolean;
+  exportEnabled: Boolean;
+
+  toolBar: NSToolBar;
+  item: NSToolBarItem;
+
+  moveImageName: String;
+  moveImage: NSImage;
+begin
+  if vgsIsGif in states then begin
+    moveEnabled:= True;
+    prevEnabled:= vgsPrevFrame in states;
+    nextEnabled:= vgsNextFrame in states;
+    exportEnabled:= True;
+  end else begin
+    moveEnabled:= False;
+    prevEnabled:= False;
+    nextEnabled:= False;
+    exportEnabled:= False;
+  end;
+
+  viewerAttachImageToolBar( viewer );
+  toolBar:= TCocoaToolBarUtils.getToolBar( viewer );
+  if toolBar = nil then
+    Exit;
+
+  item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.GifMove');
+  item.setEnabled( moveEnabled );
+  if vgsPlaying in states then
+    moveImageName:= 'pause.fill'
+  else
+    moveImageName:= 'play.fill';
+  moveImage:= NSImage.imageWithSystemSymbolName_accessibilityDescription(
+    StringToNSString(moveImageName), nil );
+  item.setImage( moveImage );
+
+  item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.GifPrev');
+  item.setEnabled( prevEnabled );
+  item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.GifNext');
+  item.setEnabled( nextEnabled );
+  item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.GifExport');
+  item.setEnabled( exportEnabled );
 end;
 

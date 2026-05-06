@@ -73,6 +73,8 @@ type
 
   TViewerShowMode = (vsmText, vsmImage, vsmPlugin, vsmCode, vsmFolder);
 
+  TViewerGifStates = set of (vgsIsGif, vgsPlaying, vgsPrevFrame, vgsNextFrame);
+
   { TDrawGrid }
 
   TDrawGrid = class(Grids.TDrawGrid)
@@ -538,6 +540,9 @@ type
     procedure onShowModeChanged(
       const viewer: TfrmViewer;
       const mode: TViewerShowMode ); virtual;
+    procedure onGifStateChanged(
+      const viewer: TfrmViewer;
+      const states: TViewerGifStates ); virtual;
   end;
 
 procedure ShowViewer(const FilesToView: TStringList; WaitData: TWaitData = nil); overload;
@@ -2090,9 +2095,23 @@ begin
 end;
 
 procedure TfrmViewer.UpdateAnimState;
+var
+  states: TViewerGifStates;
 begin
+  states:= [vgsIsGif];
+
+  if NOT GifAnim.Paused then
+    Include( states, vgsPlaying );
+
   btnPrevGifFrame.Enabled:= GifAnim.Paused and (GifAnim.CurrentFrameIndex > 0);
+  if btnPrevGifFrame.Enabled then
+    Include( states, vgsPrevFrame );
+
   btnNextGifFrame.Enabled:= GifAnim.Paused and (GifAnim.CurrentFrameIndex < GifAnim.FrameCount - 1);
+  if btnNextGifFrame.Enabled then
+    Include( states, vgsNextFrame );
+
+  viewerFormHandler.onGifStateChanged( self, states );
 end;
 
 procedure TfrmViewer.btnPrevGifFrameClick(Sender: TObject);
@@ -2530,9 +2549,9 @@ procedure TfrmViewer.btnGifToBmpClick(Sender: TObject);
 begin
   GifAnim.Pause;
   btnGifMove.ImageIndex:= 12;
+  UpdateAnimState;
   Image.Picture.Bitmap:= GifAnim.CurrentView;
   cm_SaveAs(['']);
-  UpdateAnimState;
 end;
 
 procedure TfrmViewer.btnPaintHightlight(Sender: TObject);
@@ -2942,6 +2961,8 @@ end;
 function TfrmViewer.LoadGraphics(const sFileName:String): Boolean;
 
   procedure UpdateToolbar(bImage: Boolean);
+  var
+    gifStates: TViewerGifStates;
   begin
     btnHightlight.Enabled:= bImage and (not miFullScreen.Checked);
     btnPaint.Enabled:= bImage and (not miFullScreen.Checked);
@@ -2957,6 +2978,12 @@ function TfrmViewer.LoadGraphics(const sFileName:String): Boolean;
     btnGifSeparator.Enabled:= not bImage;
     btnNextGifFrame.Enabled:= not bImage;
     btnPrevGifFrame.Enabled:= not bImage;
+
+    if bImage then
+      gifStates:= []
+    else
+      gifStates:= [vgsIsGif];
+    viewerFormHandler.onGifStateChanged( self, gifStates );
   end;
 
 var
@@ -4219,6 +4246,12 @@ end;
 procedure TViewerFormHandler.onShowModeChanged(
   const viewer: TfrmViewer;
   const mode: TViewerShowMode);
+begin
+end;
+
+procedure TViewerFormHandler.onGifStateChanged(
+  const viewer: TfrmViewer;
+  const states: TViewerGifStates);
 begin
 end;
 
