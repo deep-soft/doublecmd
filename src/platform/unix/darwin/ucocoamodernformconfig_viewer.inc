@@ -135,6 +135,51 @@ begin
     form.cm_DeleteFile( [] );
 end;
 
+procedure viewerZoomInAction( const Sender: id );
+var
+  form: TfrmViewer;
+begin
+  form:= getCurrentViewerForm;
+  if Assigned(form) then
+    form.cm_ZoomIn( [] );
+end;
+
+procedure viewerZoomOutAction( const Sender: id );
+var
+  form: TfrmViewer;
+begin
+  form:= getCurrentViewerForm;
+  if Assigned(form) then
+    form.cm_ZoomOut( [] );
+end;
+
+procedure viewerRotate270Action( const Sender: id );
+var
+  form: TfrmViewer;
+begin
+  form:= getCurrentViewerForm;
+  if Assigned(form) then
+    form.cm_Rotate270( [] );
+end;
+
+procedure viewerRotate90Action( const Sender: id );
+var
+  form: TfrmViewer;
+begin
+  form:= getCurrentViewerForm;
+  if Assigned(form) then
+    form.cm_Rotate90( [] );
+end;
+
+procedure viewerMirrorAction( const Sender: id );
+var
+  form: TfrmViewer;
+begin
+  form:= getCurrentViewerForm;
+  if Assigned(form) then
+    form.cm_MirrorHorz( [] );
+end;
+
 procedure onViewerGetPenWidthMenu( const menu: TMenu );
 var
   i: Integer;
@@ -223,7 +268,7 @@ const
     title: 'Zoom In';
     tips: 'Zoom In';
     bordered: True;
-    onAction: nil;
+    onAction: @viewerZoomInAction;
   );
 
   viewerZoomOutItemConfig: TCocoaConfigToolBarItem = (
@@ -234,7 +279,7 @@ const
     title: 'Zoom Out';
     tips: 'Zoom Out';
     bordered: True;
-    onAction: nil;
+    onAction: @viewerZoomOutAction;
   );
 
   viewerRotate270ItemConfig: TCocoaConfigToolBarItem = (
@@ -245,7 +290,7 @@ const
     title: 'Rotate -90 degree';
     tips: 'Rotate -90 degree';
     bordered: True;
-    onAction: nil;
+    onAction: @viewerRotate270Action;
   );
 
   viewerRotate90ItemConfig: TCocoaConfigToolBarItem = (
@@ -256,7 +301,7 @@ const
     title: 'Rotate +90 degree';
     tips: 'Rotate +90 degree';
     bordered: True;
-    onAction: nil;
+    onAction: @viewerRotate90Action;
   );
 
   viewerMirrorItemConfig: TCocoaConfigToolBarItem = (
@@ -267,7 +312,7 @@ const
     title: 'Mirror';
     tips: 'Mirror';
     bordered: True;
-    onAction: nil;
+    onAction: @viewerMirrorAction;
   );
 
   viewerGifMoveItemConfig: TCocoaConfigToolBarItem = (
