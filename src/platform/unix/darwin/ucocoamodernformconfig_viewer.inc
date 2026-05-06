@@ -81,6 +81,60 @@ begin
     TCocoaToolBarUtils.removeItemByIndex( toolBar, i );
 end;
 
+procedure viewerReloadAction( const Sender: id );
+var
+  form: TfrmViewer;
+begin
+  form:= getCurrentViewerForm;
+  if Assigned(form) then
+    form.cm_Reload( [] );
+end;
+
+procedure viewerPrevAction( const Sender: id );
+var
+  form: TfrmViewer;
+begin
+  form:= getCurrentViewerForm;
+  if Assigned(form) then
+    form.cm_LoadPrevFile( [] );
+end;
+
+procedure viewerNextAction( const Sender: id );
+var
+  form: TfrmViewer;
+begin
+  form:= getCurrentViewerForm;
+  if Assigned(form) then
+    form.cm_LoadNextFile( [] );
+end;
+
+procedure viewerCopyAction( const Sender: id );
+var
+  form: TfrmViewer;
+begin
+  form:= getCurrentViewerForm;
+  if Assigned(form) then
+    form.cm_CopyFile( [] );
+end;
+
+procedure viewerMoveAction( const Sender: id );
+var
+  form: TfrmViewer;
+begin
+  form:= getCurrentViewerForm;
+  if Assigned(form) then
+    form.cm_MoveFile( [] );
+end;
+
+procedure viewerDeleteAction( const Sender: id );
+var
+  form: TfrmViewer;
+begin
+  form:= getCurrentViewerForm;
+  if Assigned(form) then
+    form.cm_DeleteFile( [] );
+end;
+
 procedure onViewerGetPenWidthMenu( const menu: TMenu );
 var
   i: Integer;
@@ -102,7 +156,7 @@ const
     title: 'Reload';
     tips: 'Reload';
     bordered: True;
-    onAction: nil;
+    onAction: @viewerReloadAction;
   );
 
   viewerPrevItemConfig: TCocoaConfigToolBarItem = (
@@ -113,7 +167,7 @@ const
     title: 'Prev';
     tips: 'Prev';
     bordered: True;
-    onAction: nil;
+    onAction: @viewerPrevAction;
   );
 
   viewerNextItemConfig: TCocoaConfigToolBarItem = (
@@ -124,7 +178,7 @@ const
     title: 'Next';
     tips: 'Next';
     bordered: True;
-    onAction: nil;
+    onAction: @viewerNextAction;
   );
 
   viewerCopyFileItemConfig: TCocoaConfigToolBarItem = (
@@ -135,7 +189,7 @@ const
     title: 'CopyFile';
     tips: 'CopyFile';
     bordered: True;
-    onAction: nil;
+    onAction: @viewerCopyAction;
   );
 
   viewerMoveFileItemConfig: TCocoaConfigToolBarItem = (
@@ -146,7 +200,7 @@ const
     title: 'MoveFile';
     tips: 'MoveFile';
     bordered: True;
-    onAction: nil;
+    onAction: @viewerMoveAction;
   );
 
   viewerDeleteFileItemConfig: TCocoaConfigToolBarItem = (
@@ -157,8 +211,9 @@ const
     title: 'DeleteFile';
     tips: 'DeleteFile';
     bordered: True;
-    onAction: nil;
+    onAction: @viewerDeleteAction;
   );
+
 
   viewerZoomInItemConfig: TCocoaConfigToolBarItem = (
     identifier: 'ViewerForm.ZoomIn';
