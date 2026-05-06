@@ -8,7 +8,7 @@ interface
 uses
   Classes, SysUtils,
   LCLType, Forms, Menus,
-  fMain, fEditor, fDiffer,
+  fMain, fEditor, fDiffer, fViewer,
   uHotkeyManager, uEarlyConfig, uGlobs, uLng, uDCUtils,
   uFileView, uBriefFileView, uColumnsFileView, uThumbFileView,
   uFileSystemFileSource,

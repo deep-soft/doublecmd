@@ -1,3 +1,78 @@
+var
+  viewerImageItemsIdentifiers: TStringArray = (
+    'ViewerForm.ZoomIn',
+    'ViewerForm.ZoomOut',
+    'NSToolbarFlexibleSpaceItem',
+    'ViewerForm.Rotate270',
+    'ViewerForm.Rotate90',
+    'ViewerForm.Mirror',
+    'NSToolbarFlexibleSpaceItem',
+
+    'ViewerForm.GifMove',
+    'ViewerForm.GifPrev',
+    'ViewerForm.GifNext',
+    'ViewerForm.GifExport',
+    'NSToolbarFlexibleSpaceItem',
+
+    'ViewerForm.HighLight',
+    'ViewerForm.Crop',
+    'ViewerForm.RedEyes',
+    'NSToolbarFlexibleSpaceItem',
+
+    'ViewerForm.Paint',
+    'ViewerForm.PenMode',
+    'ViewerForm.PenWidth',
+    'ViewerForm.PenColor',
+
+    'NSToolbarFlexibleSpaceItem',
+    'ViewerForm.Resize',
+    'ViewerForm.Slide'
+  );
+
+function getCurrentViewerForm: TfrmViewer;
+var
+  form: TCustomForm;
+begin
+  Result:= nil;
+  form:= Screen.ActiveCustomForm;
+  if form is TfrmViewer then
+    Result:= TfrmViewer(form);
+end;
+
+procedure viewerAttachImageToolBar( const Sender: id );
+var
+  toolBar: NSToolBar;
+  i: Integer;
+begin
+  toolBar:= TCocoaToolBarUtils.getToolBar( getCurrentViewerForm );
+  if toolBar = nil then
+    Exit;
+
+  if TCocoaToolBarUtils.findItemIndexByIdentifier(toolBar,viewerImageItemsIdentifiers[0]) > 0 then
+    Exit;
+
+  for i:= 0 to Length(viewerImageItemsIdentifiers)-1 do
+    TCocoaToolBarUtils.addItemWithIdentifier( toolBar, viewerImageItemsIdentifiers[i] );
+end;
+
+procedure viewerDeattachImageToolBar( const Sender: id );
+var
+  toolBar: NSToolBar;
+  index: Integer;
+  i: Integer;
+begin
+  toolBar:= TCocoaToolBarUtils.getToolBar( getCurrentViewerForm );
+  if toolBar = nil then
+    Exit;
+
+  index:= TCocoaToolBarUtils.findItemIndexByIdentifier( toolBar, viewerImageItemsIdentifiers[0] );
+  if index < 0 then
+    Exit;
+
+  for i:= toolBar.items.count-1 downto index do
+    TCocoaToolBarUtils.removeItemByIndex( toolBar, i );
+end;
+
 procedure onViewerGetPenWidthMenu( const menu: TMenu );
 var
   i: Integer;
@@ -339,35 +414,7 @@ const
         'ViewerForm.Next',
         'ViewerForm.CopyFile',
         'ViewerForm.MoveFile',
-        'ViewerForm.DeleteFile',
-
-        'ViewerForm.ZoomIn',
-        'ViewerForm.ZoomOut',
-        'NSToolbarFlexibleSpaceItem',
-        'ViewerForm.Rotate270',
-        'ViewerForm.Rotate90',
-        'ViewerForm.Mirror',
-        'NSToolbarFlexibleSpaceItem',
-
-        'ViewerForm.GifMove',
-        'ViewerForm.GifPrev',
-        'ViewerForm.GifNext',
-        'ViewerForm.GifExport',
-        'NSToolbarFlexibleSpaceItem',
-
-        'ViewerForm.HighLight',
-        'ViewerForm.Crop',
-        'ViewerForm.RedEyes',
-        'NSToolbarFlexibleSpaceItem',
-
-        'ViewerForm.Paint',
-        'ViewerForm.PenMode',
-        'ViewerForm.PenWidth',
-        'ViewerForm.PenColor',
-
-        'NSToolbarFlexibleSpaceItem',
-        'ViewerForm.Resize',
-        'ViewerForm.Slide'
+        'ViewerForm.DeleteFile'
       );
       allowedItemsIdentifiers: (
         'ViewerForm.Reload',
