@@ -29,6 +29,14 @@ var
     'ViewerForm.Slide'
   );
 
+type
+
+  TCocoaViewerFormHandler = class( TViewerFormHandler )
+    procedure onShowModeChanged(
+      const viewer: TfrmViewer;
+      const mode: TViewerShowMode ); override;
+  end;
+
 function getCurrentViewerForm: TfrmViewer;
 var
   form: TCustomForm;
@@ -39,12 +47,12 @@ begin
     Result:= TfrmViewer(form);
 end;
 
-procedure viewerAttachImageToolBar( const Sender: id );
+procedure viewerAttachImageToolBar( const form: TCustomForm );
 var
   toolBar: NSToolBar;
   i: Integer;
 begin
-  toolBar:= TCocoaToolBarUtils.getToolBar( getCurrentViewerForm );
+  toolBar:= TCocoaToolBarUtils.getToolBar( form );
   if toolBar = nil then
     Exit;
 
@@ -55,13 +63,13 @@ begin
     TCocoaToolBarUtils.addItemWithIdentifier( toolBar, viewerImageItemsIdentifiers[i] );
 end;
 
-procedure viewerDeattachImageToolBar( const Sender: id );
+procedure viewerDeattachImageToolBar( const form: TCustomForm );
 var
   toolBar: NSToolBar;
   index: Integer;
   i: Integer;
 begin
-  toolBar:= TCocoaToolBarUtils.getToolBar( getCurrentViewerForm );
+  toolBar:= TCocoaToolBarUtils.getToolBar( form );
   if toolBar = nil then
     Exit;
 
@@ -487,5 +495,20 @@ begin
     TCocoaToolBarUtils.toClass(viewerResizeItemConfig),
     TCocoaToolBarUtils.toClass(viewerSlideItemConfig)
   ];
+
+  FreeAndNil( viewerFormHandler );
+  viewerFormHandler:= TCocoaViewerFormHandler.Create;
+end;
+
+{ TCocoaViewerFormHandler }
+
+procedure TCocoaViewerFormHandler.onShowModeChanged(
+  const viewer: TfrmViewer;
+  const mode: TViewerShowMode );
+begin
+  if mode = vsmImage then
+    viewerAttachImageToolBar( viewer )
+  else
+    viewerDeattachImageToolBar( viewer )
 end;
 

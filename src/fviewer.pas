@@ -52,6 +52,7 @@
 unit fViewer;
 
 {$mode objfpc}{$H+}
+{$interfaces corba}
 
 interface
 
@@ -69,6 +70,8 @@ type
   TEncodingMenu = (emViewer, emPlugin, emEditor);
 
   TViewerCopyMoveAction=(vcmaCopy,vcmaMove);
+
+  TViewerShowMode = (vsmText, vsmImage, vsmPlugin, vsmCode, vsmFolder);
 
   { TDrawGrid }
 
@@ -529,8 +532,19 @@ type
     procedure cm_WrapText(const Params: array of string);
   end;
 
+  { TViewerFormHandler }
+
+  TViewerFormHandler = class
+    procedure onShowModeChanged(
+      const viewer: TfrmViewer;
+      const mode: TViewerShowMode ); virtual;
+  end;
+
 procedure ShowViewer(const FilesToView: TStringList; WaitData: TWaitData = nil); overload;
 procedure ShowViewer(const FilesToView: TStringList; AMode: Integer; WaitData: TWaitData = nil); overload;
+
+var
+  viewerFormHandler: TViewerFormHandler;
 
 implementation
 
@@ -3529,6 +3543,7 @@ begin
 
     UpdateTextEncodingsMenu(emPlugin);
     Status.Panels[sbpTextEncoding].Text := rsViewEncoding + ': ' + ViewerControl.EncodingName;
+    viewerFormHandler.onShowModeChanged( self, vsmPlugin );
   end
   else if Panel = pnlCode then
   begin
@@ -3539,6 +3554,7 @@ begin
        SynEdit.SetFocus;
 
     Status.Panels[sbpFileSize].Text:= IntToStr(SynEdit.Lines.Count);
+    viewerFormHandler.onShowModeChanged( self, vsmCode );
   end
   else if Panel = pnlText then
   begin
@@ -3558,6 +3574,8 @@ begin
     FRegExp.ChangeEncoding(ViewerControl.EncodingName);
     Status.Panels[sbpFileSize].Text:= cnvFormatFileSize(ViewerControl.FileSize) + ' (100 %)';
     Status.Panels[sbpTextEncoding].Text := rsViewEncoding + ': ' + ViewerControl.EncodingName;
+
+    viewerFormHandler.onShowModeChanged( self, vsmText );
   end
   else if Panel = pnlImage then
   begin
@@ -3566,6 +3584,11 @@ begin
     Status.Panels[sbpTextEncoding].Text:= EmptyStr;
     if (not bQuickView) and CanFocus and pnlImage.CanFocus then pnlImage.SetFocus;
     ToolBar1.Visible:= not (bQuickView or (miFullScreen.Checked and not ToolBar1.MouseInClient));
+    viewerFormHandler.onShowModeChanged( self, vsmImage );
+  end
+  else if Panel = pnlFolder then
+  begin
+    viewerFormHandler.onShowModeChanged( self, vsmFolder );
   end;
 
   miPlugins.Checked    := (Panel = nil);
@@ -4191,7 +4214,16 @@ begin
   end;
 end;
 
+{ TViewerFormHandler }
+
+procedure TViewerFormHandler.onShowModeChanged(
+  const viewer: TfrmViewer;
+  const mode: TViewerShowMode);
+begin
+end;
+
 initialization
+  viewerFormHandler:= TViewerFormHandler.Create;
   TFormCommands.RegisterCommandsForm(TfrmViewer, HotkeysCategory, @rsHotkeyCategoryViewer);
 
 end.
