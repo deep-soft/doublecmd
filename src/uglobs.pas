@@ -3273,7 +3273,10 @@ begin
       end;
       gCustomIcons := TCustomIconsMode(GetValue(Node, 'CustomIcons', Integer(gCustomIcons)));
       gIconsInMenus := GetAttr(Node, 'ShowInMenus/Enabled', gIconsInMenus);
+      // Qt bindings support only 16px icons for menu items
+{$IF NOT (DEFINED(LCLQT5) OR DEFINED(LCLQT6))}
       gIconsInMenusSize := GetValue(Node, 'ShowInMenus/Size', gIconsInMenusSize);
+{$ENDIF}
       if gIconsInMenus then
         Application.ShowMenuGlyphs:= sbgAlways
       else
