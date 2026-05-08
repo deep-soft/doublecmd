@@ -543,6 +543,9 @@ type
     procedure onGifStateChanged(
       const viewer: TfrmViewer;
       const states: TViewerGifStates ); virtual;
+    procedure onImageEditStateChanged(
+      const viewer: TfrmViewer;
+      const highlightButton: TToolButton ); virtual;
   end;
 
 procedure ShowViewer(const FilesToView: TStringList; WaitData: TWaitData = nil); overload;
@@ -1109,6 +1112,8 @@ begin
     end;
     if actAutoReload.Checked then cm_AutoReload([]);
   end;
+
+  viewerFormHandler.onImageEditStateChanged( self, btnHightlight );
 end;
 
 procedure TfrmViewer.FormResize(Sender: TObject);
@@ -1927,7 +1932,7 @@ begin
   Result:= DoZoom( 0.909, -1 );
 end;
 
-procedure TfrmViewer.RotateImage(ADegree: integer);
+procedure TfrmViewer.RotateImage(ADegree: Integer);
 // ADegree now supported only 90,180,270 values
 var
   Q: QWord;
@@ -2302,6 +2307,8 @@ begin
   begin
     AdjustImageSize;
   end;
+
+  viewerFormHandler.onImageEditStateChanged( self, btnHightlight );
 end;
 
 procedure TfrmViewer.StartCalcFolderSize;
@@ -2608,6 +2615,8 @@ begin
   btnPenColor.Enabled:= btnPaint.Down;
   ImgEdit:= True;
   CreateTmp;
+
+  viewerFormHandler.onImageEditStateChanged( self, btnHightlight );
 end;
 
 procedure TfrmViewer.btnPenModeClick(Sender: TObject);
@@ -2984,6 +2993,7 @@ function TfrmViewer.LoadGraphics(const sFileName:String): Boolean;
     else
       gifStates:= [vgsIsGif];
     viewerFormHandler.onGifStateChanged( self, gifStates );
+    viewerFormHandler.onImageEditStateChanged( self, btnHightlight );
   end;
 
 var
@@ -3894,6 +3904,8 @@ begin
   btnSlideShow.Visible:=miFullScreen.Checked;
   AdjustImageSize;
   ShowOnTop;
+
+  viewerFormHandler.onImageEditStateChanged( self, btnHightlight );
 end;
 
 procedure TfrmViewer.cm_Screenshot(const Params: array of string);
@@ -4252,6 +4264,12 @@ end;
 procedure TViewerFormHandler.onGifStateChanged(
   const viewer: TfrmViewer;
   const states: TViewerGifStates);
+begin
+end;
+
+procedure TViewerFormHandler.onImageEditStateChanged(
+  const viewer: TfrmViewer;
+  const highlightButton: TToolButton );
 begin
 end;
 
