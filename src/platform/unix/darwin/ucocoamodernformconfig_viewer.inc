@@ -41,8 +41,9 @@ type
       const viewer: TfrmViewer;
       const states: TViewerGifStates ); override;
     procedure onImageEditStateChanged(
-      const viewer: TfrmViewer;
-      const highlightButton: TToolButton ); override;
+      const viewer: TfrmViewer ); override;
+
+    procedure onPenWidthChanged( Sender: TObject );
   end;
 
 function getCurrentViewerForm: TfrmViewer;
@@ -253,6 +254,45 @@ begin
     form.btnRedEyeClick( nil );
 end;
 
+procedure viewerPaintAction( const Sender: id );
+var
+  form: TfrmViewer;
+begin
+  form:= getCurrentViewerForm;
+  if Assigned(form) then begin
+    form.btnPaint.Down:= NOT form.btnPaint.Down;
+    form.btnPaintHightlight( form.btnPaint );
+  end;
+end;
+
+procedure viewerPenModeAction( const Sender: id );
+var
+  form: TfrmViewer;
+  menuItem: TMenuItem = nil;
+  penModeItem: NSToolBarItemGroup absolute Sender;
+begin
+  form:= getCurrentViewerForm;
+  if Assigned(form) then begin
+    case penModeItem.selectedIndex of
+      0: menuItem:= form.miPen;
+      1: menuItem:= form.miRect;
+      2: menuItem:= form.miEllipse;
+    end;
+
+    if Assigned(menuItem) then
+      form.miPenClick( menuItem );
+  end;
+end;
+
+procedure viewerPenColorAction( const Sender: id );
+var
+  form: TfrmViewer;
+begin
+  form:= getCurrentViewerForm;
+  if Assigned(form) then
+    form.btnPenColor.Click;
+end;
+
 procedure onViewerGetPenWidthMenu( const menu: TMenu );
 var
   i: Integer;
@@ -261,6 +301,8 @@ begin
   for i:= 1 to 25 do begin
     item:= TMenuItem.Create( menu );
     item.Caption:= i.ToString;
+    item.Tag:= i;
+    item.OnClick:= @TCocoaViewerFormHandler(viewerFormHandler).onPenWidthChanged;
     menu.Items.Add( item );
   end;
 end;
@@ -476,11 +518,11 @@ const
     identifier: 'ViewerForm.Paint';
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: False;
-    iconName: 'highlighter';
+    iconName: 'pencil';
     title: 'Paint';
     tips: 'Paint';
     bordered: True;
-    onAction: nil;
+    onAction: @viewerPaintAction;
   );
 
 
@@ -519,7 +561,7 @@ const
     title: '';
     tips: '';
     bordered: True;
-    onAction: nil;
+    onAction: @viewerPenModeAction;
 
     representation: NSToolbarItemGroupControlRepresentationCollapsed;
     selectionMode: NSToolbarItemGroupSelectionModeSelectOne;
@@ -547,11 +589,12 @@ const
     identifier: 'ViewerForm.PenColor';
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: False;
+    appValidates: True;
     iconName: 'eyedropper';
     title: 'Color';
     tips: '';
     bordered: True;
-    onAction: nil;
+    onAction: @viewerPenColorAction;
   );
 
   viewerResizeItemConfig: TCocoaConfigToolBarItem = (
@@ -743,44 +786,81 @@ begin
 end;
 
 procedure TCocoaViewerFormHandler.onImageEditStateChanged(
-  const viewer: TfrmViewer;
-  const highlightButton: TToolButton );
+  const viewer: TfrmViewer );
 var
-  cropEnabled: Boolean;
-  redEyesEnabled: Boolean;
-
   toolBar: NSToolBar;
   item: NSToolBarItem;
 
-  highlightImageName: String;
-  highlightImage: NSImage;
+  procedure updateHighlightState;
+  var
+    highlightButton: TToolButton;
+    highlightImageName: String;
+    highlightImage: NSImage;
+  begin
+    highlightButton:= viewer.btnHightlight;
+    item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.HighLight');
+    item.setEnabled( highlightButton.Enabled );
+    if highlightButton.Down then
+      highlightImageName:= 'paintbrush.pointed.fill'
+    else
+      highlightImageName:= 'paintbrush.pointed';
+    highlightImage:= NSImage.imageWithSystemSymbolName_accessibilityDescription(
+      StringToNSString(highlightImageName), nil );
+    item.setImage( highlightImage );
+
+    item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.Crop');
+    item.setEnabled( highlightButton.Down );
+    item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.RedEyes');
+    item.setEnabled( highlightButton.Down );
+  end;
+
+  procedure updatePaintState;
+  var
+    paintButton: TToolButton;
+    paintImageName: String;
+    paintImage: NSImage;
+  begin
+    paintButton:= viewer.btnPaint;
+    item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.Paint');
+    item.setEnabled( paintButton.Enabled );
+    if paintButton.Down then
+      paintImageName:= 'highlighter'
+    else
+      paintImageName:= 'pencil';
+    paintImage:= NSImage.imageWithSystemSymbolName_accessibilityDescription(
+      StringToNSString(paintImageName), nil );
+    item.setImage( paintImage );
+
+    item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.PenMode');
+    item.setEnabled( paintButton.Down );
+    NSToolbarItemGroup(item).setSelected_atIndex( True, viewer.btnPenMode.Tag );
+
+    item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.PenWidth');
+    item.setEnabled( paintButton.Down );
+    item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.PenColor');
+    item.setEnabled( paintButton.Down );
+  end;
+
 begin
   viewerAttachImageToolBar( viewer );
   toolBar:= TCocoaToolBarUtils.getToolBar( viewer );
   if toolBar = nil then
     Exit;
 
-  if highlightButton.Down then begin
-    cropEnabled:= True;
-    redEyesEnabled:= True;
-  end else begin
-    cropEnabled:= False;
-    redEyesEnabled:= False;
+  updateHighlightState;
+  updatePaintState;
+end;
+
+procedure TCocoaViewerFormHandler.onPenWidthChanged( Sender: TObject );
+var
+  toolBarMenuItem: TMenuItem absolute Sender;
+  viewerMenuItem: TMenuItem;
+  form: TfrmViewer;
+begin
+  form:= getCurrentViewerForm;
+  if Assigned(form) then begin
+    viewerMenuItem:= form.pmPenWidth.Items[toolBarMenuItem.Tag-1];
+    form.miPaintClick( viewerMenuItem );
   end;
-
-  item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.HighLight');
-  item.setEnabled( highlightButton.Enabled );
-  if highlightButton.Down then
-    highlightImageName:= 'paintbrush.pointed.fill'
-  else
-    highlightImageName:= 'paintbrush.pointed';
-  highlightImage:= NSImage.imageWithSystemSymbolName_accessibilityDescription(
-    StringToNSString(highlightImageName), nil );
-  item.setImage( highlightImage );
-
-  item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.Crop');
-  item.setEnabled( cropEnabled );
-  item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.RedEyes');
-  item.setEnabled( redEyesEnabled );
 end;
 

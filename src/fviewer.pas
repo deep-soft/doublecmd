@@ -544,8 +544,7 @@ type
       const viewer: TfrmViewer;
       const states: TViewerGifStates ); virtual;
     procedure onImageEditStateChanged(
-      const viewer: TfrmViewer;
-      const highlightButton: TToolButton ); virtual;
+      const viewer: TfrmViewer ); virtual;
   end;
 
 procedure ShowViewer(const FilesToView: TStringList; WaitData: TWaitData = nil); overload;
@@ -1113,7 +1112,7 @@ begin
     if actAutoReload.Checked then cm_AutoReload([]);
   end;
 
-  viewerFormHandler.onImageEditStateChanged( self, btnHightlight );
+  viewerFormHandler.onImageEditStateChanged( self );
 end;
 
 procedure TfrmViewer.FormResize(Sender: TObject);
@@ -1418,6 +1417,7 @@ procedure TfrmViewer.miPenClick(Sender: TObject);
 begin
   btnPenMode.Tag:= TMenuItem(Sender).Tag;
   btnPenMode.ImageIndex:= TMenuItem(Sender).ImageIndex;
+  viewerFormHandler.onImageEditStateChanged( self );
 end;
 
 procedure TfrmViewer.miLookBookClick(Sender: TObject);
@@ -2308,7 +2308,7 @@ begin
     AdjustImageSize;
   end;
 
-  viewerFormHandler.onImageEditStateChanged( self, btnHightlight );
+  viewerFormHandler.onImageEditStateChanged( self );
 end;
 
 procedure TfrmViewer.StartCalcFolderSize;
@@ -2616,7 +2616,7 @@ begin
   ImgEdit:= True;
   CreateTmp;
 
-  viewerFormHandler.onImageEditStateChanged( self, btnHightlight );
+  viewerFormHandler.onImageEditStateChanged( self );
 end;
 
 procedure TfrmViewer.btnPenModeClick(Sender: TObject);
@@ -2993,7 +2993,7 @@ function TfrmViewer.LoadGraphics(const sFileName:String): Boolean;
     else
       gifStates:= [vgsIsGif];
     viewerFormHandler.onGifStateChanged( self, gifStates );
-    viewerFormHandler.onImageEditStateChanged( self, btnHightlight );
+    viewerFormHandler.onImageEditStateChanged( self );
   end;
 
 var
@@ -3905,7 +3905,7 @@ begin
   AdjustImageSize;
   ShowOnTop;
 
-  viewerFormHandler.onImageEditStateChanged( self, btnHightlight );
+  viewerFormHandler.onImageEditStateChanged( self );
 end;
 
 procedure TfrmViewer.cm_Screenshot(const Params: array of string);
@@ -4268,8 +4268,7 @@ begin
 end;
 
 procedure TViewerFormHandler.onImageEditStateChanged(
-  const viewer: TfrmViewer;
-  const highlightButton: TToolButton );
+  const viewer: TfrmViewer );
 begin
 end;
 
