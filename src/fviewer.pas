@@ -294,6 +294,7 @@ type
     procedure btnPrevGifFrameClick(Sender: TObject);
     procedure btnRedEyeClick(Sender: TObject);
     procedure btnResizeClick(Sender: TObject);
+    procedure btnSlideShowSetState(const state: Boolean);
     procedure btnSlideShowClick(Sender: TObject);
     procedure DrawPreviewSelection(Sender: TObject; aCol, aRow: Integer);
     procedure DrawPreviewTopleftChanged(Sender: TObject);
@@ -544,6 +545,8 @@ type
       const viewer: TfrmViewer;
       const states: TViewerGifStates ); virtual;
     procedure onImageEditStateChanged(
+      const viewer: TfrmViewer ); virtual;
+    procedure onSlideStateChanged(
       const viewer: TfrmViewer ); virtual;
   end;
 
@@ -2212,7 +2215,7 @@ begin
     end;
   end;
   Inc(i_timer);
-  if (btnSlideShow.Down) and (i_timer = 60 * btnSlideShow.Tag) then
+  if (btnSlideShow.Down) and (i_timer >= 60 * btnSlideShow.Tag) then
   begin
     if (ToolBar1.Visible) and (not ToolBar1.MouseInClient) then
     begin
@@ -2649,9 +2652,15 @@ begin
   end;
 end;
 
+procedure TfrmViewer.btnSlideShowSetState(const state: Boolean);
+begin
+  btnSlideShow.Down:= state;
+  viewerFormHandler.onSlideStateChanged( self );
+end;
+
 procedure TfrmViewer.btnSlideShowClick(Sender: TObject);
 begin
-  btnSlideShow.Down:= not btnSlideShow.Down;
+  btnSlideShowSetState( not btnSlideShow.Down );
 end;
 
 procedure TfrmViewer.FormDestroy(Sender: TObject);
@@ -4269,6 +4278,10 @@ end;
 
 procedure TViewerFormHandler.onImageEditStateChanged(
   const viewer: TfrmViewer );
+begin
+end;
+
+procedure TViewerFormHandler.onSlideStateChanged( const viewer: TfrmViewer );
 begin
 end;
 

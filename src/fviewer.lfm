@@ -657,7 +657,7 @@ object frmViewer: TfrmViewer
         ShowCaption = False
       end
       object btnSlideShow: TToolButton
-        Tag = 1
+        Tag = 3
         Left = 232
         Top = 66
         AutoSize = True

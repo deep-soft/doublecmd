@@ -42,8 +42,11 @@ type
       const states: TViewerGifStates ); override;
     procedure onImageEditStateChanged(
       const viewer: TfrmViewer ); override;
+    procedure onSlideStateChanged(
+      const viewer: TfrmViewer ); override;
 
     procedure onPenWidthChanged( Sender: TObject );
+    procedure onSlideStart( Sender: TObject );
   end;
 
 function getCurrentViewerForm: TfrmViewer;
@@ -302,6 +305,15 @@ begin
     form.btnResizeClick( nil );
 end;
 
+procedure viewerSlideAction( const Sender: id );
+var
+  form: TfrmViewer;
+begin
+  form:= getCurrentViewerForm;
+  if Assigned(form) then
+    form.btnSlideShowClick( nil );
+end;
+
 procedure onViewerGetPenWidthMenu( const menu: TMenu );
 var
   i: Integer;
@@ -312,6 +324,20 @@ begin
     item.Caption:= i.ToString;
     item.Tag:= i;
     item.OnClick:= @TCocoaViewerFormHandler(viewerFormHandler).onPenWidthChanged;
+    menu.Items.Add( item );
+  end;
+end;
+
+procedure onViewerGetSlideMenu( const menu: TMenu );
+var
+  i: Integer;
+  item: TMenuItem;
+begin
+  for i:= 1 to 25 do begin
+    item:= TMenuItem.Create( menu );
+    item.Caption:= i.ToString;
+    item.Tag:= i;
+    item.OnClick:= @TCocoaViewerFormHandler(viewerFormHandler).onSlideStart;
     menu.Items.Add( item );
   end;
 end;
@@ -617,7 +643,7 @@ const
     onAction: @viewerResizeAction;
   );
 
-  viewerSlideItemConfig: TCocoaConfigToolBarItem = (
+  viewerSlideItemConfig: TCocoaConfigToolBarItemMenu = (
     identifier: 'ViewerForm.Slide';
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: False;
@@ -625,7 +651,11 @@ const
     title: 'Slide Show';
     tips: 'Slide Show';
     bordered: True;
-    onAction: nil;
+    onAction: @viewerSlideAction;
+
+    showsIndicator: True;
+    menu: nil;
+    onGetMenu: @onViewerGetSlideMenu;
   );
 
   viewerFormConfig: TCocoaConfigForm = (
@@ -860,6 +890,28 @@ begin
   updatePaintState;
 end;
 
+procedure TCocoaViewerFormHandler.onSlideStateChanged(const viewer: TfrmViewer);
+var
+  form: TfrmViewer;
+  item: NSToolBarItem;
+  imageName: String;
+  image: NSImage;
+begin
+  form:= getCurrentViewerForm;
+  if Assigned(form) then begin
+    if form.btnSlideShow.Down then
+      imageName:= 'pause'
+    else
+      imageName:= 'play';
+    image:= NSImage.imageWithSystemSymbolName_accessibilityDescription(
+      StringToNSString(imageName), nil );
+    item:= TCocoaToolBarUtils.findItemByIdentifier( form, 'ViewerForm.Slide' );
+    item.setImage( image );
+
+    form.TimerViewer.Enabled:= form.btnSlideShow.Down;
+  end;
+end;
+
 procedure TCocoaViewerFormHandler.onPenWidthChanged( Sender: TObject );
 var
   toolBarMenuItem: TMenuItem absolute Sender;
@@ -870,6 +922,20 @@ begin
   if Assigned(form) then begin
     viewerMenuItem:= form.pmPenWidth.Items[toolBarMenuItem.Tag-1];
     form.miPaintClick( viewerMenuItem );
+  end;
+end;
+
+procedure TCocoaViewerFormHandler.onSlideStart( Sender: TObject );
+var
+  toolBarMenuItem: TMenuItem absolute Sender;
+  viewerMenuItem: TMenuItem;
+  form: TfrmViewer;
+begin
+  form:= getCurrentViewerForm;
+  if Assigned(form) then begin
+    viewerMenuItem:= form.pmTimeShow.Items[toolBarMenuItem.Tag-1];
+    form.miPaintClick( viewerMenuItem );
+    form.btnSlideShowSetState( True );
   end;
 end;
 
