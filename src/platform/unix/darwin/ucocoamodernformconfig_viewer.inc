@@ -293,6 +293,15 @@ begin
     form.btnPenColor.Click;
 end;
 
+procedure viewerResizeAction( const Sender: id );
+var
+  form: TfrmViewer;
+begin
+  form:= getCurrentViewerForm;
+  if Assigned(form) then
+    form.btnResizeClick( nil );
+end;
+
 procedure onViewerGetPenWidthMenu( const menu: TMenu );
 var
   i: Integer;
@@ -605,7 +614,7 @@ const
     title: 'Resize';
     tips: 'Resize';
     bordered: True;
-    onAction: nil;
+    onAction: @viewerResizeAction;
   );
 
   viewerSlideItemConfig: TCocoaConfigToolBarItem = (
