@@ -303,6 +303,7 @@ type
     procedure FormKeyPress(Sender: TObject; var Key: Char);
     procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure FormWindowStateChange(Sender: TObject);
     procedure GifAnimMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure GifAnimMouseEnter(Sender: TObject);
@@ -1145,6 +1146,48 @@ begin
     miPreview.Checked := not (miPreview.Checked);
     cm_Preview(['']);
   end;
+end;
+
+procedure TfrmViewer.FormWindowStateChange(Sender: TObject);
+begin
+  miFullScreen.Checked:= not (miFullScreen.Checked);
+  if miFullScreen.Checked then
+    begin
+      btnPaint.Down:= false;
+      btnHightlight.Down:=false;
+      showToolBar( False );
+      miStretch.Checked:= True;
+      miStretchOnlyLarge.Checked:= False;
+      if miPreview.Checked then cm_Preview(['']);
+      actFullscreen.ImageIndex:= 25;
+      sboxImage.BorderStyle:= bsNone;
+    end
+  else
+    begin
+{$IF DEFINED(LCLWIN32)}
+      BorderStyle:= bsSizeable;
+      SetBounds(FWindowBounds.Left, FWindowBounds.Top, FWindowBounds.Right, FWindowBounds.Bottom);
+{$ENDIF}
+      showToolBar( True );
+      actFullscreen.ImageIndex:= 22;
+      sboxImage.BorderStyle:= bsSingle;
+    end;
+  if ExtractOnlyFileExt(FileList.Strings[iActiveFile]) <> 'gif' then
+  begin
+    btnHightlight.Enabled:= not (miFullScreen.Checked);
+    btnPaint.Enabled:= not (miFullScreen.Checked);
+    btnResize.Enabled:= not (miFullScreen.Checked);
+  end;
+  sboxImage.HorzScrollBar.Visible:= not(miFullScreen.Checked);
+  sboxImage.VertScrollBar.Visible:= not(miFullScreen.Checked);
+  TimerViewer.Enabled:=miFullScreen.Checked;
+  btnReload.Enabled:=not(miFullScreen.Checked);
+  Status.Visible:=not(miFullScreen.Checked);
+  btnSlideShow.Visible:=miFullScreen.Checked;
+  AdjustImageSize;
+  ShowOnTop;
+
+  viewerFormHandler.onImageEditStateChanged( self );
 end;
 
 procedure TfrmViewer.GifAnimMouseDown(Sender: TObject; Button: TMouseButton;
@@ -3875,8 +3918,7 @@ end;
 
 procedure TfrmViewer.cm_Fullscreen(const Params: array of string);
 begin
-  miFullScreen.Checked:= not (miFullScreen.Checked);
-  if miFullScreen.Checked then
+  if NOT miFullScreen.Checked then
     begin
       FWindowState:= WindowState;
 {$IF DEFINED(LCLWIN32)}
@@ -3888,14 +3930,6 @@ begin
 {$ENDIF}
       WindowState:= wsFullScreen;
       Self.Menu:= nil;
-      btnPaint.Down:= false;
-      btnHightlight.Down:=false;
-      showToolBar( False );
-      miStretch.Checked:= True;
-      miStretchOnlyLarge.Checked:= False;
-      if miPreview.Checked then cm_Preview(['']);
-      actFullscreen.ImageIndex:= 25;
-      sboxImage.BorderStyle:= bsNone;
     end
   else
     begin
@@ -3904,30 +3938,7 @@ begin
       WindowState:= wsFullScreen;
 {$ENDIF}
       WindowState:= FWindowState;
-{$IF DEFINED(LCLWIN32)}
-      BorderStyle:= bsSizeable;
-      SetBounds(FWindowBounds.Left, FWindowBounds.Top, FWindowBounds.Right, FWindowBounds.Bottom);
-{$ENDIF}
-      showToolBar( True );
-      actFullscreen.ImageIndex:= 22;
-      sboxImage.BorderStyle:= bsSingle;
     end;
-  if ExtractOnlyFileExt(FileList.Strings[iActiveFile]) <> 'gif' then
-  begin
-    btnHightlight.Enabled:= not (miFullScreen.Checked);
-    btnPaint.Enabled:= not (miFullScreen.Checked);
-    btnResize.Enabled:= not (miFullScreen.Checked);
-  end;
-  sboxImage.HorzScrollBar.Visible:= not(miFullScreen.Checked);
-  sboxImage.VertScrollBar.Visible:= not(miFullScreen.Checked);
-  TimerViewer.Enabled:=miFullScreen.Checked;
-  btnReload.Enabled:=not(miFullScreen.Checked);
-  Status.Visible:=not(miFullScreen.Checked);
-  btnSlideShow.Visible:=miFullScreen.Checked;
-  AdjustImageSize;
-  ShowOnTop;
-
-  viewerFormHandler.onImageEditStateChanged( self );
 end;
 
 procedure TfrmViewer.cm_Screenshot(const Params: array of string);
