@@ -672,6 +672,7 @@ const
       identifier: 'ViewerForm.ToolBar';
       style: NSWindowToolbarStyleUnifiedCompact;
       displayMode: NSToolbarDisplayModeIconOnly;
+      autoHideInFullScreen: True;
 
       allowsUserCustomization: False;
       autosavesConfiguration: False;
