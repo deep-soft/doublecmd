@@ -443,6 +443,7 @@ object frmViewer: TfrmViewer
       ParentFont = False
       ShowCaptions = True
       TabOrder = 1
+      Visible = False
       object btnReload: TToolButton
         Left = 1
         Top = 2

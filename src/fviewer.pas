@@ -441,6 +441,7 @@ type
     procedure SaveImageAs (Var sExt: String; senderSave: boolean; Quality: integer);
     procedure ImagePaintBackground(ASender: TObject; ACanvas: TCanvas; ARect: TRect);
     procedure CreatePreview(FullPathToFile:string; index:integer; delete: boolean = false);
+    procedure showToolBar( newVisibility: Boolean );
 
     property Commands: TFormCommands read FCommands implements IFormCommands;
     property FileName: String write SetFileName;
@@ -570,6 +571,9 @@ uses
 {$if lcl_fullversion >= 4990000}
   , SynEditWrappedView
 {$endif}
+{$IFDEF DARWIN}
+  , uDarwinApplication, uEarlyConfig
+{$ENDIF}
   ;
 
 const
@@ -1460,6 +1464,15 @@ begin
     end;
 end;
 
+procedure TfrmViewer.showToolBar( newVisibility: Boolean );
+begin
+  {$IFDEF DARWIN}
+    if gModernUI and TDarwinApplicationUtil.supportsModernForm then
+      newVisibility:= False;
+  {$ENDIF}
+  ToolBar1.Visible:= newVisibility;
+end;
+
 procedure TfrmViewer.WMCommand(var Message: TLMCommand);
 var
   Index: Integer;
@@ -2205,12 +2218,12 @@ begin
   begin
     if (ToolBar1.Visible) and (i_timer > 60) and (not ToolBar1.MouseInClient) then
     begin
-      ToolBar1.Visible:= False;
+      showToolBar( False );
       AdjustImageSize;
     end
     else if (not ToolBar1.Visible) and (sboxImage.ScreenToClient(Mouse.CursorPos).Y < ToolBar1.Height div 2) then
     begin
-      ToolBar1.Visible:= True;
+      showToolBar( True );
       AdjustImageSize;
     end;
   end;
@@ -2219,7 +2232,7 @@ begin
   begin
     if (ToolBar1.Visible) and (not ToolBar1.MouseInClient) then
     begin
-      ToolBar1.Visible:= False;
+      showToolBar( False );
       AdjustImageSize;
     end;
     cm_LoadNextFile([]);
@@ -3629,7 +3642,7 @@ begin
     Image.Invalidate;
     Status.Panels[sbpTextEncoding].Text:= EmptyStr;
     if (not bQuickView) and CanFocus and pnlImage.CanFocus then pnlImage.SetFocus;
-    ToolBar1.Visible:= not (bQuickView or (miFullScreen.Checked and not ToolBar1.MouseInClient));
+    showToolBar( not (bQuickView or (miFullScreen.Checked and not ToolBar1.MouseInClient)) );
     viewerFormHandler.onShowModeChanged( self, vsmImage );
   end
   else if Panel = pnlFolder then
@@ -3877,7 +3890,7 @@ begin
       Self.Menu:= nil;
       btnPaint.Down:= false;
       btnHightlight.Down:=false;
-      ToolBar1.Visible:= False;
+      showToolBar( False );
       miStretch.Checked:= True;
       miStretchOnlyLarge.Checked:= False;
       if miPreview.Checked then cm_Preview(['']);
@@ -3895,7 +3908,7 @@ begin
       BorderStyle:= bsSizeable;
       SetBounds(FWindowBounds.Left, FWindowBounds.Top, FWindowBounds.Right, FWindowBounds.Bottom);
 {$ENDIF}
-      ToolBar1.Visible:= True;
+      showToolBar( True );
       actFullscreen.ImageIndex:= 22;
       sboxImage.BorderStyle:= bsSingle;
     end;
