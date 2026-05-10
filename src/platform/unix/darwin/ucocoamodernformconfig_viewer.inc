@@ -6,6 +6,7 @@ var
     'ViewerForm.Rotate270',
     'ViewerForm.Rotate90',
     'ViewerForm.Mirror',
+    'ViewerForm.Resize',
     'NSToolbarFlexibleSpaceItem',
 
     'ViewerForm.GifMove',
@@ -22,10 +23,7 @@ var
     'ViewerForm.Paint',
     'ViewerForm.PenMode',
     'ViewerForm.PenWidth',
-    'ViewerForm.PenColor',
-
-    'NSToolbarFlexibleSpaceItem',
-    'ViewerForm.Resize'
+    'ViewerForm.PenColor'
   );
 
 type
@@ -206,6 +204,15 @@ begin
     form.cm_MirrorHorz( [] );
 end;
 
+procedure viewerResizeAction( const Sender: id );
+var
+  form: TfrmViewer;
+begin
+  form:= getCurrentViewerForm;
+  if Assigned(form) then
+    form.btnResizeClick( nil );
+end;
+
 procedure viewerGifMoveAction( const Sender: id );
 var
   form: TfrmViewer;
@@ -308,15 +315,6 @@ begin
   form:= getCurrentViewerForm;
   if Assigned(form) then
     form.btnPenColor.Click;
-end;
-
-procedure viewerResizeAction( const Sender: id );
-var
-  form: TfrmViewer;
-begin
-  form:= getCurrentViewerForm;
-  if Assigned(form) then
-    form.btnResizeClick( nil );
 end;
 
 procedure viewerSlideAction( const Sender: id );
@@ -497,6 +495,19 @@ const
     onAction: @viewerMirrorAction;
   );
 
+  viewerResizeItemConfig: TCocoaConfigToolBarItem = (
+    identifier: 'ViewerForm.Resize';
+    priority: NSToolbarItemVisibilityPriorityStandard;
+    navigational: False;
+    appValidates: True;
+    iconName: 'rectangle.on.rectangle';
+    title: 'Resize';
+    tips: 'Resize';
+    bordered: True;
+    onAction: @viewerResizeAction;
+  );
+
+
   viewerGifMoveItemConfig: TCocoaConfigToolBarItem = (
     identifier: 'ViewerForm.GifMove';
     priority: NSToolbarItemVisibilityPriorityStandard;
@@ -667,17 +678,6 @@ const
     onAction: @viewerPenColorAction;
   );
 
-  viewerResizeItemConfig: TCocoaConfigToolBarItem = (
-    identifier: 'ViewerForm.Resize';
-    priority: NSToolbarItemVisibilityPriorityStandard;
-    navigational: False;
-    iconName: 'rectangle.on.rectangle';
-    title: 'Resize';
-    tips: 'Resize';
-    bordered: True;
-    onAction: @viewerResizeAction;
-  );
-
   viewerFormConfig: TCocoaConfigForm = (
     name: '';
     className: 'TfrmViewer';
@@ -715,12 +715,14 @@ const
         'ViewerForm.CopyFile',
         'ViewerForm.MoveFile',
         'ViewerForm.DeleteFile',
+        'ViewerForm.Slide',
 
         'ViewerForm.ZoomIn',
         'ViewerForm.ZoomOut',
         'ViewerForm.Rotate270',
         'ViewerForm.Rotate90',
         'ViewerForm.Mirror',
+        'ViewerForm.Resize',
 
         'ViewerForm.GifMove',
         'ViewerForm.GifPrev',
@@ -733,9 +735,7 @@ const
         'ViewerForm.Paint',
         'ViewerForm.PenMode',
         'ViewerForm.PenWidth',
-        'ViewerForm.PenColor',
-        'ViewerForm.Resize',
-        'ViewerForm.Slide'
+        'ViewerForm.PenColor'
       );
       itemCreator: nil;      // default item Creator
     );
@@ -763,6 +763,7 @@ begin
     TCocoaToolBarUtils.toClass(viewerRotate270ItemConfig),
     TCocoaToolBarUtils.toClass(viewerRotate90ItemConfig),
     TCocoaToolBarUtils.toClass(viewerMirrorItemConfig),
+    TCocoaToolBarUtils.toClass(viewerResizeItemConfig),
 
     TCocoaToolBarUtils.toClass(viewerGifMoveItemConfig),
     TCocoaToolBarUtils.toClass(viewerGifPrevItemConfig),
@@ -776,8 +777,7 @@ begin
     TCocoaToolBarUtils.toClass(viewerPaintItemConfig),
     TCocoaToolBarUtils.toClass(viewerPenModeItemConfig),
     TCocoaToolBarUtils.toClass(viewerPenWidthItemConfig),
-    TCocoaToolBarUtils.toClass(viewerPenColorItemConfig),
-    TCocoaToolBarUtils.toClass(viewerResizeItemConfig)
+    TCocoaToolBarUtils.toClass(viewerPenColorItemConfig)
   ];
 
   FreeAndNil( viewerFormHandler );
@@ -852,7 +852,7 @@ var
   toolBar: NSToolBar;
   item: NSToolBarItem;
 
-  procedure updateRotateState;
+  procedure updateRotateResizeState;
   begin
     item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.Rotate270');
     item.setEnabled( viewer.btn270.Enabled );
@@ -860,6 +860,8 @@ var
     item.setEnabled( viewer.btn90.Enabled );
     item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.Mirror');
     item.setEnabled( viewer.btnMirror.Enabled );
+    item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.Resize');
+    item.setEnabled( viewer.btnResize.Enabled );
   end;
 
   procedure updateHighlightState;
@@ -920,7 +922,7 @@ begin
   if NOT isImageToolBarAttached(viewer) then
     Exit;
 
-  updateRotateState;
+  updateRotateResizeState;
   updateHighlightState;
   updatePaintState;
 end;
