@@ -271,6 +271,7 @@ object frmViewer: TfrmViewer
   ShowHint = True
   ShowInTaskBar = stAlways
   LCLVersion = '2.2.7.0'
+  OnWindowStateChange = FormWindowStateChange
   object pnlFolder: TPanel
     Left = 179
     Height = 343

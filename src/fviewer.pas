@@ -1150,9 +1150,12 @@ end;
 
 procedure TfrmViewer.FormWindowStateChange(Sender: TObject);
 begin
-  miFullScreen.Checked:= not (miFullScreen.Checked);
+  miFullScreen.Checked:= (WindowState = wsFullScreen);
   if miFullScreen.Checked then
     begin
+{$IFnDEF DARWIN}
+      Self.Menu:= nil;
+{$ENDIF}
       btnPaint.Down:= false;
       btnHightlight.Down:=false;
       showToolBar( False );
@@ -1164,6 +1167,9 @@ begin
     end
   else
     begin
+{$IFnDEF DARWIN}
+      Self.Menu:= MainMenu;
+{$ENDIF}
 {$IF DEFINED(LCLWIN32)}
       BorderStyle:= bsSizeable;
       SetBounds(FWindowBounds.Left, FWindowBounds.Top, FWindowBounds.Right, FWindowBounds.Bottom);
@@ -3918,7 +3924,7 @@ end;
 
 procedure TfrmViewer.cm_Fullscreen(const Params: array of string);
 begin
-  if NOT miFullScreen.Checked then
+  if WindowState <> wsFullScreen then
     begin
       FWindowState:= WindowState;
 {$IF DEFINED(LCLWIN32)}
@@ -3929,16 +3935,16 @@ begin
       BorderStyle:= bsNone;
 {$ENDIF}
       WindowState:= wsFullScreen;
-      Self.Menu:= nil;
     end
   else
     begin
-      Self.Menu:= MainMenu;
 {$IFDEF LCLGTK2}
       WindowState:= wsFullScreen;
 {$ENDIF}
       WindowState:= FWindowState;
     end;
+
+  self.FormWindowStateChange( nil )
 end;
 
 procedure TfrmViewer.cm_Screenshot(const Params: array of string);
