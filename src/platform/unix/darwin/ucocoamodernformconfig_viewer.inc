@@ -25,8 +25,7 @@ var
     'ViewerForm.PenColor',
 
     'NSToolbarFlexibleSpaceItem',
-    'ViewerForm.Resize',
-    'ViewerForm.Slide'
+    'ViewerForm.Resize'
   );
 
 type
@@ -424,6 +423,21 @@ const
     onAction: @viewerDeleteAction;
   );
 
+  viewerSlideItemConfig: TCocoaConfigToolBarItemMenu = (
+    identifier: 'ViewerForm.Slide';
+    priority: NSToolbarItemVisibilityPriorityStandard;
+    navigational: True;
+    iconName: 'play';
+    title: 'Slide Show';
+    tips: 'Slide Show';
+    bordered: True;
+    onAction: @viewerSlideAction;
+
+    showsIndicator: True;
+    menu: nil;
+    onGetMenu: @onViewerGetSlideMenu;
+  );
+
 
   viewerZoomInItemConfig: TCocoaConfigToolBarItem = (
     identifier: 'ViewerForm.ZoomIn';
@@ -664,21 +678,6 @@ const
     onAction: @viewerResizeAction;
   );
 
-  viewerSlideItemConfig: TCocoaConfigToolBarItemMenu = (
-    identifier: 'ViewerForm.Slide';
-    priority: NSToolbarItemVisibilityPriorityStandard;
-    navigational: False;
-    iconName: 'play';
-    title: 'Slide Show';
-    tips: 'Slide Show';
-    bordered: True;
-    onAction: @viewerSlideAction;
-
-    showsIndicator: True;
-    menu: nil;
-    onGetMenu: @onViewerGetSlideMenu;
-  );
-
   viewerFormConfig: TCocoaConfigForm = (
     name: '';
     className: 'TfrmViewer';
@@ -706,7 +705,8 @@ const
         'ViewerForm.Next',
         'ViewerForm.CopyFile',
         'ViewerForm.MoveFile',
-        'ViewerForm.DeleteFile'
+        'ViewerForm.DeleteFile',
+        'ViewerForm.Slide'
       );
       allowedItemsIdentifiers: (
         'ViewerForm.Reload',
@@ -756,6 +756,7 @@ begin
     TCocoaToolBarUtils.toClass(viewerCopyFileItemConfig),
     TCocoaToolBarUtils.toClass(viewerMoveFileItemConfig),
     TCocoaToolBarUtils.toClass(viewerDeleteFileItemConfig),
+    TCocoaToolBarUtils.toClass(viewerSlideItemConfig),
 
     TCocoaToolBarUtils.toClass(viewerZoomInItemConfig),
     TCocoaToolBarUtils.toClass(viewerZoomOutItemConfig),
@@ -776,8 +777,7 @@ begin
     TCocoaToolBarUtils.toClass(viewerPenModeItemConfig),
     TCocoaToolBarUtils.toClass(viewerPenWidthItemConfig),
     TCocoaToolBarUtils.toClass(viewerPenColorItemConfig),
-    TCocoaToolBarUtils.toClass(viewerResizeItemConfig),
-    TCocoaToolBarUtils.toClass(viewerSlideItemConfig)
+    TCocoaToolBarUtils.toClass(viewerResizeItemConfig)
   ];
 
   FreeAndNil( viewerFormHandler );
