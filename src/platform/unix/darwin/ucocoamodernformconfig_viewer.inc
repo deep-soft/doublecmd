@@ -451,6 +451,7 @@ const
     identifier: 'ViewerForm.Rotate270';
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: False;
+    appValidates: True;
     iconName: 'rotate.left';
     title: 'Rotate -90 degree';
     tips: 'Rotate -90 degree';
@@ -462,6 +463,7 @@ const
     identifier: 'ViewerForm.Rotate90';
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: False;
+    appValidates: True;
     iconName: 'rotate.right';
     title: 'Rotate +90 degree';
     tips: 'Rotate +90 degree';
@@ -473,6 +475,7 @@ const
     identifier: 'ViewerForm.Mirror';
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: False;
+    appValidates: True;
     iconName: 'arrow.left.and.right.righttriangle.left.righttriangle.right';
     title: 'Mirror';
     tips: 'Mirror';
@@ -568,6 +571,7 @@ const
     identifier: 'ViewerForm.Paint';
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: False;
+    appValidates: True;
     iconName: 'pencil';
     title: 'Paint';
     tips: 'Paint';
@@ -607,6 +611,7 @@ const
     identifier: 'ViewerForm.PenMode';
     priority: NSToolbarItemVisibilityPriorityLow;
     navigational: False;
+    appValidates: True;
     iconName: '';
     title: '';
     tips: '';
@@ -624,6 +629,7 @@ const
     identifier: 'ViewerForm.PenWidth';
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: False;
+    appValidates: True;
     iconName: 'lineweight';
     title: 'Width';
     tips: '';
@@ -846,6 +852,16 @@ var
   toolBar: NSToolBar;
   item: NSToolBarItem;
 
+  procedure updateRotateState;
+  begin
+    item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.Rotate270');
+    item.setEnabled( viewer.btn270.Enabled );
+    item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.Rotate90');
+    item.setEnabled( viewer.btn90.Enabled );
+    item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.Mirror');
+    item.setEnabled( viewer.btnMirror.Enabled );
+  end;
+
   procedure updateHighlightState;
   var
     highlightButton: TToolButton;
@@ -904,6 +920,7 @@ begin
   if NOT isImageToolBarAttached(viewer) then
     Exit;
 
+  updateRotateState;
   updateHighlightState;
   updatePaintState;
 end;
