@@ -442,7 +442,10 @@ type
     procedure SaveImageAs (Var sExt: String; senderSave: boolean; Quality: integer);
     procedure ImagePaintBackground(ASender: TObject; ACanvas: TCanvas; ARect: TRect);
     procedure CreatePreview(FullPathToFile:string; index:integer; delete: boolean = false);
-    procedure showToolBar( newVisibility: Boolean );
+    procedure showLCLToolBar( newVisibility: Boolean );
+{$IFDEF DARWIN}
+    function modernToolBarEnabled: Boolean;
+{$ENDIF}
 
     property Commands: TFormCommands read FCommands implements IFormCommands;
     property FileName: String write SetFileName;
@@ -1158,7 +1161,7 @@ begin
 {$ENDIF}
       btnPaint.Down:= false;
       btnHightlight.Down:=false;
-      showToolBar( False );
+      showLCLToolBar( False );
       miStretch.Checked:= True;
       miStretchOnlyLarge.Checked:= False;
       if miPreview.Checked then cm_Preview(['']);
@@ -1174,7 +1177,7 @@ begin
       BorderStyle:= bsSizeable;
       SetBounds(FWindowBounds.Left, FWindowBounds.Top, FWindowBounds.Right, FWindowBounds.Bottom);
 {$ENDIF}
-      showToolBar( True );
+      showLCLToolBar( True );
       actFullscreen.ImageIndex:= 22;
       sboxImage.BorderStyle:= bsSingle;
     end;
@@ -1186,7 +1189,10 @@ begin
   end;
   sboxImage.HorzScrollBar.Visible:= not(miFullScreen.Checked);
   sboxImage.VertScrollBar.Visible:= not(miFullScreen.Checked);
-  TimerViewer.Enabled:=miFullScreen.Checked;
+{$IFDEF DARWIN}
+  if NOT self.modernToolBarEnabled then
+{$ENDIF}
+    TimerViewer.Enabled:=miFullScreen.Checked;
   btnReload.Enabled:=not(miFullScreen.Checked);
   Status.Visible:=not(miFullScreen.Checked);
   btnSlideShow.Visible:=miFullScreen.Checked;
@@ -1207,7 +1213,10 @@ end;
 
 procedure TfrmViewer.GifAnimMouseEnter(Sender: TObject);
 begin
-  if miFullScreen.Checked then TimerViewer.Enabled:=true;
+{$IFDEF DARWIN}
+  if NOT self.modernToolBarEnabled then
+{$ENDIF}
+    if miFullScreen.Checked then TimerViewer.Enabled:=true;
 end;
 
 procedure TfrmViewer.ImageMouseDown(Sender: TObject; Button: TMouseButton;
@@ -1300,12 +1309,18 @@ end;
 
 procedure TfrmViewer.ImageMouseEnter(Sender: TObject);
 begin
-  if miFullScreen.Checked then TimerViewer.Enabled:=true;
+{$IFDEF DARWIN}
+  if NOT self.modernToolBarEnabled then
+{$ENDIF}
+    if miFullScreen.Checked then TimerViewer.Enabled:=true;
 end;
 
 procedure TfrmViewer.ImageMouseLeave(Sender: TObject);
 begin
-  if miFullScreen.Checked then TimerViewer.Enabled:=false;
+{$IFDEF DARWIN}
+  if NOT self.modernToolBarEnabled then
+{$ENDIF}
+    if miFullScreen.Checked then TimerViewer.Enabled:=false;
 end;
 
 procedure TfrmViewer.ImageMouseMove(Sender: TObject; Shift: TShiftState; X,
@@ -1513,14 +1528,21 @@ begin
     end;
 end;
 
-procedure TfrmViewer.showToolBar( newVisibility: Boolean );
+procedure TfrmViewer.showLCLToolBar( newVisibility: Boolean );
 begin
-  {$IFDEF DARWIN}
-    if gModernUI and TDarwinApplicationUtil.supportsModernForm then
-      newVisibility:= False;
-  {$ENDIF}
+{$IFDEF DARWIN}
+  if self.modernToolBarEnabled then
+    newVisibility:= False;
+{$ENDIF}
   ToolBar1.Visible:= newVisibility;
 end;
+
+{$IFDEF DARWIN}
+function TfrmViewer.modernToolBarEnabled: Boolean;
+begin
+  Result:= gModernUI and TDarwinApplicationUtil.supportsModernForm;
+end;
+{$ENDIF}
 
 procedure TfrmViewer.WMCommand(var Message: TLMCommand);
 var
@@ -2145,12 +2167,18 @@ end;
 
 procedure TfrmViewer.sboxImageMouseEnter(Sender: TObject);
 begin
-  if miFullScreen.Checked then TimerViewer.Enabled:=true;
+{$IFDEF DARWIN}
+  if NOT self.modernToolBarEnabled then
+{$ENDIF}
+    if miFullScreen.Checked then TimerViewer.Enabled:=true;
 end;
 
 procedure TfrmViewer.sboxImageMouseLeave(Sender: TObject);
 begin
-  if miFullScreen.Checked then TimerViewer.Enabled:=false;
+{$IFDEF DARWIN}
+  if NOT self.modernToolBarEnabled then
+{$ENDIF}
+    if miFullScreen.Checked then TimerViewer.Enabled:=false;
 end;
 
 procedure TfrmViewer.sboxImageMouseMove(Sender: TObject; Shift: TShiftState; X,
@@ -2267,12 +2295,12 @@ begin
   begin
     if (ToolBar1.Visible) and (i_timer > 60) and (not ToolBar1.MouseInClient) then
     begin
-      showToolBar( False );
+      showLCLToolBar( False );
       AdjustImageSize;
     end
     else if (not ToolBar1.Visible) and (sboxImage.ScreenToClient(Mouse.CursorPos).Y < ToolBar1.Height div 2) then
     begin
-      showToolBar( True );
+      showLCLToolBar( True );
       AdjustImageSize;
     end;
   end;
@@ -2281,7 +2309,7 @@ begin
   begin
     if (ToolBar1.Visible) and (not ToolBar1.MouseInClient) then
     begin
-      showToolBar( False );
+      showLCLToolBar( False );
       AdjustImageSize;
     end;
     cm_LoadNextFile([]);
@@ -3691,7 +3719,7 @@ begin
     Image.Invalidate;
     Status.Panels[sbpTextEncoding].Text:= EmptyStr;
     if (not bQuickView) and CanFocus and pnlImage.CanFocus then pnlImage.SetFocus;
-    showToolBar( not (bQuickView or (miFullScreen.Checked and not ToolBar1.MouseInClient)) );
+    showLCLToolBar( not (bQuickView or (miFullScreen.Checked and not ToolBar1.MouseInClient)) );
     viewerFormHandler.onShowModeChanged( self, vsmImage );
   end
   else if Panel = pnlFolder then
