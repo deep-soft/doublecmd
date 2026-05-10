@@ -59,6 +59,21 @@ begin
     Result:= TfrmViewer(form);
 end;
 
+function isImageToolBarAttached( const form: TCustomForm ): Boolean;
+var
+  toolBar: NSToolBar;
+  index: Integer;
+begin
+  Result:= False;
+
+  toolBar:= TCocoaToolBarUtils.getToolBar( form );
+  if toolBar = nil then
+    Exit;
+
+  index:= TCocoaToolBarUtils.findItemIndexByIdentifier( toolBar, viewerImageItemsIdentifiers[0] );
+  Result:= (index>=0);
+end;
+
 procedure viewerAttachImageToolBar( const form: TCustomForm );
 var
   toolBar: NSToolBar;
@@ -68,7 +83,7 @@ begin
   if toolBar = nil then
     Exit;
 
-  if TCocoaToolBarUtils.findItemIndexByIdentifier(toolBar,viewerImageItemsIdentifiers[0]) > 0 then
+  if isImageToolBarAttached(form) then
     Exit;
 
   for i:= 0 to Length(viewerImageItemsIdentifiers)-1 do
@@ -882,9 +897,11 @@ var
   end;
 
 begin
-  viewerAttachImageToolBar( viewer );
   toolBar:= TCocoaToolBarUtils.getToolBar( viewer );
   if toolBar = nil then
+    Exit;
+
+  if NOT isImageToolBarAttached(viewer) then
     Exit;
 
   updateHighlightState;
@@ -899,18 +916,22 @@ var
   image: NSImage;
 begin
   form:= getCurrentViewerForm;
-  if Assigned(form) then begin
-    if form.btnSlideShow.Down then
-      imageName:= 'pause'
-    else
-      imageName:= 'play';
-    image:= NSImage.imageWithSystemSymbolName_accessibilityDescription(
-      StringToNSString(imageName), nil );
-    item:= TCocoaToolBarUtils.findItemByIdentifier( form, 'ViewerForm.Slide' );
-    item.setImage( image );
+  if NOT Assigned(form) then
+    Exit;
 
-    form.TimerViewer.Enabled:= form.btnSlideShow.Down;
-  end;
+  item:= TCocoaToolBarUtils.findItemByIdentifier( form, 'ViewerForm.Slide' );
+  if item = nil then
+    Exit;
+
+  if form.btnSlideShow.Down then
+    imageName:= 'pause'
+  else
+    imageName:= 'play';
+  image:= NSImage.imageWithSystemSymbolName_accessibilityDescription(
+    StringToNSString(imageName), nil );
+  item.setImage( image );
+
+  form.TimerViewer.Enabled:= form.btnSlideShow.Down;
 end;
 
 procedure TCocoaViewerFormHandler.onPenWidthChanged( Sender: TObject );
