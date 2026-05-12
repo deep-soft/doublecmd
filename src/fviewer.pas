@@ -52,6 +52,7 @@
 unit fViewer;
 
 {$mode objfpc}{$H+}
+{$interfaces corba}
 
 interface
 
@@ -69,6 +70,10 @@ type
   TEncodingMenu = (emViewer, emPlugin, emEditor);
 
   TViewerCopyMoveAction=(vcmaCopy,vcmaMove);
+
+  TViewerShowMode = (vsmText, vsmImage, vsmPlugin, vsmCode, vsmFolder);
+
+  TViewerGifStates = set of (vgsIsGif, vgsPlaying, vgsPrevFrame, vgsNextFrame);
 
   { TDrawGrid }
 
@@ -289,6 +294,7 @@ type
     procedure btnPrevGifFrameClick(Sender: TObject);
     procedure btnRedEyeClick(Sender: TObject);
     procedure btnResizeClick(Sender: TObject);
+    procedure btnSlideShowSetState(const state: Boolean);
     procedure btnSlideShowClick(Sender: TObject);
     procedure DrawPreviewSelection(Sender: TObject; aCol, aRow: Integer);
     procedure DrawPreviewTopleftChanged(Sender: TObject);
@@ -297,6 +303,7 @@ type
     procedure FormKeyPress(Sender: TObject; var Key: Char);
     procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure FormWindowStateChange(Sender: TObject);
     procedure GifAnimMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure GifAnimMouseEnter(Sender: TObject);
@@ -435,6 +442,10 @@ type
     procedure SaveImageAs (Var sExt: String; senderSave: boolean; Quality: integer);
     procedure ImagePaintBackground(ASender: TObject; ACanvas: TCanvas; ARect: TRect);
     procedure CreatePreview(FullPathToFile:string; index:integer; delete: boolean = false);
+    procedure showLCLToolBar( newVisibility: Boolean );
+{$IFDEF DARWIN}
+    function modernToolBarEnabled: Boolean;
+{$ENDIF}
 
     property Commands: TFormCommands read FCommands implements IFormCommands;
     property FileName: String write SetFileName;
@@ -443,6 +454,7 @@ type
     procedure WMCommand(var Message: TLMCommand); message LM_COMMAND;
     procedure WMSetFocus(var Message: TLMSetFocus); message LM_SETFOCUS;
     procedure CMThemeChanged(var Message: TLMessage); message CM_THEMECHANGED;
+    procedure doFullScreenSwitch;
 
   public
     constructor Create(TheOwner: TComponent; aWaitData: TWaitData; aQuickView: Boolean = False); overload;
@@ -529,8 +541,26 @@ type
     procedure cm_WrapText(const Params: array of string);
   end;
 
+  { TViewerFormHandler }
+
+  TViewerFormHandler = class
+    procedure onShowModeChanged(
+      const viewer: TfrmViewer;
+      const mode: TViewerShowMode ); virtual;
+    procedure onGifStateChanged(
+      const viewer: TfrmViewer;
+      const states: TViewerGifStates ); virtual;
+    procedure onImageEditStateChanged(
+      const viewer: TfrmViewer ); virtual;
+    procedure onSlideStateChanged(
+      const viewer: TfrmViewer ); virtual;
+  end;
+
 procedure ShowViewer(const FilesToView: TStringList; WaitData: TWaitData = nil); overload;
 procedure ShowViewer(const FilesToView: TStringList; AMode: Integer; WaitData: TWaitData = nil); overload;
+
+var
+  viewerFormHandler: TViewerFormHandler;
 
 implementation
 
@@ -546,6 +576,9 @@ uses
 {$if lcl_fullversion >= 4990000}
   , SynEditWrappedView
 {$endif}
+{$IFDEF DARWIN}
+  , uDarwinApplication, uEarlyConfig
+{$ENDIF}
   ;
 
 const
@@ -1090,6 +1123,8 @@ begin
     end;
     if actAutoReload.Checked then cm_AutoReload([]);
   end;
+
+  viewerFormHandler.onImageEditStateChanged( self );
 end;
 
 procedure TfrmViewer.FormResize(Sender: TObject);
@@ -1117,6 +1152,12 @@ begin
   end;
 end;
 
+procedure TfrmViewer.FormWindowStateChange(Sender: TObject);
+begin
+  if WindowState <> wsMinimized then
+    doFullScreenSwitch;
+end;
+
 procedure TfrmViewer.GifAnimMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
@@ -1128,7 +1169,10 @@ end;
 
 procedure TfrmViewer.GifAnimMouseEnter(Sender: TObject);
 begin
-  if miFullScreen.Checked then TimerViewer.Enabled:=true;
+{$IFDEF DARWIN}
+  if NOT self.modernToolBarEnabled then
+{$ENDIF}
+    if miFullScreen.Checked then TimerViewer.Enabled:=true;
 end;
 
 procedure TfrmViewer.ImageMouseDown(Sender: TObject; Button: TMouseButton;
@@ -1221,12 +1265,18 @@ end;
 
 procedure TfrmViewer.ImageMouseEnter(Sender: TObject);
 begin
-  if miFullScreen.Checked then TimerViewer.Enabled:=true;
+{$IFDEF DARWIN}
+  if NOT self.modernToolBarEnabled then
+{$ENDIF}
+    if miFullScreen.Checked then TimerViewer.Enabled:=true;
 end;
 
 procedure TfrmViewer.ImageMouseLeave(Sender: TObject);
 begin
-  if miFullScreen.Checked then TimerViewer.Enabled:=false;
+{$IFDEF DARWIN}
+  if NOT self.modernToolBarEnabled then
+{$ENDIF}
+    if miFullScreen.Checked then TimerViewer.Enabled:=false;
 end;
 
 procedure TfrmViewer.ImageMouseMove(Sender: TObject; Shift: TShiftState; X,
@@ -1394,6 +1444,7 @@ procedure TfrmViewer.miPenClick(Sender: TObject);
 begin
   btnPenMode.Tag:= TMenuItem(Sender).Tag;
   btnPenMode.ImageIndex:= TMenuItem(Sender).ImageIndex;
+  viewerFormHandler.onImageEditStateChanged( self );
 end;
 
 procedure TfrmViewer.miLookBookClick(Sender: TObject);
@@ -1432,6 +1483,22 @@ begin
         end;
     end;
 end;
+
+procedure TfrmViewer.showLCLToolBar( newVisibility: Boolean );
+begin
+{$IFDEF DARWIN}
+  if self.modernToolBarEnabled then
+    newVisibility:= False;
+{$ENDIF}
+  ToolBar1.Visible:= newVisibility;
+end;
+
+{$IFDEF DARWIN}
+function TfrmViewer.modernToolBarEnabled: Boolean;
+begin
+  Result:= gModernUI and TDarwinApplicationUtil.supportsModernForm;
+end;
+{$ENDIF}
 
 procedure TfrmViewer.WMCommand(var Message: TLMCommand);
 var
@@ -1499,6 +1566,59 @@ begin
     Highlighter:= TSynCustomHighlighter(dmHighl.SynHighlighterHashList.Data[SynEdit.Highlighter.LanguageName]);
     if Assigned(Highlighter) then dmHighl.SetHighlighter(SynEdit, Highlighter);
   end;
+end;
+
+procedure TfrmViewer.doFullScreenSwitch;
+begin
+  miFullScreen.Checked:= (WindowState = wsFullScreen);
+  if miFullScreen.Checked then
+    begin
+{$IFnDEF DARWIN}
+      Self.Menu:= nil;
+{$ENDIF}
+      btnPaint.Down:= false;
+      btnHightlight.Down:=false;
+      showLCLToolBar( False );
+      miStretch.Checked:= True;
+      miStretchOnlyLarge.Checked:= False;
+      if miPreview.Checked then cm_Preview(['']);
+      actFullscreen.ImageIndex:= 25;
+      sboxImage.BorderStyle:= bsNone;
+    end
+  else
+    begin
+{$IFnDEF DARWIN}
+      Self.Menu:= MainMenu;
+{$ENDIF}
+{$IF DEFINED(LCLWIN32)}
+      BorderStyle:= bsSizeable;
+      SetBounds(FWindowBounds.Left, FWindowBounds.Top, FWindowBounds.Right, FWindowBounds.Bottom);
+{$ENDIF}
+      showLCLToolBar( True );
+      actFullscreen.ImageIndex:= 22;
+      sboxImage.BorderStyle:= bsSingle;
+    end;
+  if ExtractOnlyFileExt(FileList.Strings[iActiveFile]) <> 'gif' then
+  begin
+    btnHightlight.Enabled:= not (miFullScreen.Checked);
+    btnPaint.Enabled:= not (miFullScreen.Checked);
+    btnResize.Enabled:= not (miFullScreen.Checked);
+  end;
+  sboxImage.HorzScrollBar.Visible:= not(miFullScreen.Checked);
+  sboxImage.VertScrollBar.Visible:= not(miFullScreen.Checked);
+
+{$IFDEF DARWIN}
+  if NOT self.modernToolBarEnabled then
+{$ENDIF}
+    TimerViewer.Enabled:=miFullScreen.Checked;
+
+  btnReload.Enabled:=not(miFullScreen.Checked);
+  Status.Visible:=not(miFullScreen.Checked);
+  btnSlideShow.Visible:=miFullScreen.Checked;
+  AdjustImageSize;
+  ShowOnTop;
+
+  viewerFormHandler.onImageEditStateChanged( self );
 end;
 
 procedure TfrmViewer.RedEyes;
@@ -1908,7 +2028,7 @@ begin
   Result:= DoZoom( 0.909, -1 );
 end;
 
-procedure TfrmViewer.RotateImage(ADegree: integer);
+procedure TfrmViewer.RotateImage(ADegree: Integer);
 // ADegree now supported only 90,180,270 values
 var
   Q: QWord;
@@ -2056,12 +2176,18 @@ end;
 
 procedure TfrmViewer.sboxImageMouseEnter(Sender: TObject);
 begin
-  if miFullScreen.Checked then TimerViewer.Enabled:=true;
+{$IFDEF DARWIN}
+  if NOT self.modernToolBarEnabled then
+{$ENDIF}
+    if miFullScreen.Checked then TimerViewer.Enabled:=true;
 end;
 
 procedure TfrmViewer.sboxImageMouseLeave(Sender: TObject);
 begin
-  if miFullScreen.Checked then TimerViewer.Enabled:=false;
+{$IFDEF DARWIN}
+  if NOT self.modernToolBarEnabled then
+{$ENDIF}
+    if miFullScreen.Checked then TimerViewer.Enabled:=false;
 end;
 
 procedure TfrmViewer.sboxImageMouseMove(Sender: TObject; Shift: TShiftState; X,
@@ -2076,9 +2202,23 @@ begin
 end;
 
 procedure TfrmViewer.UpdateAnimState;
+var
+  states: TViewerGifStates;
 begin
+  states:= [vgsIsGif];
+
+  if NOT GifAnim.Paused then
+    Include( states, vgsPlaying );
+
   btnPrevGifFrame.Enabled:= GifAnim.Paused and (GifAnim.CurrentFrameIndex > 0);
+  if btnPrevGifFrame.Enabled then
+    Include( states, vgsPrevFrame );
+
   btnNextGifFrame.Enabled:= GifAnim.Paused and (GifAnim.CurrentFrameIndex < GifAnim.FrameCount - 1);
+  if btnNextGifFrame.Enabled then
+    Include( states, vgsNextFrame );
+
+  viewerFormHandler.onGifStateChanged( self, states );
 end;
 
 procedure TfrmViewer.btnPrevGifFrameClick(Sender: TObject);
@@ -2164,21 +2304,21 @@ begin
   begin
     if (ToolBar1.Visible) and (i_timer > 60) and (not ToolBar1.MouseInClient) then
     begin
-      ToolBar1.Visible:= False;
+      showLCLToolBar( False );
       AdjustImageSize;
     end
     else if (not ToolBar1.Visible) and (sboxImage.ScreenToClient(Mouse.CursorPos).Y < ToolBar1.Height div 2) then
     begin
-      ToolBar1.Visible:= True;
+      showLCLToolBar( True );
       AdjustImageSize;
     end;
   end;
   Inc(i_timer);
-  if (btnSlideShow.Down) and (i_timer = 60 * btnSlideShow.Tag) then
+  if (btnSlideShow.Down) and (i_timer >= 60 * btnSlideShow.Tag) then
   begin
     if (ToolBar1.Visible) and (not ToolBar1.MouseInClient) then
     begin
-      ToolBar1.Visible:= False;
+      showLCLToolBar( False );
       AdjustImageSize;
     end;
     cm_LoadNextFile([]);
@@ -2269,6 +2409,8 @@ begin
   begin
     AdjustImageSize;
   end;
+
+  viewerFormHandler.onImageEditStateChanged( self );
 end;
 
 procedure TfrmViewer.StartCalcFolderSize;
@@ -2421,6 +2563,9 @@ begin
                              GraphicFilter(TIcon) + '|' +
                              GraphicFilter(TPortableAnyMapGraphic);
 
+{$IFDEF DARWIN}
+  self.OnWindowStateChange:= @self.FormWindowStateChange;
+{$ENDIF}
 end;
 
 procedure TfrmViewer.FormKeyPress(Sender: TObject; var Key: Char);
@@ -2516,9 +2661,9 @@ procedure TfrmViewer.btnGifToBmpClick(Sender: TObject);
 begin
   GifAnim.Pause;
   btnGifMove.ImageIndex:= 12;
+  UpdateAnimState;
   Image.Picture.Bitmap:= GifAnim.CurrentView;
   cm_SaveAs(['']);
-  UpdateAnimState;
 end;
 
 procedure TfrmViewer.btnPaintHightlight(Sender: TObject);
@@ -2575,6 +2720,8 @@ begin
   btnPenColor.Enabled:= btnPaint.Down;
   ImgEdit:= True;
   CreateTmp;
+
+  viewerFormHandler.onImageEditStateChanged( self );
 end;
 
 procedure TfrmViewer.btnPenModeClick(Sender: TObject);
@@ -2607,9 +2754,15 @@ begin
   end;
 end;
 
+procedure TfrmViewer.btnSlideShowSetState(const state: Boolean);
+begin
+  btnSlideShow.Down:= state;
+  viewerFormHandler.onSlideStateChanged( self );
+end;
+
 procedure TfrmViewer.btnSlideShowClick(Sender: TObject);
 begin
-  btnSlideShow.Down:= not btnSlideShow.Down;
+  btnSlideShowSetState( not btnSlideShow.Down );
 end;
 
 procedure TfrmViewer.FormDestroy(Sender: TObject);
@@ -2928,6 +3081,8 @@ end;
 function TfrmViewer.LoadGraphics(const sFileName:String): Boolean;
 
   procedure UpdateToolbar(bImage: Boolean);
+  var
+    gifStates: TViewerGifStates;
   begin
     btnHightlight.Enabled:= bImage and (not miFullScreen.Checked);
     btnPaint.Enabled:= bImage and (not miFullScreen.Checked);
@@ -2943,6 +3098,13 @@ function TfrmViewer.LoadGraphics(const sFileName:String): Boolean;
     btnGifSeparator.Enabled:= not bImage;
     btnNextGifFrame.Enabled:= not bImage;
     btnPrevGifFrame.Enabled:= not bImage;
+
+    if bImage then
+      gifStates:= []
+    else
+      gifStates:= [vgsIsGif];
+    viewerFormHandler.onGifStateChanged( self, gifStates );
+    viewerFormHandler.onImageEditStateChanged( self );
   end;
 
 var
@@ -3529,6 +3691,7 @@ begin
 
     UpdateTextEncodingsMenu(emPlugin);
     Status.Panels[sbpTextEncoding].Text := rsViewEncoding + ': ' + ViewerControl.EncodingName;
+    viewerFormHandler.onShowModeChanged( self, vsmPlugin );
   end
   else if Panel = pnlCode then
   begin
@@ -3539,6 +3702,7 @@ begin
        SynEdit.SetFocus;
 
     Status.Panels[sbpFileSize].Text:= IntToStr(SynEdit.Lines.Count);
+    viewerFormHandler.onShowModeChanged( self, vsmCode );
   end
   else if Panel = pnlText then
   begin
@@ -3558,6 +3722,8 @@ begin
     FRegExp.ChangeEncoding(ViewerControl.EncodingName);
     Status.Panels[sbpFileSize].Text:= cnvFormatFileSize(ViewerControl.FileSize) + ' (100 %)';
     Status.Panels[sbpTextEncoding].Text := rsViewEncoding + ': ' + ViewerControl.EncodingName;
+
+    viewerFormHandler.onShowModeChanged( self, vsmText );
   end
   else if Panel = pnlImage then
   begin
@@ -3565,7 +3731,12 @@ begin
     Image.Invalidate;
     Status.Panels[sbpTextEncoding].Text:= EmptyStr;
     if (not bQuickView) and CanFocus and pnlImage.CanFocus then pnlImage.SetFocus;
-    ToolBar1.Visible:= not (bQuickView or (miFullScreen.Checked and not ToolBar1.MouseInClient));
+    showLCLToolBar( not (bQuickView or (miFullScreen.Checked and not ToolBar1.MouseInClient)) );
+    viewerFormHandler.onShowModeChanged( self, vsmImage );
+  end
+  else if Panel = pnlFolder then
+  begin
+    viewerFormHandler.onShowModeChanged( self, vsmFolder );
   end;
 
   miPlugins.Checked    := (Panel = nil);
@@ -3793,8 +3964,7 @@ end;
 
 procedure TfrmViewer.cm_Fullscreen(const Params: array of string);
 begin
-  miFullScreen.Checked:= not (miFullScreen.Checked);
-  if miFullScreen.Checked then
+  if WindowState <> wsFullScreen then
     begin
       FWindowState:= WindowState;
 {$IF DEFINED(LCLWIN32)}
@@ -3805,45 +3975,16 @@ begin
       BorderStyle:= bsNone;
 {$ENDIF}
       WindowState:= wsFullScreen;
-      Self.Menu:= nil;
-      btnPaint.Down:= false;
-      btnHightlight.Down:=false;
-      ToolBar1.Visible:= False;
-      miStretch.Checked:= True;
-      miStretchOnlyLarge.Checked:= False;
-      if miPreview.Checked then cm_Preview(['']);
-      actFullscreen.ImageIndex:= 25;
-      sboxImage.BorderStyle:= bsNone;
     end
   else
     begin
-      Self.Menu:= MainMenu;
 {$IFDEF LCLGTK2}
       WindowState:= wsFullScreen;
 {$ENDIF}
       WindowState:= FWindowState;
-{$IF DEFINED(LCLWIN32)}
-      BorderStyle:= bsSizeable;
-      SetBounds(FWindowBounds.Left, FWindowBounds.Top, FWindowBounds.Right, FWindowBounds.Bottom);
-{$ENDIF}
-      ToolBar1.Visible:= True;
-      actFullscreen.ImageIndex:= 22;
-      sboxImage.BorderStyle:= bsSingle;
     end;
-  if ExtractOnlyFileExt(FileList.Strings[iActiveFile]) <> 'gif' then
-  begin
-    btnHightlight.Enabled:= not (miFullScreen.Checked);
-    btnPaint.Enabled:= not (miFullScreen.Checked);
-    btnResize.Enabled:= not (miFullScreen.Checked);
-  end;
-  sboxImage.HorzScrollBar.Visible:= not(miFullScreen.Checked);
-  sboxImage.VertScrollBar.Visible:= not(miFullScreen.Checked);
-  TimerViewer.Enabled:=miFullScreen.Checked;
-  btnReload.Enabled:=not(miFullScreen.Checked);
-  Status.Visible:=not(miFullScreen.Checked);
-  btnSlideShow.Visible:=miFullScreen.Checked;
-  AdjustImageSize;
-  ShowOnTop;
+
+  self.doFullScreenSwitch;
 end;
 
 procedure TfrmViewer.cm_Screenshot(const Params: array of string);
@@ -4191,7 +4332,31 @@ begin
   end;
 end;
 
+{ TViewerFormHandler }
+
+procedure TViewerFormHandler.onShowModeChanged(
+  const viewer: TfrmViewer;
+  const mode: TViewerShowMode);
+begin
+end;
+
+procedure TViewerFormHandler.onGifStateChanged(
+  const viewer: TfrmViewer;
+  const states: TViewerGifStates);
+begin
+end;
+
+procedure TViewerFormHandler.onImageEditStateChanged(
+  const viewer: TfrmViewer );
+begin
+end;
+
+procedure TViewerFormHandler.onSlideStateChanged( const viewer: TfrmViewer );
+begin
+end;
+
 initialization
+  viewerFormHandler:= TViewerFormHandler.Create;
   TFormCommands.RegisterCommandsForm(TfrmViewer, HotkeysCategory, @rsHotkeyCategoryViewer);
 
 end.

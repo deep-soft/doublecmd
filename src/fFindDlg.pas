@@ -401,9 +401,9 @@ implementation
 {$R *.lfm}
 
 uses
-  LCLProc, LCLType, LConvEncoding, StrUtils, HelpIntfs, fViewer, fMain,
+  LCLProc, LCLType, LConvEncoding, StrUtils, HelpIntfs, ImgList, fViewer, fMain,
   uLng, uGlobs, uShowForm, uDCUtils, uOfficeXML,
-   uFile, uFileProperty, uColumnsFileView,
+  uFile, uFileProperty, uColumnsFileView,
   uFileViewNotebook, uKeyboard, uOSUtils,
   DCOSUtils, uRegExprA, uRegExprW, uDebug, uShowMsg, uConvEncoding,
   uColumns, uFileFunctions, uFileSorting,
@@ -770,8 +770,6 @@ end;
 
 { TfrmFindDlg.Create }
 constructor TfrmFindDlg.Create(TheOwner: TComponent);
-var
-  C: TPortableNetworkGraphic;
 begin
   FSelectedFiles := TStringList.Create;
   inherited Create(TheOwner);
@@ -780,15 +778,8 @@ begin
   FUpdateTimer.Enabled := False;
   FUpdateTimer.OnTimer := @OnUpdateTimer;
 
-  try
-    C := TPortableNetworkGraphic.Create;
-    C.LoadFromResourceName(hInstance, ResBtnSelDir);
-    btnChooseFolder.Glyph.Assign(C);
-  finally
-    C.Free;
-  end;
-
-  dmComData.ilEditorImages.GetBitmap(44, btnEncoding.Glyph);
+  btnChooseFolder.Images:= LCLGlyphs;
+  btnChooseFolder.ImageIndex:= LCLGlyphs.GetImageIndex(ResBtnSelDir);
 
   FCommands := TFormCommands.Create(Self, actList);
 end;

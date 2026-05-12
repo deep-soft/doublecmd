@@ -443,6 +443,7 @@ object frmViewer: TfrmViewer
       ParentFont = False
       ShowCaptions = True
       TabOrder = 1
+      Visible = False
       object btnReload: TToolButton
         Left = 1
         Top = 2
@@ -657,7 +658,7 @@ object frmViewer: TfrmViewer
         ShowCaption = False
       end
       object btnSlideShow: TToolButton
-        Tag = 1
+        Tag = 3
         Left = 232
         Top = 66
         AutoSize = True
