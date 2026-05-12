@@ -454,6 +454,7 @@ type
     procedure WMCommand(var Message: TLMCommand); message LM_COMMAND;
     procedure WMSetFocus(var Message: TLMSetFocus); message LM_SETFOCUS;
     procedure CMThemeChanged(var Message: TLMessage); message CM_THEMECHANGED;
+    procedure doFullScreenSwitch;
 
   public
     constructor Create(TheOwner: TComponent; aWaitData: TWaitData; aQuickView: Boolean = False); overload;
@@ -1153,53 +1154,8 @@ end;
 
 procedure TfrmViewer.FormWindowStateChange(Sender: TObject);
 begin
-  miFullScreen.Checked:= (WindowState = wsFullScreen);
-  if miFullScreen.Checked then
-    begin
-{$IFnDEF DARWIN}
-      Self.Menu:= nil;
-{$ENDIF}
-      btnPaint.Down:= false;
-      btnHightlight.Down:=false;
-      showLCLToolBar( False );
-      miStretch.Checked:= True;
-      miStretchOnlyLarge.Checked:= False;
-      if miPreview.Checked then cm_Preview(['']);
-      actFullscreen.ImageIndex:= 25;
-      sboxImage.BorderStyle:= bsNone;
-    end
-  else
-    begin
-{$IFnDEF DARWIN}
-      Self.Menu:= MainMenu;
-{$ENDIF}
-{$IF DEFINED(LCLWIN32)}
-      BorderStyle:= bsSizeable;
-      SetBounds(FWindowBounds.Left, FWindowBounds.Top, FWindowBounds.Right, FWindowBounds.Bottom);
-{$ENDIF}
-      showLCLToolBar( True );
-      actFullscreen.ImageIndex:= 22;
-      sboxImage.BorderStyle:= bsSingle;
-    end;
-  if ExtractOnlyFileExt(FileList.Strings[iActiveFile]) <> 'gif' then
-  begin
-    btnHightlight.Enabled:= not (miFullScreen.Checked);
-    btnPaint.Enabled:= not (miFullScreen.Checked);
-    btnResize.Enabled:= not (miFullScreen.Checked);
-  end;
-  sboxImage.HorzScrollBar.Visible:= not(miFullScreen.Checked);
-  sboxImage.VertScrollBar.Visible:= not(miFullScreen.Checked);
-{$IFDEF DARWIN}
-  if NOT self.modernToolBarEnabled then
-{$ENDIF}
-    TimerViewer.Enabled:=miFullScreen.Checked;
-  btnReload.Enabled:=not(miFullScreen.Checked);
-  Status.Visible:=not(miFullScreen.Checked);
-  btnSlideShow.Visible:=miFullScreen.Checked;
-  AdjustImageSize;
-  ShowOnTop;
-
-  viewerFormHandler.onImageEditStateChanged( self );
+  if WindowState <> wsMinimized then
+    doFullScreenSwitch;
 end;
 
 procedure TfrmViewer.GifAnimMouseDown(Sender: TObject; Button: TMouseButton;
@@ -1610,6 +1566,59 @@ begin
     Highlighter:= TSynCustomHighlighter(dmHighl.SynHighlighterHashList.Data[SynEdit.Highlighter.LanguageName]);
     if Assigned(Highlighter) then dmHighl.SetHighlighter(SynEdit, Highlighter);
   end;
+end;
+
+procedure TfrmViewer.doFullScreenSwitch;
+begin
+  miFullScreen.Checked:= (WindowState = wsFullScreen);
+  if miFullScreen.Checked then
+    begin
+{$IFnDEF DARWIN}
+      Self.Menu:= nil;
+{$ENDIF}
+      btnPaint.Down:= false;
+      btnHightlight.Down:=false;
+      showLCLToolBar( False );
+      miStretch.Checked:= True;
+      miStretchOnlyLarge.Checked:= False;
+      if miPreview.Checked then cm_Preview(['']);
+      actFullscreen.ImageIndex:= 25;
+      sboxImage.BorderStyle:= bsNone;
+    end
+  else
+    begin
+{$IFnDEF DARWIN}
+      Self.Menu:= MainMenu;
+{$ENDIF}
+{$IF DEFINED(LCLWIN32)}
+      BorderStyle:= bsSizeable;
+      SetBounds(FWindowBounds.Left, FWindowBounds.Top, FWindowBounds.Right, FWindowBounds.Bottom);
+{$ENDIF}
+      showLCLToolBar( True );
+      actFullscreen.ImageIndex:= 22;
+      sboxImage.BorderStyle:= bsSingle;
+    end;
+  if ExtractOnlyFileExt(FileList.Strings[iActiveFile]) <> 'gif' then
+  begin
+    btnHightlight.Enabled:= not (miFullScreen.Checked);
+    btnPaint.Enabled:= not (miFullScreen.Checked);
+    btnResize.Enabled:= not (miFullScreen.Checked);
+  end;
+  sboxImage.HorzScrollBar.Visible:= not(miFullScreen.Checked);
+  sboxImage.VertScrollBar.Visible:= not(miFullScreen.Checked);
+
+{$IFDEF DARWIN}
+  if NOT self.modernToolBarEnabled then
+{$ENDIF}
+    TimerViewer.Enabled:=miFullScreen.Checked;
+
+  btnReload.Enabled:=not(miFullScreen.Checked);
+  Status.Visible:=not(miFullScreen.Checked);
+  btnSlideShow.Visible:=miFullScreen.Checked;
+  AdjustImageSize;
+  ShowOnTop;
+
+  viewerFormHandler.onImageEditStateChanged( self );
 end;
 
 procedure TfrmViewer.RedEyes;
@@ -2554,6 +2563,9 @@ begin
                              GraphicFilter(TIcon) + '|' +
                              GraphicFilter(TPortableAnyMapGraphic);
 
+{$IFDEF DARWIN}
+  self.OnWindowStateChange:= @self.FormWindowStateChange;
+{$ENDIF}
 end;
 
 procedure TfrmViewer.FormKeyPress(Sender: TObject; var Key: Char);
@@ -3972,7 +3984,7 @@ begin
       WindowState:= FWindowState;
     end;
 
-  self.FormWindowStateChange( nil )
+  self.doFullScreenSwitch;
 end;
 
 procedure TfrmViewer.cm_Screenshot(const Params: array of string);
