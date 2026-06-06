@@ -49,6 +49,8 @@ type
 
     function GetCustomIcon(const path: String; const iconSize: Integer): TBitmap; override; overload;
     function GetDisplayFileName(aFile: TFile): String; override;
+
+    procedure AddSearchPath( const startPath: String; paths: TStringList); override;
   end;
 
 implementation
@@ -72,12 +74,12 @@ var
 
 procedure TSearchResultFileSourceProcessor.consultMoveOperation( var params: TFileSourceConsultParams);
 var
-  searchResultFS: ISearchResultFileSource;
+  searchResultFS: TSearchResultFileSource;
 begin
   if params.phase<>TFileSourceConsultPhase.source then
     Exit;
 
-  searchResultFS:= params.currentFS as ISearchResultFileSource;
+  searchResultFS:= params.currentFS as TSearchResultFileSource;
   params.sourceFS:= searchResultFS.FileSource;
 end;
 
@@ -103,12 +105,14 @@ end;
 
 function TSearchResultFileSource.GetRootDir(sPath: String): String;
 begin
-  Result:=  PathDelim + PathDelim + PathDelim + rsSearchResult + PathDelim;
+  Result:= PathDelim + PathDelim + PathDelim + rsSearchResult + PathDelim;
 end;
 
 function TSearchResultFileSource.GetProperties: TFileSourceProperties;
 begin
-  Result := inherited GetProperties - [fspNoneParent, fspListFlatView];
+  Result := inherited GetProperties;
+  Result -= [fspNoneParent, fspListFlatView];
+  Result += [fspDontChangePath, fspSearchable];
   if (fspDirectAccess in Result) then Result+= [fspLinksToLocalFiles];
 end;
 
@@ -160,6 +164,21 @@ begin
     Result:= _displayName
   else
     Result:= aFile.Name;
+end;
+
+procedure TSearchResultFileSource.AddSearchPath(
+  const startPath: String;
+  paths: TStringList );
+var
+  files: TFiles;
+  i: Integer;
+begin
+  if paths.Count > 0 then
+    Exit;
+  files:= self.GetFiles( self.GetRootDir );
+  for i:= 0 to files.Count-1 do
+    paths.Add( files[i].FullPath );
+  files.Free;
 end;
 
 initialization

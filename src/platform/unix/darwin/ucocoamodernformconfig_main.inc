@@ -663,7 +663,6 @@ const
     onAction: nil;
 
     showsIndicator: False;
-    menu: nil;
     onGetMenu: @onGetFolderMenu;
   );
 
@@ -701,7 +700,6 @@ const
     onAction: nil;
 
     showsIndicator: True;
-    menu: nil;
     onGetMenu: @onGetCommandMenu;
   );
 
@@ -728,7 +726,6 @@ const
 
     showsIndicator: False;
     dynamic: True;
-    menu: nil;
     onGetMenu: @onGetSearchMenu;
   );
 
@@ -879,9 +876,17 @@ begin
   addShortCutTipsToItemConfig( 'Main', 'cm_ViewHistoryNext', goForwardItemConfig );
 end;
 
+procedure joinPrivilegeTips;
+begin
+  privilegeItemConfig.tips:= rsMFSTBIPrivilegeTips + #13#13
+                           + rsMFSTBIPrivilegeTips2 + #13#13
+                           + rsMFSTBIPrivilegeTips3;
+end;
+
 procedure doInitMainFormConfig;
 begin
   addMainFormShortCutTips;
+  joinPrivilegeTips;
 
   showModeItemConfig.subitems:= [
     TCocoaToolBarUtils.toClass(showBriefItemConfig),

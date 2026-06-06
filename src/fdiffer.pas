@@ -307,7 +307,7 @@ uses
   uShowMsg, DCClassesUtf8, dmCommonData, uDCUtils, uConvEncoding, uAdministrator,
   LCLVersion, LCLStrConsts, uFileProcs
 {$IFDEF DARWIN}
-  , uDarwinApplication, uEarlyConfig
+  , uCocoaModernFormConfig
 {$ENDIF}
   ;
 
@@ -849,6 +849,10 @@ begin
   FillEncodingMenu(pmEncodingLeft.Items, @SetEncodingLeft, 1);
   FillEncodingMenu(pmEncodingRight.Items, @SetEncodingRight, 2);
   EncodingList.Free;
+
+{$IFDEF DARWIN}
+  self.BorderIcons:= self.BorderIcons - [biMinimize];
+{$ENDIF}
 end;
 
 procedure TfrmDiffer.FormDestroy(Sender: TObject);
@@ -1461,7 +1465,7 @@ begin
   ToolBar.SetButtonSize(gToolIconsSize + ScaleX(6, 96),
                         gToolIconsSize + ScaleY(6, 96));
 {$IFDEF DARWIN}
-  if gModernUI and TDarwinApplicationUtil.supportsModernForm then
+  if TDCCocoaModernFormUtils.isEnabled then
     ToolBar.Hide;
 {$ENDIF}
   contextMenu.ImagesWidth:= gIconsInMenusSize;

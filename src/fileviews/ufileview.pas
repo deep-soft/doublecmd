@@ -2463,7 +2463,7 @@ begin
   begin
     Result := False;
     for i := Low(PathsToReload) to High(PathsToReload) do
-      if IsInPath(PathsToReload[i], CurrentPath, True, True) then
+      if FileSource.needReload(PathsToReload[i], CurrentPath) then
       begin
         Result := True;
         Break;
@@ -2636,7 +2636,7 @@ begin
               aFileSource := TFileSystemFileSource.GetFileSource
             else begin
               FileSourceClass := gVfsModuleList.FindFileSource(sFSType);
-              if Assigned(FileSourceClass) then aFileSource := FileSourceClass.Create;
+              if Assigned(FileSourceClass) then aFileSource := FileSourceClass.GetFileSource;
             end;
 
             if Assigned(aFileSource) then
@@ -3007,8 +3007,7 @@ begin
   if Assigned(aFile) and aFile.IsNameValid and
      (aFile.IsDirectory or aFile.IsLinkToDirectory) then
   begin
-    // Workaround for Search Result File Source
-    if FileSource is TSearchResultFileSource then
+    if fspDontChangePath in FileSource.Properties then
       SetFileSystemPath(Self, aFile.FullPath)
     else
       CurrentPath := CurrentPath + IncludeTrailingPathDelimiter(FileSource.GetFileName(aFile));

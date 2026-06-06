@@ -159,6 +159,15 @@ begin
     form.cm_DeleteFile( [] );
 end;
 
+procedure openWithAction( const Sender: id );
+var
+  form: TfrmViewer;
+begin
+  form:= getCurrentViewerForm;
+  if Assigned(form) then
+    TDarwinApplicationUtil.openWithDefaultApp( form.FileName );
+end;
+
 procedure viewerZoomInAction( const Sender: id );
 var
   form: TfrmViewer;
@@ -311,10 +320,11 @@ end;
 procedure viewerPenColorAction( const Sender: id );
 var
   form: TfrmViewer;
+  item: TCocoaToolBarItemColorWell absolute Sender;
 begin
   form:= getCurrentViewerForm;
   if Assigned(form) then
-    form.btnPenColor.Click;
+    form.btnPenColor.ButtonColor:= item.lclGetColor;
 end;
 
 procedure viewerSlideAction( const Sender: id );
@@ -371,8 +381,8 @@ const
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: True;
     iconName: 'chevron.left';
-    title: 'Prev';
-    tips: 'Prev';
+    title: 'Previous';
+    tips: 'Load Previous File';
     bordered: True;
     onAction: @viewerPrevAction;
   );
@@ -383,9 +393,35 @@ const
     navigational: True;
     iconName: 'chevron.right';
     title: 'Next';
-    tips: 'Next';
+    tips: 'Load Next File';
     bordered: True;
     onAction: @viewerNextAction;
+  );
+
+  viewerOpenWithItemConfig: TCocoaConfigToolBarItem = (
+    identifier: 'ViewerForm.OpenWithPreview';
+    priority: NSToolbarItemVisibilityPriorityStandard;
+    navigational: True;
+    iconName: 'square.and.arrow.up';
+    title: 'Open with';
+    tips: 'Open with the system default associated App';
+    bordered: True;
+    onAction: @openWithAction;
+  );
+
+  viewerSlideItemConfig: TCocoaConfigToolBarItemMenu = (
+    identifier: 'ViewerForm.Slide';
+    priority: NSToolbarItemVisibilityPriorityStandard;
+    navigational: True;
+    iconName: 'play.fill';
+    title: 'Slide Show';
+    tips: 'Slide Show';
+    bordered: True;
+    alternateIconName: 'stop.fill';
+    onAction: @viewerSlideAction;
+
+    showsIndicator: True;
+    onGetMenu: @onViewerGetSlideMenu;
   );
 
   viewerCopyFileItemConfig: TCocoaConfigToolBarItem = (
@@ -393,8 +429,8 @@ const
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: True;
     iconName: 'doc.on.doc';
-    title: 'CopyFile';
-    tips: 'CopyFile';
+    title: 'Copy File';
+    tips: 'Copy File';
     bordered: True;
     onAction: @viewerCopyAction;
   );
@@ -404,8 +440,8 @@ const
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: True;
     iconName: 'scissors';
-    title: 'MoveFile';
-    tips: 'MoveFile';
+    title: 'Move File';
+    tips: 'Move File';
     bordered: True;
     onAction: @viewerMoveAction;
   );
@@ -415,25 +451,10 @@ const
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: True;
     iconName: 'trash';
-    title: 'DeleteFile';
-    tips: 'DeleteFile';
+    title: 'Delete File';
+    tips: 'Delete File';
     bordered: True;
     onAction: @viewerDeleteAction;
-  );
-
-  viewerSlideItemConfig: TCocoaConfigToolBarItemMenu = (
-    identifier: 'ViewerForm.Slide';
-    priority: NSToolbarItemVisibilityPriorityStandard;
-    navigational: True;
-    iconName: 'play';
-    title: 'Slide Show';
-    tips: 'Slide Show';
-    bordered: True;
-    onAction: @viewerSlideAction;
-
-    showsIndicator: True;
-    menu: nil;
-    onGetMenu: @onViewerGetSlideMenu;
   );
 
 
@@ -465,8 +486,8 @@ const
     navigational: False;
     appValidates: True;
     iconName: 'rotate.left';
-    title: 'Rotate -90 degree';
-    tips: 'Rotate -90 degree';
+    title: '- 90';
+    tips: 'Rotate -90 degrees';
     bordered: True;
     onAction: @viewerRotate270Action;
   );
@@ -477,8 +498,8 @@ const
     navigational: False;
     appValidates: True;
     iconName: 'rotate.right';
-    title: 'Rotate +90 degree';
-    tips: 'Rotate +90 degree';
+    title: '+ 90';
+    tips: 'Rotate +90 degrees';
     bordered: True;
     onAction: @viewerRotate90Action;
   );
@@ -490,7 +511,7 @@ const
     appValidates: True;
     iconName: 'arrow.left.and.right.righttriangle.left.righttriangle.right';
     title: 'Mirror';
-    tips: 'Mirror';
+    tips: 'Mirror Horizontally';
     bordered: True;
     onAction: @viewerMirrorAction;
   );
@@ -513,10 +534,12 @@ const
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: False;
     appValidates: True;
-    iconName: 'play.fill';
-    title: '';
-    tips: '';
+    iconName: 'play';
+    title: 'Gif';
+    tips: 'Gif';
     bordered: True;
+    alternateIconName: 'pause';
+
     onAction: @viewerGifMoveAction;
   );
 
@@ -526,8 +549,8 @@ const
     navigational: False;
     appValidates: True;
     iconName: 'arrow.left';
-    title: 'GifPrev';
-    tips: 'GifPrev';
+    title: 'Previous Frame';
+    tips: 'Previous Frame';
     bordered: True;
     onAction: @viewerGifPrevAction;
   );
@@ -538,8 +561,8 @@ const
     navigational: False;
     appValidates: True;
     iconName: 'arrow.right';
-    title: 'GifNext';
-    tips: 'GifNext';
+    title: 'Next Frame';
+    tips: 'Next Frame';
     bordered: True;
     onAction: @viewerGifNextAction;
   );
@@ -549,9 +572,9 @@ const
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: False;
     appValidates: True;
-    iconName: 'arrow.down.circle.fill';
-    title: 'GifExport';
-    tips: 'GifExport';
+    iconName: 'arrow.down.circle';
+    title: 'Export Frame';
+    tips: 'Export Frame';
     bordered: True;
     onAction: @viewerGifExportAction;
   );
@@ -565,6 +588,8 @@ const
     title: 'Highlight';
     tips: 'Highlight';
     bordered: True;
+    alternateIconName: '#paintbrush.pointed.fill';
+
     onAction: @viewerHighlightAction;
   );
 
@@ -597,10 +622,12 @@ const
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: False;
     appValidates: True;
-    iconName: 'pencil';
+    iconName: 'pencil.tip.crop.circle';
     title: 'Paint';
     tips: 'Paint';
     bordered: True;
+    alternateIconName: '###pencil.tip.crop.circle';
+
     onAction: @viewerPaintAction;
   );
 
@@ -656,26 +683,31 @@ const
     navigational: False;
     appValidates: True;
     iconName: 'lineweight';
-    title: 'Width';
+    title: '';
     tips: '';
     bordered: True;
     onAction: nil;
 
     showsIndicator: False;
-    menu: nil;
     onGetMenu: @onViewerGetPenWidthMenu;
   );
 
-  viewerPenColorItemConfig: TCocoaConfigToolBarItem = (
+  viewerPenColorItemConfig: TCocoaConfigToolBarItemColorWell = (
     identifier: 'ViewerForm.PenColor';
     priority: NSToolbarItemVisibilityPriorityStandard;
     navigational: False;
     appValidates: True;
-    iconName: 'eyedropper';
-    title: 'Color';
+    iconName: '';
+    title: '';
     tips: '';
     bordered: True;
     onAction: @viewerPenColorAction;
+
+    wellStyle: NSColorWellStyleMinimal;
+    sizeWithStyle: ( width: 26; height: 16 );
+    sizeWithoutStyle: ( width: 16; height: 16 );
+    supportsAlpha: False;
+    autoClose: True;
   );
 
   viewerFormConfig: TCocoaConfigForm = (
@@ -703,19 +735,21 @@ const
         'ViewerForm.Reload',
         'ViewerForm.Prev',
         'ViewerForm.Next',
+        'ViewerForm.OpenWithPreview',
+        'ViewerForm.Slide',
         'ViewerForm.CopyFile',
         'ViewerForm.MoveFile',
-        'ViewerForm.DeleteFile',
-        'ViewerForm.Slide'
+        'ViewerForm.DeleteFile'
       );
       allowedItemsIdentifiers: (
         'ViewerForm.Reload',
         'ViewerForm.Prev',
         'ViewerForm.Next',
+        'ViewerForm.OpenWithPreview',
+        'ViewerForm.Slide',
         'ViewerForm.CopyFile',
         'ViewerForm.MoveFile',
         'ViewerForm.DeleteFile',
-        'ViewerForm.Slide',
 
         'ViewerForm.ZoomIn',
         'ViewerForm.ZoomOut',
@@ -741,8 +775,64 @@ const
     );
   );
 
+procedure translateViewerFormToolbarItem;
+var
+  poFile: TPOFile;
+begin
+  if NOT (LRSTranslator is TTranslator) then
+    Exit;
+
+  poFile:= TTranslator(LRSTranslator).POFile;
+  translateItemConfig( poFile, 'tfrmviewer.actreload.hint', viewerReloadItemConfig );
+  translateItemConfig( poFile, 'tfrmviewer.actloadprevfile.hint', viewerPrevItemConfig );
+  translateItemConfig( poFile, 'tfrmviewer.actloadnextfile.hint', viewerNextItemConfig );
+  translateItemConfig( poFile, 'tfrmmain.actshellexecute.hint', viewerOpenWithItemConfig );
+  translateItemConfig( poFile, 'tfrmviewer.btnslideshow.caption', viewerSlideItemConfig );
+  translateItemConfig( poFile, 'tfrmviewer.actcopyfile.hint', viewerCopyFileItemConfig );
+  translateItemConfig( poFile, 'tfrmviewer.actmovefile.hint', viewerMoveFileItemConfig );
+  translateItemConfig( poFile, 'tfrmviewer.actdeletefile.hint', viewerDeleteFileItemConfig );
+
+  translateItemConfig( poFile, 'tfrmviewer.actzoomin.hint', viewerZoomInItemConfig );
+  translateItemConfig( poFile, 'tfrmviewer.actzoomout.hint', viewerZoomOutItemConfig );
+  translateItemConfig( poFile, 'tfrmviewer.actrotate270.hint', viewerRotate270ItemConfig );
+  translateItemConfig( poFile, 'tfrmviewer.actrotate90.hint', viewerRotate90ItemConfig );
+  translateItemConfig( poFile, 'tfrmviewer.actmirrorhorz.hint', viewerMirrorItemConfig );
+  translateItemConfig( poFile, 'tfrmviewer.btnresize.hint', viewerResizeItemConfig );
+
+  translateItemConfig( poFile, 'tfrmviewer.btnprevgifframe.hint', viewerGifPrevItemConfig );
+  translateItemConfig( poFile, 'tfrmviewer.btnnextgifframe.hint', viewerGifNextItemConfig );
+  translateItemConfig( poFile, 'tfrmviewer.btngiftobmp.hint', viewerGifExportItemConfig );
+
+  translateItemConfig( poFile, 'tfrmviewer.btnhightlight.hint', viewerHighLightItemConfig );
+  translateItemConfig( poFile, 'tfrmviewer.btncuttuimage.hint', viewerCropItemConfig );
+  translateItemConfig( poFile, 'tfrmviewer.btnredeye.hint', viewerRedEyesItemConfig );
+  translateItemConfig( poFile, 'tfrmviewer.btnpaint.hint', viewerPaintItemConfig );
+  translateItemConfig( poFile, 'tfrmviewer.mipen.hint', viewerPenModePenItemConfig );
+  translateItemConfig( poFile, 'tfrmviewer.mirect.hint', viewerPenModeRectItemConfig );
+  translateItemConfig( poFile, 'tfrmviewer.miellipse.caption', viewerPenModeEllipseItemConfig );
+end;
+
+procedure addViewerFormShortCutTips;
+begin
+  addShortCutTipsToItemConfig( 'Viewer', 'cm_Reload', viewerReloadItemConfig );
+  addShortCutTipsToItemConfig( 'Viewer', 'cm_LoadPrev', viewerPrevItemConfig );
+  addShortCutTipsToItemConfig( 'Viewer', 'cm_LoadNext', viewerNextItemConfig );
+  addShortCutTipsToItemConfig( 'Viewer', 'cm_CopyFile', viewerCopyFileItemConfig );
+  addShortCutTipsToItemConfig( 'Viewer', 'cm_MoveFile', viewerMoveFileItemConfig );
+  addShortCutTipsToItemConfig( 'Viewer', 'cm_DeleteFile', viewerDeleteFileItemConfig );
+
+  addShortCutTipsToItemConfig( 'Viewer', 'cm_ZoomIn', viewerZoomInItemConfig );
+  addShortCutTipsToItemConfig( 'Viewer', 'cm_ZoomOut', viewerZoomOutItemConfig );
+  addShortCutTipsToItemConfig( 'Viewer', 'cm_Rotate270', viewerRotate270ItemConfig );
+  addShortCutTipsToItemConfig( 'Viewer', 'cm_Rotate90', viewerRotate90ItemConfig );
+  addShortCutTipsToItemConfig( 'Viewer', 'cm_MirrorHorz', viewerMirrorItemConfig );
+end;
+
 procedure doInitViewerFormConfig;
 begin
+  translateViewerFormToolbarItem;
+  addViewerFormShortCutTips;
+
   viewerPenModeItemConfig.subitems:= [
     TCocoaToolBarUtils.toClass(viewerPenModePenItemConfig),
     TCocoaToolBarUtils.toClass(viewerPenModeRectItemConfig),
@@ -753,10 +843,11 @@ begin
     TCocoaToolBarUtils.toClass(viewerReloadItemConfig),
     TCocoaToolBarUtils.toClass(viewerPrevItemConfig),
     TCocoaToolBarUtils.toClass(viewerNextItemConfig),
+    TCocoaToolBarUtils.toClass(viewerOpenWithItemConfig),
+    TCocoaToolBarUtils.toClass(viewerSlideItemConfig),
     TCocoaToolBarUtils.toClass(viewerCopyFileItemConfig),
     TCocoaToolBarUtils.toClass(viewerMoveFileItemConfig),
     TCocoaToolBarUtils.toClass(viewerDeleteFileItemConfig),
-    TCocoaToolBarUtils.toClass(viewerSlideItemConfig),
 
     TCocoaToolBarUtils.toClass(viewerZoomInItemConfig),
     TCocoaToolBarUtils.toClass(viewerZoomOutItemConfig),
@@ -807,9 +898,6 @@ var
 
   toolBar: NSToolBar;
   item: NSToolBarItem;
-
-  moveImageName: String;
-  moveImage: NSImage;
 begin
   if vgsIsGif in states then begin
     moveEnabled:= True;
@@ -830,13 +918,7 @@ begin
 
   item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.GifMove');
   item.setEnabled( moveEnabled );
-  if vgsPlaying in states then
-    moveImageName:= 'pause.fill'
-  else
-    moveImageName:= 'play.fill';
-  moveImage:= NSImage.imageWithSystemSymbolName_accessibilityDescription(
-    StringToNSString(moveImageName), nil );
-  item.setImage( moveImage );
+  TCocoaToolBarItem(item).lclSetState( vgsPlaying in states );
 
   item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.GifPrev');
   item.setEnabled( prevEnabled );
@@ -844,6 +926,20 @@ begin
   item.setEnabled( nextEnabled );
   item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.GifExport');
   item.setEnabled( exportEnabled );
+end;
+
+procedure checkMenuByButton( const button: TToolButton; const menu: TMenu );
+var
+  index: Integer;
+  item: TMenuItem;
+begin
+  try
+    index:= button.Tag - 1;
+    for item in menu.Items do
+      item.Checked:= False;
+    menu.Items[index].Checked:= True;
+  except
+  end;
 end;
 
 procedure TCocoaViewerFormHandler.onImageEditStateChanged(
@@ -867,19 +963,11 @@ var
   procedure updateHighlightState;
   var
     highlightButton: TToolButton;
-    highlightImageName: String;
-    highlightImage: NSImage;
   begin
     highlightButton:= viewer.btnHightlight;
     item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.HighLight');
     item.setEnabled( highlightButton.Enabled );
-    if highlightButton.Down then
-      highlightImageName:= 'paintbrush.pointed.fill'
-    else
-      highlightImageName:= 'paintbrush.pointed';
-    highlightImage:= NSImage.imageWithSystemSymbolName_accessibilityDescription(
-      StringToNSString(highlightImageName), nil );
-    item.setImage( highlightImage );
+    TCocoaToolBarItem(item).lclSetState( highlightButton.Down );
 
     item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.Crop');
     item.setEnabled( highlightButton.Down );
@@ -890,19 +978,11 @@ var
   procedure updatePaintState;
   var
     paintButton: TToolButton;
-    paintImageName: String;
-    paintImage: NSImage;
   begin
     paintButton:= viewer.btnPaint;
     item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.Paint');
     item.setEnabled( paintButton.Enabled );
-    if paintButton.Down then
-      paintImageName:= 'highlighter'
-    else
-      paintImageName:= 'pencil';
-    paintImage:= NSImage.imageWithSystemSymbolName_accessibilityDescription(
-      StringToNSString(paintImageName), nil );
-    item.setImage( paintImage );
+    TCocoaToolBarItem(item).lclSetState( paintButton.Down );
 
     item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.PenMode');
     item.setEnabled( paintButton.Down );
@@ -910,8 +990,11 @@ var
 
     item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.PenWidth');
     item.setEnabled( paintButton.Down );
+    checkMenuByButton( viewer.btnPenWidth, TCocoaToolBarItemMenu(item).lclGetMenu );
+
     item:= TCocoaToolBarUtils.findItemByIdentifier( toolBar , 'ViewerForm.PenColor');
     item.setEnabled( paintButton.Down );
+    TCocoaToolBarItemColorWell(item).lclSetColor( viewer.btnPenColor.ButtonColor );
   end;
 
 begin
@@ -929,28 +1012,16 @@ end;
 
 procedure TCocoaViewerFormHandler.onSlideStateChanged(const viewer: TfrmViewer);
 var
-  form: TfrmViewer;
   item: NSToolBarItem;
-  imageName: String;
-  image: NSImage;
 begin
-  form:= getCurrentViewerForm;
-  if NOT Assigned(form) then
-    Exit;
-
-  item:= TCocoaToolBarUtils.findItemByIdentifier( form, 'ViewerForm.Slide' );
+  item:= TCocoaToolBarUtils.findItemByIdentifier( viewer, 'ViewerForm.Slide' );
   if item = nil then
     Exit;
 
-  if form.btnSlideShow.Down then
-    imageName:= 'pause'
-  else
-    imageName:= 'play';
-  image:= NSImage.imageWithSystemSymbolName_accessibilityDescription(
-    StringToNSString(imageName), nil );
-  item.setImage( image );
+  TCocoaToolBarItem(item).lclSetState( viewer.btnSlideShow.Down );
+  checkMenuByButton( viewer.btnSlideShow, TCocoaToolBarItemMenu(item).lclGetMenu );
 
-  form.TimerViewer.Enabled:= form.btnSlideShow.Down;
+  viewer.TimerViewer.Enabled:= viewer.btnSlideShow.Down;
 end;
 
 procedure TCocoaViewerFormHandler.onPenWidthChanged( Sender: TObject );

@@ -41,39 +41,58 @@ type
        for access by operations.
     }
     fspUsesConnections,
+
     {en
        Set, if the file source supports file listing on main thread only.
     }
     fspListOnMainThread,
+
     {en
        Set, if the file source supports copy in on the main thread only.
     }
     fspCopyInOnMainThread,
+
     {en
        Set, if the file source supports copy out on the main thread only.
     }
     fspCopyOutOnMainThread,
+
     {en
        Set, if the file source supports flat listing mode.
     }
     fspListFlatView,
+
     {en
        Set, if the file source supports mounted/mixed file struct.
        eg. TMountedFileSource / TiCloudDriveFileSource
     }
     fspMounted,
+
     {en
        Set, if the file source cannot be a child
     }
     fspNoneParent,
+
+    {en
+       Set, if the file source cannot be a child
+    }
+    fspDontChangePath,
+
+    {en
+       Set, if the file source supports searching in FindDlg.
+    }
+    fspSearchable,
+
     {en
       Set, if the file source has default columns view
     }
     fspDefaultView,
+
     {en
        Set, if the file source supports custom context menu.
     }
     fspContextMenu,
+
     {en
        Set, if the file source supports custom file icons.
     }

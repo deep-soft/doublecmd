@@ -101,6 +101,17 @@ type
     property FileList: TStringList write FFileList;
   end;
 
+  { TNormalizedRect }
+
+  TNormalizedRect = object
+  private
+    _rect: TRect;
+  public
+    procedure setRect( const x1, y1, x2, y2: Integer ); inline;
+    function getRect: TRect; inline;
+    function getDeltaRect( const delta: Integer ): TRect; inline;
+  end;
+
   { TfrmViewer }
 
   TfrmViewer = class(TAloneForm, IFormCommands)
@@ -166,6 +177,7 @@ type
     DrawPreview: TDrawGrid;
     GifAnim: TGIFView;
     memFolder: TMemo;
+    MenuItem1: TMenuItem;
     mnuPlugins: TMenuItem;
     miCode: TMenuItem;
     miShowTransparency: TMenuItem;
@@ -364,8 +376,8 @@ type
     iActiveFile,
     tmpX, tmpY,
     startX, startY, endX, endY,
-    UndoSX, UndoSY, UndoEX, UndoEY,
     cas, i_timer:Integer;
+    undoRect: TNormalizedRect;
     bAnimation,
     bImage,
     bPlugin,
@@ -443,12 +455,8 @@ type
     procedure ImagePaintBackground(ASender: TObject; ACanvas: TCanvas; ARect: TRect);
     procedure CreatePreview(FullPathToFile:string; index:integer; delete: boolean = false);
     procedure showLCLToolBar( newVisibility: Boolean );
-{$IFDEF DARWIN}
-    function modernToolBarEnabled: Boolean;
-{$ENDIF}
 
     property Commands: TFormCommands read FCommands implements IFormCommands;
-    property FileName: String write SetFileName;
 
   protected
     procedure WMCommand(var Message: TLMCommand); message LM_COMMAND;
@@ -478,6 +486,8 @@ type
     function DoZoomOut: Boolean;
     procedure RotateImage(ADegree: Integer);
     procedure MirrorImage(AVertically: Boolean = False);
+
+    property FileName: String read FFileName write SetFileName;
 
   published
     // Commands for hotkey manager
@@ -577,7 +587,7 @@ uses
   , SynEditWrappedView
 {$endif}
 {$IFDEF DARWIN}
-  , uDarwinApplication, uEarlyConfig
+  , uCocoaModernFormConfig
 {$ENDIF}
   ;
 
@@ -865,6 +875,25 @@ begin
     Canvas.Brush.Color:= Color;
     Canvas.FillRect(aRect);
   end;
+end;
+
+{ TNormalizedRect }
+
+procedure TNormalizedRect.setRect(const x1, y1, x2, y2: Integer);
+begin
+  _rect:= Rect( x1, y1, x2, y2 );
+  _rect.NormalizeRect;
+end;
+
+function TNormalizedRect.getRect: TRect;
+begin
+  Result:= _rect;
+end;
+
+function TNormalizedRect.getDeltaRect(const delta: Integer): TRect;
+begin
+  Result:= _rect;
+  InflateRect( Result, delta, delta );
 end;
 
 { TThumbThread }
@@ -1170,7 +1199,7 @@ end;
 procedure TfrmViewer.GifAnimMouseEnter(Sender: TObject);
 begin
 {$IFDEF DARWIN}
-  if NOT self.modernToolBarEnabled then
+  if NOT TDCCocoaModernFormUtils.isEnabled then
 {$ENDIF}
     if miFullScreen.Checked then TimerViewer.Enabled:=true;
 end;
@@ -1266,7 +1295,7 @@ end;
 procedure TfrmViewer.ImageMouseEnter(Sender: TObject);
 begin
 {$IFDEF DARWIN}
-  if NOT self.modernToolBarEnabled then
+  if NOT TDCCocoaModernFormUtils.isEnabled then
 {$ENDIF}
     if miFullScreen.Checked then TimerViewer.Enabled:=true;
 end;
@@ -1274,7 +1303,7 @@ end;
 procedure TfrmViewer.ImageMouseLeave(Sender: TObject);
 begin
 {$IFDEF DARWIN}
-  if NOT self.modernToolBarEnabled then
+  if NOT TDCCocoaModernFormUtils.isEnabled then
 {$ENDIF}
     if miFullScreen.Checked then TimerViewer.Enabled:=false;
 end;
@@ -1284,7 +1313,6 @@ procedure TfrmViewer.ImageMouseMove(Sender: TObject; Shift: TShiftState; X,
 var
   tmp: integer;
 begin
-  if btnHightlight.Down then Image.Cursor:=crCross;
   if miFullScreen.Checked then
     begin
       sboxImage.Cursor:=crDefault;
@@ -1335,29 +1363,27 @@ begin
               EndX:=X+tmpX;
               EndY:=Y+tmpY;
             end;
-            if StartX<0 then
-              begin
-                StartX:=0;
-                EndX:= UndoEX;
-              end;
-            if StartY<0 then
-              begin
-                StartY:=0;
-                EndY:= UndoEY;
-              end;
-            if endX> Image.Picture.Width then endX:=Image.Picture.Width;
-            if endY> Image.Picture.Height then endY:=Image.Picture.Height;
+            if StartX < 0 then StartX:= 0;
+            if StartY < 0 then StartY:= 0;
+            if endX < 0 then endX:= 0;
+            if endY < 0 then endY:= 0;
+            if endX > Image.Picture.Width then endX:=Image.Picture.Width;
+            if endY > Image.Picture.Height then endY:=Image.Picture.Height;
             with Image.Picture.Bitmap.Canvas do
               begin
-                DrawFocusRect(Rect(UndoSX,UndoSY,UndoEX,UndoEY));
-                DrawFocusRect(Rect(UndoSX+10,UndoSY+10,UndoEX-10,UndoEY-10));
-                DrawFocusRect(Rect(StartX,StartY,EndX,EndY));
-                DrawFocusRect(Rect(StartX+10,StartY+10,EndX-10,EndY-10));//Pen.Mode := pmNotXor;
+                if NOT undoRect.getRect.IsEmpty then begin
+                  {$IFnDEF DARWIN}
+                  DrawFocusRect( undoRect.getRect );
+                  DrawFocusRect( undoRect.getDeltaRect(-10) );
+                  {$ELSE}
+                  // XOR not supported on macOS, redraw instead
+                  CopyRect( undoRect.getRect, tmp_all.canvas, undoRect.getRect );
+                  {$ENDIF}
+                end;
+                undoRect.setRect( StartX, StartY, EndX, EndY );
+                DrawFocusRect( undoRect.getRect );
+                DrawFocusRect( undoRect.getDeltaRect(-10) );//Pen.Mode := pmNotXor;
                 Status.Panels[sbpImageSelection].Text := IntToStr(EndX-StartX)+'x'+IntToStr(EndY-StartY);
-                UndoSX:=StartX;
-                UndoSY:=StartY;
-                UndoEX:=EndX;
-                UndoEY:=EndY;
               end;
           end;
         if btnPaint.Down then
@@ -1374,24 +1400,16 @@ begin
               vptPen: LineTo (x,y);
               vptRectangle, vptEllipse:
               begin
-                if (startX>x) and (startY<y) then CopyRect (Rect(UndoSX+tmp,UndoSY-tmp,UndoEX-tmp,UndoEY+tmp), tmp_all.canvas,Rect(UndoSX+tmp,UndoSY-tmp,UndoEX-tmp,UndoEY+tmp));
-                if (startX<x) and (startY>y) then CopyRect (Rect(UndoSX-tmp,UndoSY+tmp,UndoEX+tmp,UndoEY-tmp), tmp_all.canvas,Rect(UndoSX-tmp,UndoSY+tmp,UndoEX+tmp,UndoEY-tmp));
-                if (startX>x) and (startY>y) then
-                  CopyRect (Rect(UndoSX+tmp,UndoSY+tmp,UndoEX-tmp,UndoEY-tmp), tmp_all.canvas,Rect(UndoSX+tmp,UndoSY+tmp,UndoEX-tmp,UndoEY-tmp))
-                else
-                  CopyRect (Rect(UndoSX-tmp,UndoSY-tmp,UndoEX+tmp,UndoEY+tmp), tmp_all.canvas,Rect(UndoSX-tmp,UndoSY-tmp,UndoEX+tmp,UndoEY+tmp));//UndoTmp;
-
+                if NOT undoRect.getRect.IsEmpty then
+                  CopyRect( undoRect.getDeltaRect(tmp), tmp_all.canvas, undoRect.getDeltaRect(tmp) );
+                undoRect.setRect( StartX, StartY, X, Y );
                 case TViewerPaintTool(btnPenMode.Tag) of
-                  vptRectangle: Rectangle(Rect(StartX,StartY,X,Y));
-                  vptEllipse:Ellipse(StartX,StartY,X,Y);
+                  vptRectangle: Rectangle( undoRect.getRect );
+                  vptEllipse:Ellipse( undoRect.getRect );
                 end;
               end;
             end;
 
-            UndoSX:=StartX;
-            UndoSY:=StartY;
-            UndoEX:=X;
-            UndoEY:=Y;
           end;
         end;
       if not (btnHightlight.Down) and not (btnPaint.Down) then
@@ -1408,9 +1426,7 @@ begin
   X:=round(X*Image.Picture.Width/Image.Width);             // for correct paint after zoom
   Y:=round(Y*Image.Picture.Height/Image.Height);
   MDFlag:=false;
-  if ToolBar1.Visible then
-    begin
-      if (button = mbLeft) and btnHightlight.Down then
+  if (button = mbLeft) and btnHightlight.Down then
     begin
       UndoTmp;
       CheckXY;
@@ -1424,8 +1440,8 @@ begin
         Status.Panels[sbpImageSelection].Text := IntToStr(EndX-StartX)+'x'+IntToStr(EndY-StartY);
       end;
     end;
-    end;
-  Image.Cursor:=crDefault;
+  if NOT btnHightlight.Down then
+    Image.Cursor:=crDefault;
 end;
 
 procedure TfrmViewer.ImageMouseWheelDown(Sender: TObject; Shift: TShiftState;
@@ -1487,18 +1503,11 @@ end;
 procedure TfrmViewer.showLCLToolBar( newVisibility: Boolean );
 begin
 {$IFDEF DARWIN}
-  if self.modernToolBarEnabled then
+  if TDCCocoaModernFormUtils.isEnabled then
     newVisibility:= False;
 {$ENDIF}
   ToolBar1.Visible:= newVisibility;
 end;
-
-{$IFDEF DARWIN}
-function TfrmViewer.modernToolBarEnabled: Boolean;
-begin
-  Result:= gModernUI and TDarwinApplicationUtil.supportsModernForm;
-end;
-{$ENDIF}
 
 procedure TfrmViewer.WMCommand(var Message: TLMCommand);
 var
@@ -1608,7 +1617,7 @@ begin
   sboxImage.VertScrollBar.Visible:= not(miFullScreen.Checked);
 
 {$IFDEF DARWIN}
-  if NOT self.modernToolBarEnabled then
+  if NOT TDCCocoaModernFormUtils.isEnabled then
 {$ENDIF}
     TimerViewer.Enabled:=miFullScreen.Checked;
 
@@ -1801,6 +1810,8 @@ begin
   Image.Height:=h;
 
   CreateTmp;
+  UpdateImagePlacement;
+
   StartX:=0;StartY:=0;EndX:=0;EndY:=0;
 end;
 
@@ -2177,7 +2188,7 @@ end;
 procedure TfrmViewer.sboxImageMouseEnter(Sender: TObject);
 begin
 {$IFDEF DARWIN}
-  if NOT self.modernToolBarEnabled then
+  if NOT TDCCocoaModernFormUtils.isEnabled then
 {$ENDIF}
     if miFullScreen.Checked then TimerViewer.Enabled:=true;
 end;
@@ -2185,7 +2196,7 @@ end;
 procedure TfrmViewer.sboxImageMouseLeave(Sender: TObject);
 begin
 {$IFDEF DARWIN}
-  if NOT self.modernToolBarEnabled then
+  if NOT TDCCocoaModernFormUtils.isEnabled then
 {$ENDIF}
     if miFullScreen.Checked then TimerViewer.Enabled:=false;
 end;
@@ -2564,6 +2575,7 @@ begin
                              GraphicFilter(TPortableAnyMapGraphic);
 
 {$IFDEF DARWIN}
+  self.BorderIcons:= self.BorderIcons - [biMinimize];
   self.OnWindowStateChange:= @self.FormWindowStateChange;
 {$ENDIF}
 end;
@@ -2721,6 +2733,11 @@ begin
   ImgEdit:= True;
   CreateTmp;
 
+  if btnHightlight.Down then
+    Image.Cursor:= crCross
+  else
+    Image.Cursor:= crDefault;
+
   viewerFormHandler.onImageEditStateChanged( self );
 end;
 
@@ -2783,6 +2800,7 @@ var
 begin
   MenuItem.Owner.Tag:= MenuItem.Tag;
   TToolButton(MenuItem.Owner).Caption:= MenuItem.Caption;
+  viewerFormHandler.onImageEditStateChanged( self );
 end;
 
 procedure TfrmViewer.ReopenAsTextIfNeeded;
@@ -3103,6 +3121,7 @@ function TfrmViewer.LoadGraphics(const sFileName:String): Boolean;
       gifStates:= []
     else
       gifStates:= [vgsIsGif];
+    viewerFormHandler.onSlideStateChanged( self );
     viewerFormHandler.onGifStateChanged( self, gifStates );
     viewerFormHandler.onImageEditStateChanged( self );
   end;

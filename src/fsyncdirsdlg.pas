@@ -968,6 +968,10 @@ begin
   HMSync := HotMan.Register(Self, HotkeysCategory);
   HMSync.RegisterActionList(ActionList);
   FCommands := TFormCommands.Create(Self, ActionList);
+
+{$IFDEF DARWIN}
+  self.BorderIcons:= self.BorderIcons - [biMinimize];
+{$ENDIF}
 end;
 
 procedure TfrmSyncDirsDlg.FormResize(Sender: TObject);
