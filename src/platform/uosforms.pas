@@ -744,6 +744,8 @@ end;
 procedure ShowContextMenu(Parent: TWinControl; var Files : TFiles; X, Y : Integer;
                           Background: Boolean; CloseEvent: TNotifyEvent; UserWishForContextMenu:TUserWishForContextMenu = uwcmComplete);
 {$IF DEFINED(MSWINDOWS)}
+var
+  contextFiles: TFiles;
 begin
   if Assigned(Files) and (Files.Count = 0) then
   begin
@@ -752,8 +754,13 @@ begin
   end;
 
   try
+    contextFiles:= Files;
     // Create new context menu
     ShellContextMenu:= TShellContextMenu.Create(Parent, Files, Background, UserWishForContextMenu);
+    if UserWishForContextMenu = uwcmComplete then
+    begin
+      frmMain.ActiveFrame.FileSource.QueryContextMenu(contextFiles, ShellContextMenu.PopupMenu);
+    end;
     ShellContextMenu.OnClose := CloseEvent;
     // Show context menu
     ShellContextMenu.PopUp(X, Y);
@@ -798,6 +805,8 @@ begin
   end;
 end;
 {$ELSE}
+var
+  contextFiles: TFiles;
 begin
   if Files.Count = 0 then
   begin
@@ -808,7 +817,9 @@ begin
   // Free previous created menu
   FreeAndNil(ShellContextMenu);
   // Create new context menu
+  contextFiles:= Files;
   ShellContextMenu:= TShellContextMenu.Create(nil, Files, Background, UserWishForContextMenu);
+  frmMain.ActiveFrame.FileSource.QueryContextMenu(contextFiles, TPopupMenu(ShellContextMenu));
   ShellContextMenu.OnClose := CloseEvent;
   ShellContextMenu.PopUp(X, Y);
 end;

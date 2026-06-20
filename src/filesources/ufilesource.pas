@@ -864,7 +864,7 @@ begin
     strings.AddObject( self.GetFileName(f), attr );
   end;
 
-  if strings.Count > 0 then begin
+  if strings.Count > 1 then begin
     case sort of
       fstAlphabet:     strings.CustomSort(@FilesSortAlphabet);
       fstFoldersFirst: strings.CustomSort(@FilesSortFoldersFirst);
@@ -1125,10 +1125,12 @@ end;
 
 procedure TFileSource.Reload(const PathToReload: String);
 var
-  PathsToReload: TPathsArray;
+  PathsToReload: TPathsArray = nil;
 begin
-  SetLength(PathsToReload, 1);
-  PathsToReload[0] := PathToReload;
+  if PathToReload <> EmptyStr then begin
+    SetLength(PathsToReload, 1);
+    PathsToReload[0] := PathToReload;
+  end;
   Reload(PathsToReload);
 end;
 

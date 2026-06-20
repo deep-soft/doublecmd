@@ -6,11 +6,11 @@ interface
 
 uses
   Classes, SysUtils,
-  Graphics, Menus,
+  Graphics, Menus, ActnList,
   uFile, uFileProperty, uFileSourceManager,
   uFileSourceProperty, uFileSourceOperation, uFileSourceOperationTypes,
-  uFileSource, uVirtualFileSource, uFileSystemFileSource, uVfsModule,
-  uFileSourceUtil, uDCUtils,
+  uFileSource, uVirtualFileSource, uFileSystemFileSource,
+  uDCUtils, DCStrUtils, uLng, uSysFolders,
   uStashFilesBackend
   {$IFDEF DARWIN}
   , uDarwinImage
@@ -24,6 +24,8 @@ type
   TStashFileSourceProcessor = class( TDefaultFileSourceProcessor )
   private
     procedure consultCopyOperation( var params: TFileSourceConsultParams );
+    procedure consultMoveOperation( var params: TFileSourceConsultParams );
+    procedure consultPackOperation( var params: TFileSourceConsultParams );
   public
     procedure consultOperation( var params: TFileSourceConsultParams ); override;
     procedure confirmOperation(var params: TFileSourceConsultParams); override;
@@ -38,22 +40,23 @@ type
     procedure onFileSystemEvent(var params: TFileSourceEventParams);
     procedure onStashChanged(Sender: TObject);
     procedure reload; overload;
-    procedure removeAction(Sender: TObject);
-    procedure clearAction(Sender: TObject);
   public
     constructor Create; override; overload;
     destructor Destroy; override;
     class function GetFileSource: IFileSource; override;
 
     function GetLocalName(var aFile: TFile): Boolean; override;
+    function GetRootDir(sPath : String): String; override;
+    function GetRealPath(const path: String): String; override;
+    function IsPathAtRoot(Path: String): Boolean; override;
+    class function IsSupportedPath(const Path: String): Boolean; override;
+
     class function GetMainIcon(out Path: String): Boolean; override;
     function GetCustomIcon(const path: String; const iconSize: Integer): TBitmap; override; overload;
     function GetDisplayFileName(aFile: TFile): String; override;
-    function needReload(const PathToReload: String; const PathToCheck: String): Boolean; override;
+    function QueryContextMenu(AFiles: TFiles; var AMenu: TPopupMenu): Boolean; override;
 
     function GetProcessor: TFileSourceProcessor; override;
-    function GetRootDir(sPath : String): String; override;
-    class function IsSupportedPath(const Path: String): Boolean; override;
     function GetProperties: TFileSourceProperties; override;
     function GetSupportedFileProperties: TFilePropertiesTypes; override;
     function GetRetrievableFileProperties: TFilePropertiesTypes; override;
@@ -63,20 +66,31 @@ type
     function CreateListOperation(TargetPath: String): TFileSourceOperation; override;
     function CreateCopyInOperation(SourceFileSource: IFileSource; var SourceFiles: TFiles; TargetPath: String): TFileSourceOperation; override;
     function CreateCopyOutOperation(TargetFileSource: IFileSource; var SourceFiles: TFiles; TargetPath: String): TFileSourceOperation; override;
+    function CreateMoveOperation(var SourceFiles: TFiles; TargetPath: String): TFileSourceOperation; override;
+    function CreateDeleteOperation(var FilesToDelete: TFiles): TFileSourceOperation; override;
+    function CreateWipeOperation(var FilesToWipe: TFiles): TFileSourceOperation; override;
+    function CreateSplitOperation(var aSourceFile: TFile; aTargetPath: String): TFileSourceOperation; override;
+    function CreateCombineOperation(var theSourceFiles: TFiles; aTargetFile: String): TFileSourceOperation; override;
+    function CreateCalcStatisticsOperation(var theFiles: TFiles): TFileSourceOperation; override;
     function CreateSetFilePropertyOperation(var theTargetFiles: TFiles; var theNewProperties: TFileProperties): TFileSourceOperation; override;
+    function CreateExecuteOperation(var ExecutableFile: TFile; BasePath, Verb: String): TFileSourceOperation; override;
 
-    function QueryContextMenu(AFiles: TFiles; var AMenu: TPopupMenu): Boolean; override;
+    function needReload(const PathToReload: String; const PathToCheck: String): Boolean; override;
     procedure AddSearchPath( const startPath: String; paths: TStringList); override;
   end;
+
+var
+  stashActionAddToStash: TAction;
+  stashActionRemoveFromStash: TAction;
+  stashActionEmptyStash: TAction;
+
+const
+  STASH_SCHEME = 'stash://';
 
 implementation
 
 uses
   uStashFileSourceOperation;
-
-const
-  STASH_NAME   = 'Stash';
-  STASH_SCHEME = 'stash://';
 
 var
   stashFileSourceProcessor: TFileSourceProcessor;
@@ -91,12 +105,9 @@ var
 
   procedure doSource;
   begin
-    params.handled:= True;
     if NOT (fspDirectAccess in targetFS.Properties) and
-       NOT (fsoCopyIn in targetFS.GetOperationsTypes) then begin
-          params.consultResult:= fscrNotSupported;
+       NOT (fsoCopyIn in targetFS.GetOperationsTypes) then
           Exit;
-    end;
 
     if fspDirectAccess in targetFS.Properties then begin
       params.resultOperationType:= fsoCopyOut;
@@ -105,19 +116,19 @@ var
       params.resultOperationType:= fsoCopyIn;
       params.resultFS:= targetFS;
     end;
+    params.operationTemp:= False;
     params.consultResult:= fscrSuccess;
+    params.handled:= False;
   end;
 
   procedure doTarget;
   begin
-    params.handled:= True;
-    if NOT (fspDirectAccess in sourceFS.Properties) then begin
-      params.consultResult:= fscrNotSupported;
+    if NOT (fspDirectAccess in sourceFS.Properties) then
       Exit;
-    end;
 
     params.resultOperationType:= fsoCopyIn;
     params.resultFS:= targetFS;
+    params.operationTemp:= False;
     params.consultResult:= fscrSuccess;
   end;
 
@@ -125,26 +136,49 @@ begin
   sourceFS:= params.sourceFS;
   targetFS:= params.targetFS;
 
-  if isCompatibleFileSourceForCopyOperation(sourceFS,targetFS) then begin
-    params.consultResult:= fscrNotSupported;
-    params.handled:= True;
-    Exit;
-  end;
-
   if params.phase=TFileSourceConsultPhase.source then
     doSource
   else
     doTarget;
 end;
 
+procedure TStashFileSourceProcessor.consultMoveOperation(
+  var params: TFileSourceConsultParams);
+begin
+  if params.phase=TFileSourceConsultPhase.target then
+    Exit;
+
+  if fspDirectAccess in params.targetFS.Properties then
+    params.consultResult:= fscrSuccess;
+end;
+
+procedure TStashFileSourceProcessor.consultPackOperation(
+  var params: TFileSourceConsultParams);
+begin
+  if params.phase=TFileSourceConsultPhase.target then
+    Exit;
+  Inherited consultOperation( params );
+end;
+
 procedure TStashFileSourceProcessor.consultOperation(
   var params: TFileSourceConsultParams);
 begin
+  params.consultResult:= fscrNotSupported;
+  params.handled:= True;
+
+  if params.partnerFS.IsClass(TStashFileSource) then
+    Exit;
+
+  if fspImmutable in params.targetFS.Properties then
+    Exit;
+
   case params.operationType of
     fsoCopy:
       self.consultCopyOperation( params );
-    else
-      Inherited;
+    fsoMove:
+      self.consultMoveOperation( params );
+    fsoPack:
+      self.consultPackOperation( params );
   end;
 end;
 
@@ -154,12 +188,12 @@ begin
   case params.operationType of
     fsoCopy: begin
       if (params.resultFS=params.partnerFS) then begin
-        params.files.Path:= params.files[0].Path;
+        params.files.setPathBaseOnAllFiles;
         params.handled:= True;
       end;
-    end
-    else
-      Inherited;
+    end;
+    fsoPack:
+      params.files.setPathBaseOnAllFiles;
   end;
 end;
 
@@ -180,20 +214,6 @@ begin
   self.Reload( self.GetRootDir );
 end;
 
-procedure TStashFileSource.removeAction(Sender: TObject);
-var
-  item: TMenuItem absolute Sender;
-  files: TFiles;
-begin
-  files:= TFiles( item.Tag );
-  stashFilesBackend.removePaths( files );
-end;
-
-procedure TStashFileSource.clearAction(Sender: TObject);
-begin
-  stashFilesBackend.clear;
-end;
-
 constructor TStashFileSource.Create;
 begin
   Inherited Create;
@@ -201,6 +221,10 @@ begin
   FCurrentAddress:= STASH_SCHEME;
   _fileSystemFS:= IFileSystemFileSource(FileSourceManager.Find(TFileSystemFileSource,EmptyStr));
   _fileSystemFS.AddEventListener( @self.onFileSystemEvent );
+
+  FOperationsClasses[fsoCopyIn]  := TStashCopyInOperation.GetOperationClass;
+  FOperationsClasses[fsoCopyOut] := _fileSystemFS.GetOperationClass(fsoCopyOut);
+  FOperationsClasses[fsoMove]    := _fileSystemFS.GetOperationClass(fsoMove);;
 end;
 
 destructor TStashFileSource.Destroy;
@@ -224,7 +248,7 @@ end;
 
 class function TStashFileSource.GetMainIcon(out Path: String): Boolean;
 begin
-  Path:= mbExpandFileName( '$COMMANDER_PATH/pixmaps/stuff/stash.png' );
+  Path:= 'cm_openstash';
   Result:= True;
 end;
 
@@ -245,11 +269,14 @@ end;
 {$ENDIF}
 
 function TStashFileSource.GetDisplayFileName(aFile: TFile): String;
+var
+  fullpath: String;
 begin
-  if aFile.FullPath = self.GetRootDir() then
-    Result:= STASH_NAME
+  fullpath:= aFile.FullPath;
+  if fullpath = self.GetRootDir() then
+    Result:= rsStashName
   else
-    Result:= aFile.Name;
+    Result:= ExtractFileName( ExcludeTrailingPathDelimiter(fullpath) );
 end;
 
 function TStashFileSource.needReload(
@@ -267,7 +294,26 @@ end;
 
 function TStashFileSource.GetRootDir(sPath: String): String;
 begin
-  Result:= PathDelim + STASH_NAME + PathDelim;
+  Result:= PathDelim + rsStashName + PathDelim;
+end;
+
+function TStashFileSource.GetRealPath(const path: String): String;
+begin
+  if self.IsPathAtRoot(path) then
+    Result:= GetHomeDir
+  else
+    Result:= Path;
+end;
+
+function TStashFileSource.IsPathAtRoot(Path: String): Boolean;
+var
+  dirs: TStringList;
+  dirCount: Integer;
+begin
+  dirs:= TStringList.Create;
+  dirCount:= GetDirs( ExcludeTrailingPathDelimiter(Path), dirs );
+  Result:= (dirCount <= 1);
+  dirs.Free;
 end;
 
 class function TStashFileSource.IsSupportedPath(const Path: String): Boolean;
@@ -278,7 +324,8 @@ end;
 function TStashFileSource.GetProperties: TFileSourceProperties;
 begin
   Result:= _fileSystemFS.Properties;
-  Result+= [fspLinksToLocalFiles, fspDontChangePath];
+  Result-= [fspListFlatView];
+  Result+= [fspLinksToLocalFiles, fspDontChangePath, fspDontCreateDirectory];
 end;
 
 function TStashFileSource.GetSupportedFileProperties: TFilePropertiesTypes;
@@ -293,7 +340,14 @@ end;
 
 function TStashFileSource.GetOperationsTypes: TFileSourceOperationTypes;
 begin
-  Result:= [fsoList, fsoCopyIn, fsoCopyOut, fsoSetFileProperty];
+  Result:= [fsoList,
+            fsoCopyIn, fsoCopyOut, fsoMove,
+            fsoDelete, fsoWipe,
+            fsoSplit, fsoCombine,
+            fsoCalcStatistics,
+            fsoSetFileProperty,
+            fsoExecute,
+            fsoTestArchive];
 end;
 
 class function TStashFileSource.CreateFile(const APath: String): TFile;
@@ -332,6 +386,40 @@ begin
               TargetPath );
 end;
 
+function TStashFileSource.CreateMoveOperation(var SourceFiles: TFiles;
+  TargetPath: String): TFileSourceOperation;
+begin
+  Result:= _fileSystemFS.CreateMoveOperation(SourceFiles, TargetPath);
+end;
+
+function TStashFileSource.CreateDeleteOperation(var FilesToDelete: TFiles): TFileSourceOperation;
+begin
+  Result:= _fileSystemFS.CreateDeleteOperation( FilesToDelete );
+end;
+
+function TStashFileSource.CreateWipeOperation(var FilesToWipe: TFiles): TFileSourceOperation;
+begin
+  Result:= _fileSystemFS.CreateWipeOperation( FilesToWipe );
+end;
+
+function TStashFileSource.CreateSplitOperation(var aSourceFile: TFile;
+  aTargetPath: String): TFileSourceOperation;
+begin
+  Result:= _fileSystemFS.CreateSplitOperation(aSourceFile, aTargetPath);
+end;
+
+function TStashFileSource.CreateCombineOperation(var theSourceFiles: TFiles;
+  aTargetFile: String): TFileSourceOperation;
+begin
+  Result:= _fileSystemFS.CreateCombineOperation(theSourceFiles, aTargetFile);
+end;
+
+function TStashFileSource.CreateCalcStatisticsOperation(var theFiles: TFiles
+  ): TFileSourceOperation;
+begin
+  Result:= _fileSystemFS.CreateCalcStatisticsOperation(theFiles);
+end;
+
 function TStashFileSource.CreateSetFilePropertyOperation(
   var theTargetFiles: TFiles; var theNewProperties: TFileProperties
   ): TFileSourceOperation;
@@ -341,8 +429,15 @@ begin
               theNewProperties );
 end;
 
+function TStashFileSource.CreateExecuteOperation(var ExecutableFile: TFile;
+  BasePath, Verb: String): TFileSourceOperation;
+begin
+  Result:= _fileSystemFS.CreateExecuteOperation(ExecutableFile, BasePath, Verb);
+end;
+
 function TStashFileSource.QueryContextMenu(AFiles: TFiles; var AMenu: TPopupMenu): Boolean;
 var
+  removedIndex: Integer;
   index: Integer;
 
   function hasValidPath: Boolean;
@@ -361,12 +456,10 @@ var
   end;
 
   procedure removeAddToStash;
-  var
-    item: TMenuItem;
   begin
-    item:= AMenu.Items.Find( 'Add to Stash' );
-    if Assigned(item) then
-      AMenu.Items.Remove( item );
+    removedIndex:= AMenu.Items.IndexOfCaption( stashActionAddToStash.Caption );
+    if removedIndex >= 0 then
+      AMenu.Items.Delete( removedIndex );
   end;
 
   procedure addRemoveStashItems;
@@ -374,9 +467,7 @@ var
     item: TMenuItem;
   begin
     item:= TMenuItem.Create( AMenu );
-    item.Caption:= 'Remove Stash Items';
-    item.OnClick:= @self.removeAction;
-    item.Tag:= PtrInt( AFiles );
+    item.Action:= stashActionRemoveFromStash;
     AMenu.Items.Insert(index, item);
     inc( index );
   end;
@@ -386,8 +477,7 @@ var
     item: TMenuItem;
   begin
     item:= TMenuItem.Create( AMenu );
-    item.Caption:= 'Empty Stash';
-    item.OnClick:= @self.clearAction;
+    item.Action:= stashActionEmptyStash;
     AMenu.Items.Insert(index, item);
     inc( index );
   end;
@@ -402,10 +492,14 @@ var
   end;
 
 begin
-  Result:= False;
-  index:= 0;
+  Result:= True;
 
   removeAddToStash;
+
+  if removedIndex >= 0 then
+    index:= removedIndex
+  else
+    index:= 0;
 
   if hasValidPath then
     addRemoveStashItems;
@@ -413,10 +507,8 @@ begin
   if stashFilesBackend.count > 0 then
     addEmptyStash;
 
-  if index > 0 then begin
+  if (removedIndex < 0) and (AMenu.Items.Count > 0) then
     addSeperator;
-    Result:= True;
-  end;
 end;
 
 procedure TStashFileSource.AddSearchPath(
@@ -436,7 +528,6 @@ end;
 
 initialization
   stashFileSourceProcessor:= TStashFileSourceProcessor.Create;
-  RegisterVirtualFileSource( STASH_NAME, STASH_SCHEME, TStashFileSource, True );
 
 finalization
   FreeAndNil( stashFileSourceProcessor );

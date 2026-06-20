@@ -71,6 +71,7 @@ type
    // parameters would have to be converted to and from strings).
    //
    procedure DoOpenVirtualFileSystemList(Panel: TFileView);
+   procedure DoOpenStash(Panel: TFileView);
    procedure DoPanelsSplitterPerPos(SplitPos: Integer);
    procedure DoUpdateFileView(AFileView: TFileView; {%H-}UserData: Pointer);
    procedure DoCloseTab(Notebook: TFileViewNotebook; PageIndex: Integer);
@@ -186,6 +187,7 @@ type
    procedure cm_Open(const {%H-}Params: array of string);
    procedure cm_ShellExecute(const Params: array of string);
    procedure cm_OpenVirtualFileSystemList(const {%H-}Params: array of string);
+   procedure cm_OpenStash(const {%H-}Params: array of string);
    procedure cm_TargetEqualSource(const {%H-}Params: array of string);
    procedure cm_LeftEqualRight(const {%H-}Params: array of string);
    procedure cm_RightEqualLeft(const {%H-}Params: array of string);
@@ -383,6 +385,8 @@ type
    procedure cm_LoadList(const Params: array of string);
    procedure cm_SetSortMode(const Params: array of string);
    procedure cm_AddToStash(const {%H-}Params: array of string);
+   procedure cm_RemoveFromStash(const {%H-}Params: array of string);
+   procedure cm_EmptyStash(const {%H-}Params: array of string);
 
    // Internal commands
    procedure cm_ExecuteToolbarItem(const Params: array of string);
@@ -398,7 +402,7 @@ uses fOptionsPluginsBase, fOptionsPluginsDSX, fOptionsPluginsWCX,
      fLinker, fSplitter, fDescrEdit, fCheckSumVerify, fCheckSumCalc, fSetFileProperties,
      uLng, uLog, uShowMsg, uOSForms, uOSUtils, uDCUtils, uBriefFileView, fSelectDuplicates,
      uShowForm, uShellExecute, uClipboard, uHash, uDisplayFile, uLuaPas, uSysFolders,
-     uFilePanelSelect, uFileSystemFileSource, uQuickViewPanel, Math, fViewer,
+     uFilePanelSelect, uFileSourceManager, uFileSystemFileSource, uQuickViewPanel, Math, fViewer,
      uOperationsManager, uFileSourceOperationTypes, uWfxPluginFileSource,
      uFileSystemDeleteOperation, uFileSourceExecuteOperation, uSearchResultFileSource,
      uFileSourceOperationMessageBoxesUI, uFileSourceCalcChecksumOperation,
@@ -412,7 +416,7 @@ uses fOptionsPluginsBase, fOptionsPluginsDSX, fOptionsPluginsWCX,
      fMainCommandsDlg, uConnectionManager, fOptionsFavoriteTabs, fTreeViewMenu,
      uArchiveFileSource, fOptionsHotKeys, fBenchmark, uAdministrator, uWcxArchiveFileSource,
      uColumnsFileView, uTypes,
-     uStashFilesBackend
+     uStashFileSource, uStashFilesBackend
      ;
 
 resourcestring
@@ -730,6 +734,18 @@ var
   FileSource: IFileSource;
 begin
   FileSource:= TVfsFileSource.Create(gWFXPlugins);
+  if Assigned(FileSource) then
+  begin
+    Panel.AddFileSource(FileSource, FileSource.GetRootDir);
+    frmMain.ActiveFrame.SetFocus;
+  end;
+end;
+
+procedure TMainCommands.DoOpenStash(Panel: TFileView);
+var
+  FileSource: IFileSource;
+begin
+  FileSource:= TStashFileSource.GetFileSource;
   if Assigned(FileSource) then
   begin
     Panel.AddFileSource(FileSource, FileSource.GetRootDir);
@@ -1255,6 +1271,13 @@ begin
       AFileView.Reload;
     Exit;
   end;
+
+  if not (fspListFlatView in AFileSource.GetProperties) then
+  begin
+    msgWarning(rsMsgErrNotSupported);
+    Exit;
+  end;
+
   AFileList := TFileTree.Create;
   AFiles := AFileView.CloneSelectedFiles;
   for J := 0 to AFiles.Count - 1 do
@@ -1457,46 +1480,58 @@ begin
   DoOpenVirtualFileSystemList(frmMain.ActiveFrame);
 end;
 
+procedure TMainCommands.cm_OpenStash(const Params: array of string);
+begin
+  DoOpenStash(frmMain.ActiveFrame);
+end;
+
 //------------------------------------------------------
 (* Pack files in archive by creating a new archive *)
 procedure TMainCommands.cm_PackFiles(const Params: array of string);
 var
   Param: String;
-  TargetPath: String;
-  SelectedFiles: TFiles;
-  TargetFileSource: IFileSource;
+  fsParams: TFileSourceConsultParams;
 begin
   with frmMain do
   begin
+    fsParams:= Default(TFileSourceConsultParams);
+    fsParams.operationType:= fsoPack;
+    fsParams.sourceFS:= ActiveFrame.FileSource;
+
     Param := GetDefaultParam(Params);
     if Param = 'PackHere' then
     begin
-      TargetPath:= ActiveFrame.CurrentPath;
-      TargetFileSource:= ActiveFrame.FileSource;
+      fsParams.targetPath:= ActiveFrame.CurrentPath;
+      fsParams.targetFS:= ActiveFrame.FileSource;
     end
     else begin
-      TargetPath:= NotActiveFrame.CurrentPath;
-      TargetFileSource:= NotActiveFrame.FileSource;
+      fsParams.targetPath:= NotActiveFrame.CurrentPath;
+      fsParams.targetFS:= NotActiveFrame.FileSource;
     end;
-    if not (fspDirectAccess in TargetFileSource.Properties) then
-      msgError(rsMsgErrNotSupported)
-    else begin
-      SelectedFiles := ActiveFrame.CloneSelectedOrActiveFiles;
-      try
-        if SelectedFiles.Count = 0 then
-          msgWarning(rsMsgNoFilesSelected)
-        else begin
-          ShowPackDlg(frmMain,
-                      ActiveFrame.FileSource,
-                      TargetFileSource,
-                      SelectedFiles,
-                      TargetPath,
-                      PathDelim { Copy to root of archive } {NotActiveFrame.FileSource.GetRootString}
-                     );
-        end;
-      finally
-        FreeAndNil(SelectedFiles);
+
+    fsParams.files:= ActiveFrame.CloneSelectedOrActiveFiles;
+    try
+      if fsParams.files.Count = 0 then begin
+        msgWarning(rsMsgNoFilesSelected);
+        Exit;
       end;
+
+      FileSourceManager.consultOperation( fsParams );
+      case fsParams.consultResult of
+        fscrNotSupported:
+          msgError(rsMsgErrNotSupported);
+        fscrNotImplemented:
+          msgError(rsMsgNotImplemented);
+      end;
+      if fsParams.consultResult <> fscrSuccess then
+        Exit;
+
+      ShowPackDlg(frmMain,
+                  fsParams,
+                  PathDelim { Copy to root of archive } {NotActiveFrame.FileSource.GetRootString}
+                 );
+    finally
+      FreeAndNil(fsParams.files);
     end;
   end;
 end;
@@ -2509,12 +2544,14 @@ begin
   try
     if not (fsoCreateDirectory in ActiveFrame.FileSource.GetOperationsTypes) then
     begin
-      if (fsoCopyIn in ActiveFrame.FileSource.GetOperationsTypes) then
-        bMakeViaCopy := True
-      else begin
+      if (fspDontCreateDirectory in ActiveFrame.FileSource.Properties) or
+         (fspImmutable in ActiveFrame.FileSource.Properties) or
+         NOT (fsoCopyIn in ActiveFrame.FileSource.GetOperationsTypes) then
+      begin
         msgWarning(rsMsgErrNotSupported);
         Exit;
       end;
+      bMakeViaCopy := True
     end;
 
     ActiveFile := ActiveFrame.CloneActiveFile;
@@ -4199,7 +4236,7 @@ var
 begin
   with frmMain do
   begin
-    if ActiveFrame.FileSource.IsClass(TFileSystemFileSource) then
+    if fspDirectAccess in ActiveFrame.FileSource.Properties then
       begin
         SelectedFiles := ActiveFrame.CloneSelectedOrActiveFiles;
         if Assigned(SelectedFiles) then
@@ -5712,11 +5749,35 @@ end;
 
 procedure TMainCommands.cm_AddToStash(const Params: array of string);
 var
+  fs: IFileSource;
   files: TFiles;
 begin
+  fs:= frmMain.ActiveFrame.FileSource;
+  if fs.IsClass(TStashFileSource) then
+    Exit;
+  if NOT (fspDirectAccess in fs.Properties) then
+    Exit;
   files:= frmMain.ActiveFrame.CloneSelectedOrActiveFiles;
   stashFilesBackend.addPaths( files );
   files.Free;
+end;
+
+procedure TMainCommands.cm_RemoveFromStash(const Params: array of string);
+var
+  fs: IFileSource;
+  files: TFiles;
+begin
+  fs:= frmMain.ActiveFrame.FileSource;
+  if NOT fs.IsClass(TStashFileSource) then
+    Exit;
+  files:= frmMain.ActiveFrame.CloneSelectedOrActiveFiles;
+  stashFilesBackend.removePaths( files );
+  files.Free;
+end;
+
+procedure TMainCommands.cm_EmptyStash(const Params: array of string);
+begin
+  stashFilesBackend.clear;
 end;
 
 end.

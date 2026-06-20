@@ -79,9 +79,26 @@ type
     fspDontChangePath,
 
     {en
+       Set, if creating directories is forbidden.
+       DC should not use workarounds to create directories.
+    }
+    fspDontCreateDirectory,
+
+    {en
+       Set, if the files/paths of the file source cannnot be changed
+       (for example: results from searching, etc.).
+    }
+    fspImmutable,
+
+    {en
        Set, if the file source supports searching in FindDlg.
     }
     fspSearchable,
+
+    {en
+       Set, if the file source supports save to ConfigFile and load from ConfigFile.
+    }
+    fspSaveableLoadable,
 
     {en
       Set, if the file source has default columns view
